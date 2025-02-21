@@ -36,6 +36,7 @@ jobs:
         with:
           repository: optiprofiler/optiprofiler
           path: bds/optiprofiler
+          ref: main
           submodules: recursive
 
       - name: Clone PRIMA
