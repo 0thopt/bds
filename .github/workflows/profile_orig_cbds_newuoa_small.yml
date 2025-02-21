@@ -37,8 +37,8 @@ jobs:
         with:
             repository: optiprofiler/optiprofiler
             path: optiprofiler
-            ref: main
             submodules: recursive
+            fetch-depth: 0
 
       - name: Clone PRIMA
         uses: actions/checkout@v4
