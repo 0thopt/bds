@@ -2,7 +2,7 @@ name: Profile original cbds and newuoa using optiprofiler, small
 
 on:
   # Trigger the workflow on # push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   schedule:
   - cron: '0 18 */2 * *'
@@ -31,12 +31,9 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Checkout OptiProfiler
-        uses: actions/checkout@v4
-        with:
-          repository: optiprofiler/optiprofiler
-          path: optiprofiler
-          submodules: recursive
+      - name: Clone OptiProfiler with Submodules
+        run: |
+          git clone --recurse-submodules git@github.com:optiprofiler/optiprofiler.git bds/optiprofiler
 
       - name: Clone PRIMA
         uses: actions/checkout@v4

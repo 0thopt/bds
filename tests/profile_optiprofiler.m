@@ -524,7 +524,7 @@ function x = fminunc_adaptive(fun, x0, noise_level)
 
     options.with_gradient = true;
     options.noise_level = noise_level;
-    x = test_fminunc(fun, x0, options);
+    x = fminunc_wrapper(fun, x0, options);
 
 end
 

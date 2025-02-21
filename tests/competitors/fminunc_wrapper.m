@@ -1,4 +1,4 @@
-function x = test_fminunc(fun, x0, options)
+function x = fminunc_wrapper(fun, x0, options)
 
     % Set options to an empty structure if it is not provided.
     if nargin < 3
