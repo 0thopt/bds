@@ -30,10 +30,19 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          persist-credentials: false
 
+      # Step 2: Fix submodule URLs to use HTTPS
+      - name: Fix submodule URLs to HTTPS
+        run: |
+          git submodule foreach --recursive 'git config submodule.${name}.url https://github.com/${name}.git'
+          git submodule sync
+          git submodule update --init --recursive
+
+      # Step 3: Clone OptiProfiler into a folder (if needed)
       - name: Clone OptiProfiler into a folder
         run: |
-            git clone --recurse-submodules https://github.com/optiprofiler/optiprofiler.git optiprofiler
+          git clone --recurse-submodules https://github.com/optiprofiler/optiprofiler.git optiprofiler
 
       - name: Clone PRIMA
         uses: actions/checkout@v4
