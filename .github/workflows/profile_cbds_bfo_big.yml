@@ -37,6 +37,8 @@ jobs:
           repository: optiprofiler/optiprofiler
           path: optiprofiler
           submodules: recursive
+          fetch-depth: 0
+          ref: matlab
 
       - name: Clone BFO
         uses: actions/checkout@v4

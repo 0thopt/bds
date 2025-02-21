@@ -45,6 +45,8 @@ jobs:
           repository: optiprofiler/optiprofiler
           path: optiprofiler
           submodules: recursive
+          fetch-depth: 0
+          ref: matlab
 
       - name: Install Texlive
         run: sudo apt-get update && sudo apt-get install texlive
