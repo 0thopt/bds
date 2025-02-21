@@ -31,11 +31,9 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Checkout OptiProfiler
-        uses: actions/checkout@v4
-        with:
-            repository: optiprofiler/optiprofiler
-            submodules: recursive
+      - name: Clone OptiProfiler into a folder
+        run: |
+            git clone --recurse-submodules https://github.com/optiprofiler/optiprofiler.git optiprofiler
 
       - name: Clone PRIMA
         uses: actions/checkout@v4
