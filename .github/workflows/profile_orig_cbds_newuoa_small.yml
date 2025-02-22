@@ -2,7 +2,7 @@ name: Profile original cbds and newuoa using optiprofiler, small
 
 on:
   # Trigger the workflow on # push or pull request
-  push:
+  # push:
   # Trigger the workflow manually
   schedule:
   - cron: '0 18 */2 * *'
@@ -96,8 +96,6 @@ jobs:
               % options.dim = '${{ matrix.dim }}';
               options.run_plain = ${{ matrix.run_plain }};
               options.summarize_log_ratio_profiles = ${{ matrix.summarize_log_ratio_profiles }};
-              options.mindim = 1;
-              options.maxdim = 1;
               profile_optiprofiler(options);
               cd(root_dir);
               cd(fullfile(root_dir, 'tests', 'out'));
