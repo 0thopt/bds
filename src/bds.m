@@ -92,8 +92,8 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               is r. If block i is selected at iteration k, then it
 %                               will not be selected at iterations k+1, ..., k+r.
 %                               replacement_delay should be an integer between 0 and
-%                               floor(num_blocks/rbds_num_selected_blocks)-1.
-%                               Default: floor(num_blocks/rbds_num_selected_blocks)-1.
+%                               floor(num_blocks/num_selected_blocks)-1.
+%                               Default: floor(num_blocks/num_selected_blocks)-1.
 %   seed                        The seed for permuting blocks in PBDS or randomly
 %                               choosing some blocks in RBDS.
 %   use_estimated_gradient_stop Whether to use the estimated gradient to stop
@@ -200,7 +200,13 @@ if ~isfield(options, "num_blocks")
     if strcmpi(options.Algorithm, "ds")
         num_blocks = 1;
     else
-        num_blocks = ceil(num_directions/2);
+        % There are two reasons that we set the default value of num_blocks to n directly.
+        % 1. Try to avoid using division even if the num_directions is always 2n, where
+        %    n is the dimension of the problem.
+        % 2. The default value of num_blocks is set to n when the Algorithm is "cbds",
+        %    "pbds", "rbds", or "pads".
+        % num_blocks = ceil(num_directions/2);
+        num_blocks = n;
     end
 else
     num_blocks = options.num_blocks;
@@ -346,6 +352,7 @@ if strcmpi(options.Algorithm, "rbds")
     end
 
     if isfield(options, "replacement_delay")
+        % Division here is safe because num_selected_blocks is less than or equal to num_blocks.
         replacement_delay = min(options.replacement_delay, floor(num_blocks/num_selected_blocks)-1);
     else
         replacement_delay = floor(num_blocks/num_selected_blocks)-1;
@@ -555,7 +562,6 @@ if output_xhist
 end
 % When we record fhist, we should use the real function value at xbase, which is fbase_real.
 fhist(nf) = fbase_real;
-fopt_hist(nf) = fbase_real;
 
 terminate = false;
 % Check whether FTARGET is reached by fopt. If it is true, then terminate.
@@ -603,13 +609,14 @@ for iter = 1:maxit
         end
     end
 
-    % Record the best function values calculated in each block after one iteration.
-    if iter > 1
-        fopt_hist(iter) = min(fopt_all);
-    end
+    % Record the best function value encountered so far.
+    fopt_hist(iter) = min(fhist);
 
+    % Check if the optimization process should stop due to insufficient change 
+    % in the objective function values over the last 10 iterations. If the change 
+    % is below a defined threshold, set the exit flag and terminate the process.
     if iter > 10 && use_function_value_stop
-        if (max(fopt_hist(iter-10:iter-1)) - min(fopt_hist(iter-10:iter-1))) / max(1, abs(fopt_hist(iter))) < 1e-6
+        if max(fopt_hist(iter-10:iter-1)) < 1e-6 * max(1, abs(fopt_hist(iter))) + min(fopt_hist(iter-10:iter-1))
             exitflag = get_exitflag("INSUFFICIENT_OBJECTIVE_CHANGE");
             break;
         end

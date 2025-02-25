@@ -37,6 +37,7 @@ end
 % We try to make the number of directions in each block as even as possible. In specific, the first
 % mod(n, num_blocks) blocks contain 2*(floor(n/num_blocks) + 1) directions and the rest contain 
 % 2*floor(n/num_blocks) directions.
+% Division here is also safe since num_blocks is a positive integer less than or equal to n.
 num_directions_block = ones(num_blocks, 1)*floor(n/num_blocks);
 num_directions_block(1:mod(n, num_blocks)) = num_directions_block(1:mod(n, num_blocks)) + 1;
 num_directions_block = num_directions_block*2;

@@ -79,7 +79,8 @@ for j = 1 : num_directions
     end
     
     % Check whether the sufficient decrease condition is achieved.
-    sufficient_decrease = (fnew + reduction_factor(3) * forcing_function(alpha)/2 < fbase);
+    % Here, we also avoid using division operation as the coefficient of the forcing function.
+    sufficient_decrease = (fnew + reduction_factor(3) * 0.5 * forcing_function(alpha) < fbase);
     if verbose
         if sufficient_decrease
             fprintf("%g decrease is achieved------------------.\n", fbase - fnew);
@@ -126,6 +127,9 @@ if sufficient_decrease
 else
     output.sufficient_decrease = false;
 end
+% Actually, there at lest exist two ways to record the decrease value.
+% One is fbase - min(fhist(1:nf)), and the other is fbase - min(fhist(1:nf), fbase).
+% Here, we choose the first one because it is more reasonable.
 output.decrease_value = fbase - min(fhist(1:nf));
 
 end
