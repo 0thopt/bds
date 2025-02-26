@@ -99,7 +99,7 @@ jobs:
               options.solver_names = {'${{ matrix.solver }}', '${{ matrix.competitor_1 }}', '${{ matrix.competitor_2 }}', '${{ matrix.competitor_3 }}', '${{ matrix.competitor_4 }}'};
               options.dim = '${{ matrix.dim }}';
               options.run_plain = ${{ matrix.run_plain }};
-              options.n_runs = 1;
+              options.n_runs = 2;
               options.summarize_log_ratio_profiles = ${{ matrix.summarize_log_ratio_profiles }};
               options.test_blocks = true;
               profile_optiprofiler(options);
@@ -191,7 +191,7 @@ jobs:
           cd summary
           ls
           bash ../merge_pdf.sh
-          mv merged.pdf "summary_pbds_rbds_num_selected_blocks_1_delay_n_minus_1_big.pdf"
+          mv merged.pdf "summary_pbds_permuting_period_big.pdf"
           cd ..
           if [ -d "summary" ]; then
             mv summary "summary_${BASE_INFO}"
@@ -202,7 +202,7 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: merged_profiles_pbds_rbds_num_selected_blocks_1_delay_n_minus_1_big
+          name: merged_profiles_pbds_permuting_period_big
           path: tests/testdata/downloaded_artifacts/**
 
       - name: Upload summary files
@@ -210,5 +210,5 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: summary_files_pbds_rbds_num_selected_blocks_1_delay_n_minus_1_big
+          name: summary_profiles_pbds_permuting_period_big
           path: tests/testdata/downloaded_artifacts/summary_${{ env.BASE_INFO }}/**

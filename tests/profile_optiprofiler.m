@@ -844,6 +844,8 @@ function x = cbds_rotated_initial_point_test(fun, x0)
         % H = I - 2 * (u * u'), but we avoid forming H explicitly
         % Instead, we compute R directly
         R = eye(n) - 2 * (u * u'); % Compute the full rotation matrix
+
+        % Ensure that the first column of R is aligned with x0.
     end
 
     option.direction_set = R;
