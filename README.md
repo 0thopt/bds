@@ -116,7 +116,7 @@ The following tests are implemented by [Optiprofiler](https://github.com/optipro
     - [![Profile cbds with randomized gaussian matrix input, small](https://github.com/opt-lab/bds/actions/workflows/profile_cbds_randomized_gaussian_small.yml/badge.svg)](https://github.com/opt-lab/bds/actions/workflows/profile_cbds_randomized_gaussian_small.yml)
     - [![Profile cbds with permuted matrix input, big](https://github.com/opt-lab/bds/actions/workflows/profile_cbds_permuted_big.yml/badge.svg)](https://github.com/opt-lab/bds/actions/workflows/profile_cbds_permuted_big.yml)
     - [![Profile cbds with permuted matrix input, small](https://github.com/opt-lab/bds/actions/workflows/profile_cbds_permuted_small.yml/badge.svg)](https://github.com/opt-lab/bds/actions/workflows/profile_cbds_permuted_small.yml)
-
+    - [![Profile pbds with different permuting period, big](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_pbds_permuting_period_big.yml/badge.svg)](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_pbds_permuting_period_big.yml)
 
 - [Tests](https://github.com/optimlib/bds/actions) at [optimlib/bds](https://github.com/optimlib/bds)
  

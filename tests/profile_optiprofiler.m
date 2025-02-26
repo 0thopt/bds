@@ -185,6 +185,16 @@ function profile_optiprofiler(options)
                 solvers{i} = @(fun, x0) pbds_test_noisy(fun, x0, true);
             case 'pbds-orig'
                 solvers{i} = @pbds_orig_test;
+            case 'pbds-permuted-0'
+                solvers{i} = @pbds_permuted_0_test;
+            case 'pbds-permuted-1'
+                solvers{i} = @pbds_permuted_1_test;
+            case 'pbds-permuted-quarter-n'
+                solvers{i} = @pbds_permuted_quarter_n_test;
+            case 'pbds-permuted-half-n'
+                solvers{i} = @pbds_permuted_half_n_test;
+            case 'pbds-permuted-n'
+                solvers{i} = @pbds_permuted_n_test;
             case 'rbds'
                 solvers{i} = @rbds_test;
             case 'rbds-noisy'
@@ -572,6 +582,56 @@ function x = pbds_orig_test(fun, x0)
     option.shrink = 0.5;
     option.permuting_period = 0;
     x = bds(fun, x0, option);
+    
+end
+
+function x = pbds_permuted_0_test(fun, x0)
+
+    option.Algorithm = 'pbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.permuting_period = 0;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = pbds_permuted_1_test(fun, x0)
+
+    option.Algorithm = 'pbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.permuting_period = 1;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = pbds_permuted_quarter_n_test(fun, x0)
+
+    option.Algorithm = 'pbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.permuting_period = ceil(numel(x0)/4);
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = pbds_permuted_half_n_test(fun, x0)
+
+    option.Algorithm = 'pbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.permuting_period = ceil(numel(x0)/2);
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = pbds_permuted_n_test(fun, x0)
+
+    option.Algorithm = 'pbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.permuting_period = numel(x0);
+    x = bds_development(fun, x0, option);
     
 end
 
