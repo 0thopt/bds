@@ -610,8 +610,10 @@ for iter = 1:maxit
         end
     end
 
-    % Record the best function value encountered so far.
-    fopt_hist(iter) = min(fhist);
+    % Track the best function value observed so far. Although fopt could be used for this purpose,
+    % we use min(fhist(1:nf)) for enhanced reliability, as it directly reflects the minimum among
+    % all evaluated function values.
+    fopt_hist(iter) = min(fhist(1:nf));
 
     % Check if the optimization process should stop due to insufficient change 
     % in the objective function values over the last 10 iterations. If the change 
