@@ -355,6 +355,7 @@ if strcmpi(options.Algorithm, "rbds")
         % Division here is safe because num_selected_blocks is less than or equal to num_blocks.
         replacement_delay = min(options.replacement_delay, floor(num_blocks/num_selected_blocks)-1);
     else
+        % TODO: we have not found a good way to get the default value of replacement_delay without subtraction.
         replacement_delay = floor(num_blocks/num_selected_blocks)-1;
     end
 end
