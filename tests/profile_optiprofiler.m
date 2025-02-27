@@ -71,9 +71,15 @@ function profile_optiprofiler(options)
             case 3
                 options.noise_level = 10^(-3) / (2 * sqrt(3));
             case 4
-                options.noise_level = 10^(-4) / (2 * sqrt(3));
-            otherwise
-                error('Unknown significant digits');
+                options.noise_level = 10^(-4) / (2 * sqrt(3));                
+            case 5
+                options.noise_level = 10^(-5) / (2 * sqrt(3));
+            case 6
+                options.noise_level = 10^(-6) / (2 * sqrt(3));
+            case 7
+                options.noise_level = 10^(-7) / (2 * sqrt(3));
+            case 8
+                options.noise_level = 10^(-8) / (2 * sqrt(3));
         end
         options.feature_name = 'truncated';
     end
