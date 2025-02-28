@@ -1,4 +1,4 @@
-name: Profile cbds with randomized orthogonal matrix input and newuoa, big
+name: Profile cbds with randomized orthogonal matrix input and NewUOA, big, quantized
 
 on:
   # Trigger the workflow on # push or pull request
@@ -19,8 +19,9 @@ jobs:
         matlab: [latest]
         dim: [big]
         with_optim_toolbox: [yes]
-        solver: [cbds-randomized-orthogonal]
-        competitor: [newuoa]
+        solver: [cbds]
+        competitor_1: [cbds-randomized-orthogonal]
+        competitor_2: [newuoa]
         run_plain: [false]
         summarize_log_ratio_profiles: [false]
         feature: [quantized_1, quantized_2, quantized_3, quantized_4, quantized_5, quantized_6]
@@ -91,7 +92,7 @@ jobs:
               cd(fullfile(root_dir, 'tests'));
               options = struct();
               options.feature_name = '${{ matrix.feature }}';
-              options.solver_names = {'${{ matrix.solver }}', '${{ matrix.competitor }}'};
+              options.solver_names = {'${{ matrix.solver }}', '${{ matrix.competitor_1 }}', '${{ matrix.competitor_2 }}'};
               options.dim = '${{ matrix.dim }}';
               options.run_plain = ${{ matrix.run_plain }};
               options.summarize_log_ratio_profiles = ${{ matrix.summarize_log_ratio_profiles }};
@@ -134,7 +135,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: profile_optiprofiler_${{ matrix.solver }}_${{ matrix.competitor }}_${{ matrix.dim }}_${{ matrix.feature }}_${{ matrix.run_plain }}
+          name: profile_optiprofiler_${{ matrix.solver }}_${{ matrix.competitor_1 }}_${{ matrix.competitor_2 }}_${{ matrix.dim }}_${{ matrix.feature }}
           path: ./tests/out/**
 
   merge_artifacts:
