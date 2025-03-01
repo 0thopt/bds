@@ -1,1 +1,0 @@
-../../../src/private/get_exitflag.m

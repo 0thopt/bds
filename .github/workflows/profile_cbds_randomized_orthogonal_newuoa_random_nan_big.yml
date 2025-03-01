@@ -1,4 +1,4 @@
-name: Profile cbds with randomized orthogonal matrix input and NewUOA, big, quantized
+name: Profile cbds with randomized orthogonal matrix input and NewUOA, big, random_nan
 
 on:
   # Trigger the workflow on # push or pull request
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Profile CBDS with randomized orthogonal matrix input and NewUOA, big
+    name: Profile CBDS with randomized orthogonal matrix input and NewUOA, big, random_nan
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -24,7 +24,7 @@ jobs:
         competitor_2: [newuoa]
         run_plain: [false]
         summarize_log_ratio_profiles: [false]
-        feature: [quantized_1, quantized_2, quantized_3, quantized_4, quantized_5, quantized_6]
+        feature: [random_nan_5, random_nan_10, random_nan_15, random_nan_20, random_nan_25]
 
     steps:
       - name: Check out repository
@@ -185,7 +185,7 @@ jobs:
           cd summary
           ls
           bash ../merge_pdf.sh
-          mv merged.pdf "summary_cbds_randomized_orthogonal_newuoa_quantized_big.pdf"
+          mv merged.pdf "summary_cbds_randomized_orthogonal_newuoa_random_nan_big.pdf"
           cd ..
           if [ -d "summary" ]; then
             mv summary "summary_${BASE_INFO}"
@@ -196,7 +196,7 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: merged_profiles_cbds_randomized_orthogonal_newuoa_quantized_big
+          name: merged_profiles_cbds_randomized_orthogonal_newuoa_random_nan_big
           path: tests/testdata/downloaded_artifacts/**
 
       - name: Upload summary files
@@ -204,5 +204,5 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: summary_files_cbds_randomized_orthogonal_newuoa_quantized_big
+          name: summary_files_cbds_randomized_orthogonal_newuoa_random_nan_big
           path: tests/testdata/downloaded_artifacts/summary_${{ env.BASE_INFO }}/**
