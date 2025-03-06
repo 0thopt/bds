@@ -634,8 +634,8 @@ for iter = 1:maxit
     % Check if the optimization process should stop due to insufficient change 
     % in the objective function values over the last 10 iterations. If the change 
     % is below a defined threshold, set the exit flag and terminate the process.
-    if iter_stop > func_tol_stop && use_function_value_stop
-        if max(fopt_hist(iter_stop-func_tol_stop:iter_stop-1)) < 1e-6 * max(1, abs(fopt_hist(iter_stop))) + min(fopt_hist(iter_stop-func_tol_stop:iter_stop-1))
+    if iter > iter_stop && use_function_value_stop
+        if max(fopt_hist(iter-iter_stop:iter-1)) < func_tol_stop * max(1, abs(fopt_hist(iter))) + min(fopt_hist(iter-iter_stop:iter-1))
             exitflag = get_exitflag("INSUFFICIENT_OBJECTIVE_CHANGE");
             break;
         end
