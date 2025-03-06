@@ -1,4 +1,4 @@
-name: Profile cbds with different stopping criteria, small
+name: Profile cbds with different stopping criteria, 20, func_tol, big
 
 on:
   # Trigger the workflow on # push or pull request
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Profile CBDS with different stopping criteria, small
+    name: Profile CBDS with different stopping criteria, 20, func_tol, big
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -139,7 +139,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: profile_optiprofiler_${{ matrix.solver }}_${{ matrix.competitor }}_${{ matrix.dim }}_${{ matrix.feature }}_${{ matrix.run_plain }}
+          name: profile_optiprofiler_${{ matrix.solver }}_${{ matrix.competitor_1 }}_${{ matrix.competitor_2 }}_${{ matrix.competitor_3 }}_${{ matrix.dim }}_${{ matrix.feature }}
           path: ./tests/out/**
 
   merge_artifacts:
