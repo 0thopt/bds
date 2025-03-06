@@ -567,6 +567,8 @@ fhist(nf) = fbase_real;
 % The temporary variable iter_stop is used to store the number of iterations that the algorithm
 % should stop if the function value does not change significantly. The temporary variable func_tol_stop
 % is used to store the threshold of the change in the function value over the last iter_stop iterations.
+% Those two variables are only used to check whether the optimization process should stop due to
+% insufficient change in the objective function values over the last iter_stop iterations.
 if isfield(options, "iter_stop")
     iter_stop = options.iter_stop;
 else
