@@ -250,6 +250,24 @@ function profile_optiprofiler(options)
                 solvers{i} = @cbds_test;
             case 'cbds-development'
                 solvers{i} = @cbds_development_test;
+            case 'cbds-development-10-6'
+                solvers{i} = @cbds_development_10_6_test;
+            case 'cbds-development-10-7'
+                solvers{i} = @cbds_development_10_7_test;
+            case 'cbds-development-10-8'
+                solvers{i} = @cbds_development_10_8_test;
+            case 'cbds-development-15-6'
+                solvers{i} = @cbds_development_15_6_test;
+            case 'cbds-development-15-7'
+                solvers{i} = @cbds_development_15_7_test;
+            case 'cbds-development-15-8'
+                solvers{i} = @cbds_development_15_8_test;
+            case 'cbds-development-20-6'
+                solvers{i} = @cbds_development_20_6_test;
+            case 'cbds-development-20-7'
+                solvers{i} = @cbds_development_20_7_test;
+            case 'cbds-development-20-8'
+                solvers{i} = @cbds_development_20_8_test;
             case 'cbds-cycle-all'
                 solvers{i} = @cbds_cycle_all_test;
             case 'cbds-cycle-1'
@@ -653,6 +671,105 @@ function x = cbds_development_test(fun, x0)
     option.Algorithm = 'cbds';
     option.expand = 2;
     option.shrink = 0.5;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_10_6_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 10;
+    option.func_tol_stop = 1e-6;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_10_7_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 10;
+    option.func_tol_stop = 1e-7;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_10_8_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 10;
+    option.func_tol_stop = 1e-8;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_15_6_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 15;
+    option.func_tol_stop = 1e-6;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_15_7_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 15;
+    option.func_tol_stop = 1e-7;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_15_8_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 15;
+    option.func_tol_stop = 1e-8;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_20_6_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 20;
+    option.func_tol_stop = 1e-6;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_20_7_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 20;
+    option.func_tol_stop = 1e-7;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_20_8_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 20;
+    option.func_tol_stop = 1e-8;
     x = bds_development(fun, x0, option);
     
 end

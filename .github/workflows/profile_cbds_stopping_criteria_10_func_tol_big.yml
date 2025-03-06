@@ -1,4 +1,4 @@
-name: Profile cbds with different stopping criteria, small
+name: Profile cbds with different stopping criteria, big
 
 on:
   # Trigger the workflow on # push or pull request
@@ -10,17 +10,19 @@ on:
 
 jobs:
   test:
-    name: Profile CBDS with different stopping criteria, small
+    name: Profile CBDS with different stopping criteria, big
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
         matlab: [latest]
-        dim: [small]
+        dim: [big]
         with_optim_toolbox: [yes]
         solver: [cbds-orig]
-        competitor: [cbds-development]
+        competitor_1: [cbds-development-10-6]
+        competitor_2: [cbds-development-10-7]
+        competitor_3: [cbds-development-10-8]
         run_plain: [false]
         summarize_log_ratio_profiles: [false]
         feature: [plain, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, permuted, permuted_noisy_1e-1, permuted_noisy_1e-2, permuted_noisy_1e-3, permuted_noisy_1e-4, linearly_transformed, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
@@ -85,7 +87,6 @@ jobs:
 
               % Set up the path for the development branch
               cd(fullfile(root_dir, 'development', 'src'));
-              ls
               movefile('bds.m', 'bds_development.m');
               addpath(pwd);
   
@@ -93,9 +94,10 @@ jobs:
               cd(fullfile(root_dir, 'tests'));
               options = struct();
               options.feature_name = '${{ matrix.feature }}';
-              options.solver_names = {'${{ matrix.solver }}', '${{ matrix.competitor }}'};
+              options.solver_names = {'${{ matrix.solver }}', '${{ matrix.competitor_1 }}', '${{ matrix.competitor_2 }}', '${{ matrix.competitor_3 }}'};
               options.dim = '${{ matrix.dim }}';
               options.run_plain = ${{ matrix.run_plain }};
+              options.n_runs = 2;
               options.summarize_log_ratio_profiles = ${{ matrix.summarize_log_ratio_profiles }};
               profile_optiprofiler(options);
               cd(root_dir);
@@ -136,7 +138,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: profile_optiprofiler_${{ matrix.solver }}_${{ matrix.competitor }}_${{ matrix.dim }}_${{ matrix.feature }}_${{ matrix.run_plain }}
+          name: profile_optiprofiler_${{ matrix.solver }}_${{ matrix.competitor_1 }}_${{ matrix.competitor_2 }}_${{ matrix.competitor_3 }}_${{ matrix.dim }}_${{ matrix.feature }}_${{ matrix.run_plain }}_${{ matrix.summarize_log_ratio_profiles }}
           path: ./tests/out/**
 
   merge_artifacts:
