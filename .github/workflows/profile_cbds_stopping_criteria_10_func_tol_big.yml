@@ -188,7 +188,7 @@ jobs:
           cd summary
           ls
           bash ../merge_pdf.sh
-          mv merged.pdf "summary_${BASE_INFO}.pdf"
+          mv merged.pdf "summary_cbds_stopping_criteria_10_func_tol_big.pdf"
           cd ..
           if [ -d "summary" ]; then
             mv summary "summary_${BASE_INFO}"
@@ -199,7 +199,7 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: merged_profiles_${{ env.BASE_INFO }}
+          name: merged_profiles_cbds_stopping_criteria_10_func_tol_big
           path: tests/testdata/downloaded_artifacts/**
 
       - name: Upload summary files
@@ -207,5 +207,5 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: summary_files_${{ env.BASE_INFO }}
+          name: summary_files_cbds_stopping_criteria_10_func_tol_big
           path: tests/testdata/downloaded_artifacts/summary_${{ env.BASE_INFO }}/**
