@@ -564,12 +564,14 @@ end
 % When we record fhist, we should use the real function value at xbase, which is fbase_real.
 fhist(nf) = fbase_real;
 
+% The temporary variable iter_stop is used to store the number of iterations that the algorithm
+% should stop if the function value does not change significantly. The temporary variable func_tol_stop
+% is used to store the threshold of the change in the function value over the last iter_stop iterations.
 if isfield(options, "iter_stop")
     iter_stop = options.iter_stop;
 else
     iter_stop = 10;
 end
-
 if isfield(options, "func_tol_stop")
     func_tol_stop = options.func_tol_stop;
 else
