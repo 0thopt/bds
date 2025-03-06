@@ -564,6 +564,18 @@ end
 % When we record fhist, we should use the real function value at xbase, which is fbase_real.
 fhist(nf) = fbase_real;
 
+if isfield(options, "iter_stop")
+    iter_stop = options.iter_stop;
+else
+    iter_stop = 10;
+end
+
+if isfield(options, "func_tol_stop")
+    func_tol_stop = options.func_tol_stop;
+else
+    func_tol_stop = 1e-6;
+end
+
 terminate = false;
 % Check whether FTARGET is reached by fopt. If it is true, then terminate.
 if fopt <= ftarget
@@ -618,8 +630,8 @@ for iter = 1:maxit
     % Check if the optimization process should stop due to insufficient change 
     % in the objective function values over the last 10 iterations. If the change 
     % is below a defined threshold, set the exit flag and terminate the process.
-    if iter > 10 && use_function_value_stop
-        if max(fopt_hist(iter-10:iter-1)) < 1e-6 * max(1, abs(fopt_hist(iter))) + min(fopt_hist(iter-10:iter-1))
+    if iter_stop > func_tol_stop && use_function_value_stop
+        if max(fopt_hist(iter_stop-func_tol_stop:iter_stop-1)) < 1e-6 * max(1, abs(fopt_hist(iter_stop))) + min(fopt_hist(iter_stop-func_tol_stop:iter_stop-1))
             exitflag = get_exitflag("INSUFFICIENT_OBJECTIVE_CHANGE");
             break;
         end
