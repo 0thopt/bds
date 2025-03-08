@@ -35,6 +35,7 @@ octave-workspace
 
 # Test results
 tests/testdata/
+tests/cbds*/
 
 # output.txt
 tests/*.txt
