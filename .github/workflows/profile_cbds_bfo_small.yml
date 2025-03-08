@@ -101,13 +101,13 @@ jobs:
               options.summarize_log_ratio_profiles = ${{ matrix.summarize_log_ratio_profiles }};
               profile_optiprofiler(options);
               cd(root_dir);
-              cd(fullfile(root_dir, 'tests', 'out'));
+              cd(fullfile(root_dir, 'tests'));
               ls -R
               cd(root_dir);
 
       - name: Change the summary file name
         run: |
-          cd ./tests/out
+          cd ./tests/
           ls -R
           find . -type f -name 'summary.pdf' | while read -r file; do
             # Obtain the parent directory and name
@@ -139,7 +139,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: profile_optiprofiler_${{ matrix.solver }}_${{ matrix.competitor }}_${{ matrix.dim }}_${{ matrix.feature }}_${{ matrix.run_plain }}
-          path: ./tests/out/**
+          path: ./tests/**
 
   merge_artifacts:
     name: Merge Artifacts
