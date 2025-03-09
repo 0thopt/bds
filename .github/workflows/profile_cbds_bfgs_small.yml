@@ -2,7 +2,7 @@ name: Profile cbds and bfgs using optiprofiler, small
 
 on:
   # Trigger the workflow on # push or pull request
-  push:
+  # push:
   # Trigger the workflow manually
   schedule:
   - cron: '0 6 */2 * *'
@@ -37,7 +37,7 @@ jobs:
           repository: optiprofiler/optiprofiler
           path: optiprofiler
           submodules: recursive
-          ref: main/c71d78a4dd0838fb1925e3c97885aded39fffe38
+          ref: c71d78a4dd0838fb1925e3c97885aded39fffe38
 
       - name: Install Texlive
         run: sudo apt-get update && sudo apt-get install texlive
