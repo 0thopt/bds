@@ -101,7 +101,7 @@ jobs:
               options.summarize_log_ratio_profiles = ${{ matrix.summarize_log_ratio_profiles }};
               profile_optiprofiler(options);
               cd(root_dir);
-              cd(fullfile(root_dir, 'tests', 'out'));
+              cd(fullfile(root_dir, 'tests'));
               ls -R
               cd(root_dir);
 
