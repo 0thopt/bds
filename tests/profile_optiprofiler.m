@@ -122,9 +122,11 @@ function profile_optiprofiler(options)
         if ismember('fminunc', options.solver_names)
             options.solver_names(strcmpi(options.solver_names, 'fminunc')) = {'fminunc-adaptive'};
         end
-        bds_Algorithms = {'ds', 'pbds', 'rbds', 'pads', 'scbds', 'cbds', 'cbds-randomized-orthogonal', 'cbds-randomized-gaussian', 'cbds-permuted', 'cbds-rotated-initial-point'};
+        bds_Algorithms = {'ds', 'ds-randomized-orthogonal', 'pbds', 'rbds', 'pads', 'scbds', 'cbds', 'cbds-randomized-orthogonal',...
+         'cbds-randomized-gaussian', 'cbds-permuted', 'cbds-rotated-initial-point'};
         if any(ismember(bds_Algorithms, options.solver_names))
             options.solver_names(strcmpi(options.solver_names, 'ds')) = {'ds-noisy'};
+            options.solver_names(strcmpi(options.solver_names, 'ds-randomized-orthogonal')) = {'ds-randomized-orthogonal-noisy'};
             options.solver_names(strcmpi(options.solver_names, 'pbds')) = {'pbds-noisy'};
             options.solver_names(strcmpi(options.solver_names, 'rbds')) = {'rbds-noisy'};
             options.solver_names(strcmpi(options.solver_names, 'pads')) = {'pads-noisy'};
@@ -185,6 +187,10 @@ function profile_optiprofiler(options)
                 solvers{i} = @ds_block_test;
             case 'ds-noisy'
                 solvers{i} = @(fun, x0) ds_test_noisy(fun, x0, true);
+            case 'ds-randomized-orthogonal'
+                solvers{i} = @ds_randomized_orthogonal_test;
+            case 'ds-randomized-orthogonal-noisy'
+                solvers{i} = @(fun, x0) ds_randomized_orthogonal_test_noisy(fun, x0, true);
             case 'pbds'
                 solvers{i} = @pbds_test;
             case 'pbds-noisy'
@@ -582,6 +588,27 @@ function x = ds_test_noisy(fun, x0, is_noisy)
     option.Algorithm = 'ds';
     option.is_noisy = is_noisy;
     x = bds(fun, x0, option);
+end
+
+function x = ds_randomized_orthogonal_test(fun, x0)
+
+    option.Algorithm = 'ds';
+    [Q,R] = qr(randn(numel(x0), numel(x0)));
+    Q(:, diag(R) < 0) = -Q(:, diag(R) < 0);
+    option.direction_set = Q;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = ds_randomized_orthogonal_test_noisy(fun, x0, is_noisy)
+
+    option.Algorithm = 'ds';
+    [Q,R] = qr(randn(numel(x0), numel(x0)));
+    Q(:, diag(R) < 0) = -Q(:, diag(R) < 0);
+    option.direction_set = Q;
+    option.is_noisy = is_noisy;
+    x = bds(fun, x0, option);
+    
 end
 
 function x = pbds_test(fun, x0)

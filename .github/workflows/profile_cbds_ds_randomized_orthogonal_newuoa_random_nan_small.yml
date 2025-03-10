@@ -1,4 +1,4 @@
-name: Profile cbds with randomized orthogonal matrix input and NEWUOA, big, quantized
+name: Profile cbds, ds with randomized orthogonal matrix input and NEWUOA, small, random_nan
 
 on:
   # Trigger the workflow on # push or pull request
@@ -10,21 +10,21 @@ on:
 
 jobs:
   test:
-    name: Profile CBDS with randomized orthogonal matrix input and NEWUOA, big
+    name: Profile CBDS, DS with randomized orthogonal matrix input and NEWUOA, small, random_nan
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
         matlab: [latest]
-        dim: [big]
+        dim: [small]
         with_optim_toolbox: [yes]
-        solver: [cbds]
-        competitor_1: [cbds-randomized-orthogonal]
+        solver: [cbds-randomized-orthogonal]
+        competitor_1: [ds-randomized-orthogonal]
         competitor_2: [newuoa]
         run_plain: [false]
         summarize_log_ratio_profiles: [false]
-        feature: [quantized_1, quantized_2, quantized_3, quantized_4, quantized_5, quantized_6]
+        feature: [random_nan_5, random_nan_10, random_nan_15, random_nan_20, random_nan_25]
 
     steps:
       - name: Check out repository
@@ -184,7 +184,7 @@ jobs:
           cd summary
           ls
           bash ../merge_pdf.sh
-          mv merged.pdf "summary_cbds_randomized_orthogonal_newuoa_quantized_big.pdf"
+          mv merged.pdf "summary_cbds_ds_randomized_orthogonal_newuoa_random_nan_small.pdf"
           cd ..
           if [ -d "summary" ]; then
             mv summary "summary_${BASE_INFO}"
@@ -195,7 +195,7 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: merged_profiles_cbds_randomized_orthogonal_newuoa_quantized_big
+          name: merged_profiles_cbds_ds_randomized_orthogonal_newuoa_random_nan_small
           path: tests/testdata/downloaded_artifacts/**
 
       - name: Upload summary files
@@ -203,5 +203,5 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: summary_files_cbds_randomized_orthogonal_newuoa_quantized_big
+          name: summary_files_cbds_ds_randomized_orthogonal_newuoa_random_nan_small
           path: tests/testdata/downloaded_artifacts/summary_${{ env.BASE_INFO }}/**
