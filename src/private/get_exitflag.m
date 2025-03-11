@@ -28,6 +28,8 @@ switch information
         exitflag = 5;
     case "INSUFFICIENT_OBJECTIVE_CHANGE"
         exitflag = 6;
+    case "INSUFFICIENT_POINT_CHANGE"
+        exitflag = 7;
     otherwise
         exitflag = -1;
 end

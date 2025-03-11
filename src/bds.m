@@ -460,6 +460,7 @@ xopt_all = NaN(n, num_blocks);
 fhist = NaN(1, MaxFunctionEvaluations);
 % Initialize the fopt for each iteration.
 fopt_hist = NaN(1, MaxFunctionEvaluations);
+xopt_hist = NaN(n, MaxFunctionEvaluations);
 
 % Initialize the boolean variable to indicate whether the algorithm should return the history of visited points.
 if isfield(options, "output_xhist")
@@ -519,6 +520,11 @@ is_estimated_gradient_stop = use_estimated_gradient_stop && ~is_noisy && ...
     || (strcmpi(options.Algorithm, "rbds") && num_selected_blocks == n));
 use_function_value_stop = (((strcmpi(options.Algorithm, "cbds") || strcmpi(options.Algorithm, "pbds")) && num_blocks == n) ...
     || (strcmpi(options.Algorithm, "rbds") && num_selected_blocks == n));
+if isfield(options, "use_point_stop")
+    use_point_stop = options.use_point_stop;
+else
+    use_point_stop = false;
+end
 
 % Decide whether to print during the computation.
 if isfield(options, "verbose")
@@ -579,6 +585,11 @@ if isfield(options, "func_tol_stop")
 else
     func_tol_stop = 1e-6;
 end
+if isfield(options, "dist_tol_stop")
+    dist_tol_stop = options.dist_tol_stop;
+else
+    dist_tol_stop = 1e-6;
+end
 
 terminate = false;
 % Check whether FTARGET is reached by fopt. If it is true, then terminate.
@@ -628,8 +639,9 @@ for iter = 1:maxit
 
     % Track the best function value observed so far. Although fopt could be used for this purpose,
     % we use min(fhist(1:nf)) for enhanced reliability, as it directly reflects the minimum among
-    % all evaluated function values.
+    % all evaluated function values. Also track the corresponding point xopt.
     fopt_hist(iter) = min(fhist(1:nf));
+    xopt_hist(:, iter) = xopt;
 
     % Check if the optimization process should stop due to insufficient change 
     % in the objective function values over the last 10 iterations. If the change 
@@ -637,6 +649,13 @@ for iter = 1:maxit
     if iter > iter_stop && use_function_value_stop
         if max(fopt_hist(iter-iter_stop:iter-1)) < func_tol_stop * max(1, abs(fopt_hist(iter))) + min(fopt_hist(iter-iter_stop:iter-1))
             exitflag = get_exitflag("INSUFFICIENT_OBJECTIVE_CHANGE");
+            break;
+        end
+    end
+
+    if use_point_stop
+        if iter > iter_stop && min(pdist2(xopt_hist(:, iter-iter_stop:iter))) < dist_tol_stop
+            exitflag = get_exitflag("INSUFFICIENT_POINT_CHANGE");
             break;
         end
     end
@@ -895,6 +914,8 @@ switch exitflag
         output.message = "The estimated gradient is fully reduced.";
     case {get_exitflag("INSUFFICIENT_OBJECTIVE_CHANGE")}
         output.message = "The objective function changes insufficiently.";
+    case {get_exitflag("INSUFFICIENT_POINT_CHANGE")}
+        output.message = "The point changes insufficiently.";
     otherwise
         output.message = "Unknown exitflag";
 end
