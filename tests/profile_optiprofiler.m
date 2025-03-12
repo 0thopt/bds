@@ -702,7 +702,7 @@ function x = cbds_development_10_6_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.iter_stop = 10;
-    option.func_tol_stop = 1e-6;
+    option.func_tol = 1e-6;
     x = bds_development(fun, x0, option);
     
 end
@@ -713,7 +713,7 @@ function x = cbds_development_15_6_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.iter_stop = 15;
-    option.func_tol_stop = 1e-6;
+    option.func_tol = 1e-6;
     x = bds_development(fun, x0, option);
     
 end
@@ -724,7 +724,7 @@ function x = cbds_development_20_6_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.iter_stop = 20;
-    option.func_tol_stop = 1e-6;
+    option.func_tol = 1e-6;
     x = bds_development(fun, x0, option);
     
 end
@@ -735,8 +735,8 @@ function x = cbds_development_20_6_6_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.iter_stop = 20;
-    option.func_tol_stop = 1e-6;
-    option.dist_tol_stop = 1e-6;
+    option.func_tol = 1e-6;
+    option.dist_tol = 1e-6;
     option.use_point_stop = true;
     x = bds_development(fun, x0, option);
     
@@ -748,8 +748,8 @@ function x = cbds_development_20_6_5_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.iter_stop = 20;
-    option.func_tol_stop = 1e-6;
-    option.dist_tol_stop = 1e-5;
+    option.func_tol = 1e-6;
+    option.dist_tol = 1e-5;
     option.use_point_stop = true;
     x = bds_development(fun, x0, option);
     
@@ -761,8 +761,8 @@ function x = cbds_development_20_6_4_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.iter_stop = 20;
-    option.func_tol_stop = 1e-6;
-    option.dist_tol_stop = 1e-4;
+    option.func_tol = 1e-6;
+    option.dist_tol = 1e-4;
     option.use_point_stop = true;
     x = bds_development(fun, x0, option);
     
