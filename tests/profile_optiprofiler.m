@@ -262,6 +262,8 @@ function profile_optiprofiler(options)
                 solvers{i} = @cbds_development_15_6_test;
             case 'cbds-development-20-6'
                 solvers{i} = @cbds_development_20_6_test;
+            case 'cbds-development-20-6-3'
+                solvers{i} = @cbds_development_20_6_3_test;
             case 'cbds-development-20-6-4'
                 solvers{i} = @cbds_development_20_6_4_test;
             case 'cbds-development-20-6-5'
@@ -763,6 +765,19 @@ function x = cbds_development_20_6_4_test(fun, x0)
     option.iter_stop = 20;
     option.func_tol = 1e-6;
     option.dist_tol = 1e-4;
+    option.use_point_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_20_6_3_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 20;
+    option.func_tol = 1e-6;
+    option.dist_tol = 1e-3;
     option.use_point_stop = true;
     x = bds_development(fun, x0, option);
     
