@@ -654,7 +654,7 @@ for iter = 1:maxit
     end
 
     if use_point_stop
-        if iter > iter_stop && min(pdist2(xopt_hist(:, iter-iter_stop:iter))) < dist_tol_stop
+        if iter > iter_stop && max(pdist2(xopt_hist(:, iter-iter_stop:iter))) < dist_tol_stop
             exitflag = get_exitflag("INSUFFICIENT_POINT_CHANGE");
             break;
         end
