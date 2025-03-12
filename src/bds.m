@@ -393,11 +393,11 @@ else
 end
 
 
-if isfield(options, "grad_tol")
-    grad_tol = options.grad_tol;
-else
-    grad_tol = get_default_constant("grad_tol");
-end
+% if isfield(options, "grad_tol")
+%     grad_tol = options.grad_tol;
+% else
+%     grad_tol = get_default_constant("grad_tol");
+% end
 
 % Set the value of alpha_threshold. If the step size is smaller than alpha_threshold, then the step size
 % will be not allowed to shrink below alpha_threshold.
@@ -493,7 +493,7 @@ else
     output_sufficient_decrease = get_default_constant("output_sufficient_decrease");
 end
 
-use_estimated_gradient_stop = false;
+% use_estimated_gradient_stop = false;
 
 % Initialize the history of sufficient decrease value and the boolean value of whether the sufficient decrease
 % is achieved or not. If output_sufficient_decrease is true and sufficient_decrease_value exceeds the maximum
@@ -515,9 +515,9 @@ end
 % The use of sufficient_decrease_value and sufficient_decrease is to estimate the gradient of the function
 % at the best point encountered so far when the sufficient decrease condition is not achieved in the previous
 % iteration. It is an optional termination criterion unless use_estimated_gradient_stop is true.
-is_estimated_gradient_stop = use_estimated_gradient_stop && ~is_noisy && ...
-    (((strcmpi(options.Algorithm, "cbds") || strcmpi(options.Algorithm, "pbds")) && num_blocks == n) ...
-    || (strcmpi(options.Algorithm, "rbds") && num_selected_blocks == n));
+% is_estimated_gradient_stop = use_estimated_gradient_stop && ~is_noisy && ...
+%     (((strcmpi(options.Algorithm, "cbds") || strcmpi(options.Algorithm, "pbds")) && num_blocks == n) ...
+%     || (strcmpi(options.Algorithm, "rbds") && num_selected_blocks == n));
 use_function_value_stop = (((strcmpi(options.Algorithm, "cbds") || strcmpi(options.Algorithm, "pbds")) && num_blocks == n) ...
     || (strcmpi(options.Algorithm, "rbds") && num_selected_blocks == n));
 if isfield(options, "use_point_stop")
@@ -571,7 +571,7 @@ end
 fhist(nf) = fbase_real;
 
 % The temporary variable iter_stop is used to store the number of iterations that the algorithm
-% should stop if the function value does not change significantly. The temporary variable func_tol_stop
+% should stop if the function value does not change significantly. The temporary variable func_tol
 % is used to store the threshold of the change in the function value over the last iter_stop iterations.
 % Those two variables are only used to check whether the optimization process should stop due to
 % insufficient change in the objective function values over the last iter_stop iterations.
@@ -580,15 +580,15 @@ if isfield(options, "iter_stop")
 else
     iter_stop = 10;
 end
-if isfield(options, "func_tol_stop")
-    func_tol_stop = options.func_tol_stop;
+if isfield(options, "func_tol")
+    func_tol = options.func_tol;
 else
-    func_tol_stop = 1e-6;
+    func_tol = 1e-6;
 end
-if isfield(options, "dist_tol_stop")
-    dist_tol_stop = options.dist_tol_stop;
+if isfield(options, "dist_tol")
+    dist_tol = options.dist_tol;
 else
-    dist_tol_stop = 1e-6;
+    dist_tol = 1e-6;
 end
 
 terminate = false;
@@ -613,29 +613,29 @@ for iter = 1:maxit
 
     % Use central difference to estimate the gradient of the function at xopt if the sufficient decrease
     % condition is not achieved in the previous iteration and the problem is not noisy.
-    if is_estimated_gradient_stop && iter > 1 && ~any(sufficient_decrease(:, iter-1))
-        if verbose
-            fprintf("The Algorithm is %s and failed to achieve sufficient decrease " ...
-                + "in the previous iteration.\n", options.Algorithm);
-        end
-        g = NaN(n, 1);
-        % The following loop is to estimate the gradient at xopt using central difference, with the
-        % function values stored in the previous iteration.
-        for i = 1:n
-            i_real = block_indices(i);
-            g(i_real) = (fhist(nf - 2*(i_real - 1) - 1) - fhist(nf - 2*(i_real - 1))) / (2*alpha_hist(i_real, iter-1));
-        end
-        grad_hist = [grad_hist norm(g)];
-        if min(grad_hist) < grad_tol || (length(grad_hist) > 1 && ...
-                (grad_hist(1) - grad_hist(end)) / grad_hist(1) > (1 - 1e-6))
-            if min(grad_hist) < grad_tol
-                exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
-            else
-                exitflag = get_exitflag("ESTIMATED_GRADIENT_FULLY_REDUCED");
-            end
-            break;
-        end
-    end
+    % if is_estimated_gradient_stop && iter > 1 && ~any(sufficient_decrease(:, iter-1))
+    %     if verbose
+    %         fprintf("The Algorithm is %s and failed to achieve sufficient decrease " ...
+    %             + "in the previous iteration.\n", options.Algorithm);
+    %     end
+    %     g = NaN(n, 1);
+    %     % The following loop is to estimate the gradient at xopt using central difference, with the
+    %     % function values stored in the previous iteration.
+    %     for i = 1:n
+    %         i_real = block_indices(i);
+    %         g(i_real) = (fhist(nf - 2*(i_real - 1) - 1) - fhist(nf - 2*(i_real - 1))) / (2*alpha_hist(i_real, iter-1));
+    %     end
+    %     grad_hist = [grad_hist norm(g)];
+    %     if min(grad_hist) < grad_tol || (length(grad_hist) > 1 && ...
+    %             (grad_hist(1) - grad_hist(end)) / grad_hist(1) > (1 - 1e-6))
+    %         if min(grad_hist) < grad_tol
+    %             exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
+    %         else
+    %             exitflag = get_exitflag("ESTIMATED_GRADIENT_FULLY_REDUCED");
+    %         end
+    %         break;
+    %     end
+    % end
 
     % Track the best function value observed so far. Although fopt could be used for this purpose,
     % we use min(fhist(1:nf)) for enhanced reliability, as it directly reflects the minimum among
@@ -647,16 +647,41 @@ for iter = 1:maxit
     % in the objective function values over the last 10 iterations. If the change 
     % is below a defined threshold, set the exit flag and terminate the process.
     if iter > iter_stop && use_function_value_stop
-        if max(fopt_hist(iter-iter_stop:iter-1)) < func_tol_stop * max(1, abs(fopt_hist(iter))) + min(fopt_hist(iter-iter_stop:iter-1))
+        if max(fopt_hist(iter-iter_stop:iter-1)) < func_tol * max(1, abs(fopt_hist(iter))) + min(fopt_hist(iter-iter_stop:iter-1))
             exitflag = get_exitflag("INSUFFICIENT_OBJECTIVE_CHANGE");
             break;
         end
     end
 
     if use_point_stop
-        if iter > iter_stop && max(pdist2(xopt_hist(:, iter-iter_stop:iter))) < dist_tol_stop
-            exitflag = get_exitflag("INSUFFICIENT_POINT_CHANGE");
-            break;
+        if iter > iter_stop
+            % Step 1: Extract recent points
+            recent_points = xopt_hist(:, iter-iter_stop:iter-1);
+    
+            % Step 2: Remove duplicate points
+            [unique_points, ~, ~] = unique(recent_points', 'rows', 'stable');
+            recent_points = unique_points';
+    
+            % Step 3: Compute the dot product matrix
+            dot_product_matrix = recent_points' * recent_points;  % iter_stop x iter_stop matrix
+    
+            % Step 4: Extract squared norms of each point
+            squared_norms = diag(dot_product_matrix);  % iter_stop x 1 vector
+    
+            % Step 5: Compute pairwise squared distances
+            squared_distance_matrix = squared_norms + squared_norms' - 2 * dot_product_matrix;
+    
+            % Step 6: Remove diagonal elements (set to Inf)
+            squared_distance_matrix(1:size(squared_distance_matrix, 1)+1:end) = Inf;
+    
+            % Step 7: Find the minimum distance
+            min_point_distance = sqrt(min(squared_distance_matrix(:))) % Minimum Euclidean distance
+
+            % Step 8: Check if the minimum distance is below the stopping threshold
+            if min_point_distance < dist_tol
+                exitflag = get_exitflag("INSUFFICIENT_POINT_CHANGE");
+                break;
+            end
         end
     end
 
@@ -869,7 +894,7 @@ for iter = 1:maxit
             fbase = fopt;
         end
     end
-
+    
     % Terminate the computations if terminate is true.
     if terminate
         break;
