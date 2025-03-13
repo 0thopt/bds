@@ -1,4 +1,4 @@
-name: Profile cbds with different stopping criteria, 20, 1e-6, 1e-3, small
+name: Profile cbds with different stopping criteria, 20, 6x, 3x, small
 
 on:
   # Trigger the workflow on # push or pull request
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Profile CBDS with different stopping criteria, 20, 1e-6, 1e-3, small
+    name: Profile CBDS with different stopping criteria, 20, 6x, 3x, small
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

@@ -1,4 +1,4 @@
-name: Profile cbds with different stopping criteria, 15, 6x, small
+name: Profile cbds with different stopping criteria, 20, 6x, 8x, small
 
 on:
   # Trigger the workflow on # push or pull request
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Profile CBDS with different stopping criteria, 15, 6x, small
+    name: Profile CBDS with different stopping criteria, 20, 6x, 8x, small
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -19,8 +19,8 @@ jobs:
         matlab: [latest]
         dim: [small]
         with_optim_toolbox: [yes]
-        solver: [cbds-orig]
-        competitor_1: [cbds-development-15-6]
+        solver: [cbds-development-20-6]
+        competitor_1: [cbds-development-20-6-8]
         run_plain: [false]
         summarize_log_ratio_profiles: [false]
         feature: [plain, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, permuted, permuted_noisy_1e-1, permuted_noisy_1e-2, permuted_noisy_1e-3, permuted_noisy_1e-4, linearly_transformed, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
@@ -185,7 +185,7 @@ jobs:
           cd summary
           ls
           bash ../merge_pdf.sh
-          mv merged.pdf "summary_cbds_stopping_criteria_15_6_small.pdf"
+          mv merged.pdf "summary_cbds_stopping_criteria_20_6_8_small.pdf"
           cd ..
           if [ -d "summary" ]; then
             mv summary "summary_${BASE_INFO}"
@@ -196,7 +196,7 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: merged_profiles_cbds_stopping_criteria_15_6_small
+          name: merged_profiles_cbds_stopping_criteria_20_6_8_small
           path: tests/testdata/downloaded_artifacts/**
 
       - name: Upload summary files
@@ -204,5 +204,5 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: summary_files_cbds_stopping_criteria_15_6_small
+          name: summary_files_cbds_stopping_criteria_20_6_8_small
           path: tests/testdata/downloaded_artifacts/summary_${{ env.BASE_INFO }}/**
