@@ -393,11 +393,17 @@ else
 end
 
 
-% if isfield(options, "grad_tol")
-%     grad_tol = options.grad_tol;
-% else
-%     grad_tol = get_default_constant("grad_tol");
-% end
+if isfield(options, "grad_tol")
+    grad_tol = options.grad_tol;
+else
+    grad_tol = get_default_constant("grad_tol");
+end
+
+if isfield(options, "grad_rate_tol")
+    grad_rate_tol = options.grad_rate_tol;
+else
+    grad_rate_tol = get_default_constant("grad_rate_tol");
+end
 
 % Set the value of alpha_threshold. If the step size is smaller than alpha_threshold, then the step size
 % will be not allowed to shrink below alpha_threshold.
@@ -493,8 +499,6 @@ else
     output_sufficient_decrease = get_default_constant("output_sufficient_decrease");
 end
 
-% use_estimated_gradient_stop = false;
-
 % Initialize the history of sufficient decrease value and the boolean value of whether the sufficient decrease
 % is achieved or not. If output_sufficient_decrease is true and sufficient_decrease_value exceeds the maximum
 % memory size allowed, then we will not output sufficient_decrease_value and sufficient_decrease.
@@ -515,11 +519,16 @@ end
 % The use of sufficient_decrease_value and sufficient_decrease is to estimate the gradient of the function
 % at the best point encountered so far when the sufficient decrease condition is not achieved in the previous
 % iteration. It is an optional termination criterion unless use_estimated_gradient_stop is true.
-% is_estimated_gradient_stop = use_estimated_gradient_stop && ~is_noisy && ...
+% use_estimated_gradient_stop = use_estimated_gradient_stop && ~is_noisy && ...
 %     (((strcmpi(options.Algorithm, "cbds") || strcmpi(options.Algorithm, "pbds")) && num_blocks == n) ...
 %     || (strcmpi(options.Algorithm, "rbds") && num_selected_blocks == n));
 use_function_value_stop = (((strcmpi(options.Algorithm, "cbds") || strcmpi(options.Algorithm, "pbds")) && num_blocks == n) ...
     || (strcmpi(options.Algorithm, "rbds") && num_selected_blocks == n));
+if use_function_value_stop && isfield(options, "use_estimated_gradient_stop") && options.use_estimated_gradient_stop
+    use_estimated_gradient_stop = true;
+else
+    use_estimated_gradient_stop = false;
+end
 if isfield(options, "use_point_stop")
     use_point_stop = options.use_point_stop;
 else
@@ -613,29 +622,29 @@ for iter = 1:maxit
 
     % Use central difference to estimate the gradient of the function at xopt if the sufficient decrease
     % condition is not achieved in the previous iteration and the problem is not noisy.
-    % if is_estimated_gradient_stop && iter > 1 && ~any(sufficient_decrease(:, iter-1))
-    %     if verbose
-    %         fprintf("The Algorithm is %s and failed to achieve sufficient decrease " ...
-    %             + "in the previous iteration.\n", options.Algorithm);
-    %     end
-    %     g = NaN(n, 1);
-    %     % The following loop is to estimate the gradient at xopt using central difference, with the
-    %     % function values stored in the previous iteration.
-    %     for i = 1:n
-    %         i_real = block_indices(i);
-    %         g(i_real) = (fhist(nf - 2*(i_real - 1) - 1) - fhist(nf - 2*(i_real - 1))) / (2*alpha_hist(i_real, iter-1));
-    %     end
-    %     grad_hist = [grad_hist norm(g)];
-    %     if min(grad_hist) < grad_tol || (length(grad_hist) > 1 && ...
-    %             (grad_hist(1) - grad_hist(end)) / grad_hist(1) > (1 - 1e-6))
-    %         if min(grad_hist) < grad_tol
-    %             exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
-    %         else
-    %             exitflag = get_exitflag("ESTIMATED_GRADIENT_FULLY_REDUCED");
-    %         end
-    %         break;
-    %     end
-    % end
+    if use_estimated_gradient_stop && iter > 1 && ~any(sufficient_decrease(:, iter-1))
+        if verbose
+            fprintf("The Algorithm is %s and failed to achieve sufficient decrease " ...
+                + "in the previous iteration.\n", options.Algorithm);
+        end
+        g = NaN(n, 1);
+        % The following loop is to estimate the gradient at xopt using central difference, with the
+        % function values stored in the previous iteration.
+        for i = 1:n
+            i_real = block_indices(i);
+            g(i_real) = (fhist(nf - 2*(i_real - 1) - 1) - fhist(nf - 2*(i_real - 1))) / (2*alpha_hist(i_real, iter-1));
+        end
+        grad_hist = [grad_hist norm(g)];
+        if min(grad_hist) < grad_tol || (length(grad_hist) > 1 && ...
+                (grad_hist(1) - grad_hist(end)) / grad_hist(1) > (1 - grad_rate_tol))
+            if min(grad_hist) < grad_tol
+                exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
+            else
+                exitflag = get_exitflag("ESTIMATED_GRADIENT_FULLY_REDUCED");
+            end
+            break;
+        end
+    end
 
     % Track the best function value observed so far. Although fopt could be used for this purpose,
     % we use min(fhist(1:nf)) for enhanced reliability, as it directly reflects the minimum among

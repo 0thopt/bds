@@ -49,6 +49,8 @@ switch constant_name
         constant_value = 1e-6;
     case {"grad_tol"}
         constant_value = 1e-4;
+    case {"grad_rate_tol"}
+        constant_value = 1e-4;
     case {"permuting_period"}
         constant_value = 1;
     case {"seed"}
