@@ -1,4 +1,4 @@
-name: Profile cbds and cbds-20-6-8-5-6 with different features, big
+name: Profile cbds and cbds-20-6-8-5-6, big
 
 on:
   # Trigger the workflow on # push or pull request
@@ -23,7 +23,7 @@ jobs:
         competitor_1: [cbds-development-20-6-8-5-6]
         run_plain: [false]
         summarize_log_ratio_profiles: [false]
-        feature: [plain, permuted, linearly_transformed]
+        feature: [plain, permuted, linearly_transformed, perturbed_x0_0.001, perturbed_x0_1, perturbed_x0_10, perturbed_x0_100]
 
     steps:
       # Check out the main branch
@@ -94,7 +94,7 @@ jobs:
               options.solver_names = {'${{ matrix.solver }}', '${{ matrix.competitor_1 }}'};
               options.dim = '${{ matrix.dim }}';
               options.run_plain = ${{ matrix.run_plain }};
-              options.n_runs = 2;
+              options.n_runs = 1;
               options.summarize_log_ratio_profiles = ${{ matrix.summarize_log_ratio_profiles }};
               profile_optiprofiler(options);
               cd(root_dir);
