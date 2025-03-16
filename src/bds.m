@@ -635,15 +635,19 @@ for iter = 1:maxit
             g(i_real) = (fhist(nf - 2*(i_real - 1) - 1) - fhist(nf - 2*(i_real - 1))) / (2*alpha_hist(i_real, iter-1));
         end
         grad_hist = [grad_hist norm(g)];
-        if min(grad_hist) < grad_tol || (length(grad_hist) > 1 && ...
-                (grad_hist(1) - grad_hist(end)) / grad_hist(1) > (1 - grad_rate_tol))
-            if min(grad_hist) < grad_tol
-                exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
-            else
-                exitflag = get_exitflag("ESTIMATED_GRADIENT_FULLY_REDUCED");
-            end
+        if min(grad_hist) < grad_tol 
+            exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
             break;
         end
+        % if min(grad_hist) < grad_tol || (length(grad_hist) > 1 && ...
+        %         (grad_hist(1) - grad_hist(end)) / grad_hist(1) > (1 - grad_rate_tol))
+        %     if min(grad_hist) < grad_tol
+        %         exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
+        %     else
+        %         exitflag = get_exitflag("ESTIMATED_GRADIENT_FULLY_REDUCED");
+        %     end
+        %     break;
+        % end
     end
 
     % Track the best function value observed so far. Although fopt could be used for this purpose,
