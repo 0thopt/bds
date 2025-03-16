@@ -77,7 +77,12 @@ The following tests are implemented by [Optiprofiler](https://github.com/optipro
     - [![Profile cbds and cbds-20-6-8-5-6, small](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_cbds_20_6_8_5_6_small.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_cbds_20_6_8_5_6_small.yml)
     - [![Profile cbds and cbds-20-6-8-6-6, big](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_cbds_20_6_8_6_6_big.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_cbds_20_6_8_6_6_big.yml)
     - [![Profile cbds and cbds-20-6-8-6-6, small](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_cbds_20_6_8_6_6_small.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_cbds_20_6_8_6_6_small.yml)
-
+    - [![Profile cbds and cbds-20-6-8-4, big](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_cbds_20_6_8_4_big.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_cbds_20_6_8_4_big.yml)
+    - [![Profile cbds and cbds-20-6-8-4, small](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_cbds_20_6_8_4_small.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_cbds_20_6_8_4_small.yml)
+    - [![Profile cbds and cbds-20-6-8-5, big](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_cbds_20_6_8_5_big.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_cbds_20_6_8_5_big.yml)
+    - [![Profile cbds and cbds-20-6-8-5, small](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_cbds_20_6_8_5_small.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_cbds_20_6_8_5_small.yml)
+    - [![Profile cbds and cbds-20-6-8-6, big](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_cbds_20_6_8_6_big.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_cbds_20_6_8_6_big.yml)
+    - [![Profile cbds and cbds-20-6-8-6, small](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_cbds_20_6_8_6_small.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_cbds_20_6_8_6_small.yml)
 
 - [Tests](https://github.com/0thopt/bds/actions) at [0thopt/bds](https://github.com/0thopt/bds)
 

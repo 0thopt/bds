@@ -274,6 +274,12 @@ function profile_optiprofiler(options)
                 solvers{i} = @cbds_development_20_6_7_test;
             case 'cbds-development-20-6-8'
                 solvers{i} = @cbds_development_20_6_8_test;
+            case 'cbds-development-20-6-8-4'
+                solvers{i} = @cbds_development_20_6_8_4_test;
+            case 'cbds-development-20-6-8-5'
+                solvers{i} = @cbds_development_20_6_8_5_test;
+            case 'cbds-development-20-6-8-6'
+                solvers{i} = @cbds_development_20_6_8_6_test;
             case 'cbds-development-20-6-8-4-6'
                 solvers{i} = @cbds_development_20_6_8_4_6_test;
             case 'cbds-development-20-6-8-5-6'
@@ -815,6 +821,51 @@ function x = cbds_development_20_6_8_test(fun, x0)
     option.func_tol = 1e-6;
     option.dist_tol = 1e-8;
     option.use_point_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_20_6_8_4_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 20;
+    option.func_tol = 1e-6;
+    option.dist_tol = 1e-8;
+    option.use_point_stop = true;
+    option.use_estimated_gradient_stop = true;
+    option.grad_tol = 1e-4;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_20_6_8_5_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 20;
+    option.func_tol = 1e-6;
+    option.dist_tol = 1e-8;
+    option.use_point_stop = true;
+    option.use_estimated_gradient_stop = true;
+    option.grad_tol = 1e-5;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_20_6_8_6_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 20;
+    option.func_tol = 1e-6;
+    option.dist_tol = 1e-8;
+    option.use_point_stop = true;
+    option.use_estimated_gradient_stop = true;
+    option.grad_tol = 1e-6;
     x = bds_development(fun, x0, option);
     
 end
