@@ -579,15 +579,15 @@ end
 % When we record fhist, we should use the real function value at xbase, which is fbase_real.
 fhist(nf) = fbase_real;
 
-% The temporary variable iter_stop is used to store the number of iterations that the algorithm
+% The temporary variable window_size is used to store the number of iterations that the algorithm
 % should stop if the function value does not change significantly. The temporary variable func_tol
-% is used to store the threshold of the change in the function value over the last iter_stop iterations.
+% is used to store the threshold of the change in the function value over the last window_size iterations.
 % Those two variables are only used to check whether the optimization process should stop due to
-% insufficient change in the objective function values over the last iter_stop iterations.
-if isfield(options, "iter_stop")
-    iter_stop = options.iter_stop;
+% insufficient change in the objective function values over the last window_size iterations.
+if isfield(options, "window_size")
+    window_size = options.window_size;
 else
-    iter_stop = 10;
+    window_size = 10;
 end
 if isfield(options, "func_tol")
     func_tol = options.func_tol;
@@ -639,6 +639,17 @@ for iter = 1:maxit
             exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
             break;
         end
+        % e <= grad_tol && e <= grad_rate_tol * e_0
+        % OR e <= grad_threshold
+        grad_min = min(grad_hist);
+        % grad_tol_1 = 1e-6
+        % grad_tol_2 = 1e-8
+        grad_min < grad_tol_1 * min(1, grad_hist(1)) || grad_min < grad_tol_2 * max(1, grad_hist(1))
+        % grad_min < min(grad_tol, grad_rate_tol * grad_hist(1)) || grad_min < grad_threshold
+        % (grad_min < grad_tol && grad_min < grad_rate_tol * grad_hist(1)) || grad_min < grad_threshold
+        % min(grad_hist) < max(min(grad_tol, grad_rate_tol * min(grad_hist), grad_threshold))
+        % max(min(e_0 * grad_rate_tol, grad_tol), grad_tol) 
+        % min(grad_hist) < max(grad_tol * min(1, grad_hist(1)), grad_tol)
         % if min(grad_hist) < grad_tol || (length(grad_hist) > 1 && ...
         %         (grad_hist(1) - grad_hist(end)) / grad_hist(1) > (1 - grad_rate_tol))
         %     if min(grad_hist) < grad_tol
@@ -657,44 +668,37 @@ for iter = 1:maxit
     xopt_hist(:, iter) = xopt;
 
     % Check if the optimization process should stop due to insufficient change 
-    % in the objective function values over the last 10 iterations. If the change 
-    % is below a defined threshold, set the exit flag and terminate the process.
-    if iter > iter_stop && use_function_value_stop
-        if max(fopt_hist(iter-iter_stop:iter-1)) < func_tol * max(1, abs(fopt_hist(iter))) + min(fopt_hist(iter-iter_stop:iter-1))
+    % in the objective function values over the last window_size iterations. If the change 
+    % is below a defined threshold, terminate the optimization process.
+    if iter > window_size && use_function_value_stop
+        if abs(max(fopt_hist(iter-window_size:iter-1)) - min(fopt_hist(iter-window_size:iter-1))) < func_tol * max(1, abs(fopt_hist(iter)))
+        % if max(fopt_hist(iter-window_size:iter-1)) < func_tol * max(1, abs(fopt_hist(iter))) + min(fopt_hist(iter-window_size:iter-1))
             exitflag = get_exitflag("INSUFFICIENT_OBJECTIVE_CHANGE");
             break;
         end
     end
 
-    if use_point_stop
-        if iter > iter_stop
-            % Step 1: Extract recent points
-            recent_points = xopt_hist(:, iter-iter_stop:iter-1);
-    
-            % Step 2: Remove duplicate points
-            [unique_points, ~, ~] = unique(recent_points', 'rows', 'stable');
-            recent_points = unique_points';
-    
-            % Step 3: Compute the dot product matrix
-            dot_product_matrix = recent_points' * recent_points;  % iter_stop x iter_stop matrix
-    
-            % Step 4: Extract squared norms of each point
-            squared_norms = diag(dot_product_matrix);  % iter_stop x 1 vector
-    
-            % Step 5: Compute pairwise squared distances
-            squared_distance_matrix = squared_norms + squared_norms' - 2 * dot_product_matrix;
-    
-            % Step 6: Remove diagonal elements (set to Inf)
-            squared_distance_matrix(1:size(squared_distance_matrix, 1)+1:end) = Inf;
-    
-            % Step 7: Find the minimum distance
-            min_point_distance = sqrt(min(squared_distance_matrix(:))) % Minimum Euclidean distance
+    if iter > window_size && use_point_stop
+        % Step 1: Extract recent points
+        recent_points = xopt_hist(:, iter-window_size:iter-1);
 
-            % Step 8: Check if the minimum distance is below the stopping threshold
-            if min_point_distance < dist_tol
-                exitflag = get_exitflag("INSUFFICIENT_POINT_CHANGE");
-                break;
-            end
+        % Step 2: Remove duplicate points
+        [unique_points, ~, ~] = unique(recent_points', 'rows', 'stable');
+        recent_points = unique_points';
+
+        % step 3: Locate the center of the recent points
+        center_point = mean(recent_points, 2);
+
+        % Step 4: Calculate the distance between the center point and each recent point
+        point_distance = vecnorm(recent_points - center_point, 2, 1);
+
+        % Step 5: Find the minimum distance
+        min_point_distance = min(point_distance);
+
+        % Step 6: Check if the minimum distance is less than the tolerance
+        if min_point_distance < dist_tol
+            exitflag = get_exitflag("INSUFFICIENT_POINT_CHANGE");
+            break;
         end
     end
 
