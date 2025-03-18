@@ -1,4 +1,4 @@
-function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
+function [xopt, fopt, exitflag, output] = bds_development(fun, x0, options)
 %BDS solves unconstrained optimization problems without using derivatives by
 %blockwise direct search methods.
 %
@@ -522,10 +522,15 @@ end
 % use_estimated_gradient_stop = use_estimated_gradient_stop && ~is_noisy && ...
 %     (((strcmpi(options.Algorithm, "cbds") || strcmpi(options.Algorithm, "pbds")) && num_blocks == n) ...
 %     || (strcmpi(options.Algorithm, "rbds") && num_selected_blocks == n));
-use_function_value_stop = (((strcmpi(options.Algorithm, "cbds") || strcmpi(options.Algorithm, "pbds")) && num_blocks == n) ...
-    || (strcmpi(options.Algorithm, "rbds") && num_selected_blocks == n));
-if use_function_value_stop && isfield(options, "use_estimated_gradient_stop") && options.use_estimated_gradient_stop
-    use_estimated_gradient_stop = true;
+% use_function_value_stop = (((strcmpi(options.Algorithm, "cbds") || strcmpi(options.Algorithm, "pbds")) && num_blocks == n) ...
+%     || (strcmpi(options.Algorithm, "rbds") && num_selected_blocks == n));
+if isfield(options, "use_function_value_stop")
+    use_function_value_stop = options.use_function_value_stop;
+else
+    use_function_value_stop = false;
+end
+if isfield(options, "use_estimated_gradient_stop")
+    use_estimated_gradient_stop = options.use_estimated_gradient_stop;
 else
     use_estimated_gradient_stop = false;
 end

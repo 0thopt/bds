@@ -1,5 +1,4 @@
-function profile_optiprofiler(options)
-
+function [solver_scores, profile_scores] = profile_optiprofiler(options)
     clc
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -61,46 +60,31 @@ function profile_optiprofiler(options)
         else
             options.significant_digits = 6;
         end
-        % Notice that the function value is set as when the feature is truncated:
-        % f = f + rand_stream_truncated.rand() * 10 ^ (-digits).
-        % Thus, the noise level can be regarded as 10 ^ (-digits).
         switch options.significant_digits
+            % Why we set the noise level like this? See the link below:
+            % https://github.com/Lht97/to_do_list. 
             case 1
-                % The function value can be rewritten as a.bcdefg... * 10 ^ n
-                % Thus, the extreme case would be a = 1, b = c = d = e = f = g = 9 = ...
-                % Then, the truncation error would almost the half of the function value.
-                % The opposite case would be 0, which is the smallest truncation error.
-                % We select the average of the two cases as the noise level.
-                options.noise_level = 0.25;
+                options.noise_level = 10^(-1) / (2 * sqrt(3));
             case 2
-                % The function value can be rewritten as ab.cdefg... * 10 ^ n
-                % Thus, the extreme case would be a = 1, b = 0, c = d = e = f = g = 9 = ...
-                % Then, the truncation error would almost the 0.09 of the function value.
-                % The opposite case would be 0, which is the smallest truncation error.
-                % We select the average of the two cases as the noise level.
-                options.noise_level = 0.045;
+                options.noise_level = 10^(-2) / (2 * sqrt(3));
             case 3
-                % The function value can be rewritten as abc.defg... * 10 ^ n
-                % Thus, the extreme case would be a = 1, b = c = 0, d = e = f = g = 9 = ...
-                % Then, the truncation error would almost the 0.01 of the function value.
-                % The opposite case would be 0, which is the smallest truncation error.
-                % We select the average of the two cases as the noise level.
-                options.noise_level = 0.005;
+                options.noise_level = 10^(-3) / (2 * sqrt(3));
             case 4
-                % The function value can be rewritten as abcd.efg... * 10 ^ n
-                % Thus, the extreme case would be a = 1, b = c = d = 0, e = f = g = 9 = ...
-                % Then, the truncation error would almost the 0.001 of the function value.
-                % The opposite case would be 0, which is the smallest truncation error.
-                % We select the average of the two cases as the noise level.
-                options.noise_level = 0.0005;
-            otherwise
-                error('Unknown significant digits');
+                options.noise_level = 10^(-4) / (2 * sqrt(3));                
+            case 5
+                options.noise_level = 10^(-5) / (2 * sqrt(3));
+            case 6
+                options.noise_level = 10^(-6) / (2 * sqrt(3));
+            case 7
+                options.noise_level = 10^(-7) / (2 * sqrt(3));
+            case 8
+                options.noise_level = 10^(-8) / (2 * sqrt(3));
         end
         options.feature_name = 'truncated';
     end
     if startsWith(options.feature_name, 'quantized')
         if sum(options.feature_name == '_') > 0
-            options.mesh_size = 10.^(str2double(options.feature_name(end)));
+            options.mesh_size = 10.^(-str2double(options.feature_name(end)));
         else
             options.mesh_size = 1e-3;
         end
@@ -137,9 +121,11 @@ function profile_optiprofiler(options)
         if ismember('fminunc', options.solver_names)
             options.solver_names(strcmpi(options.solver_names, 'fminunc')) = {'fminunc-adaptive'};
         end
-        bds_Algorithms = {'ds', 'pbds', 'rbds', 'pads', 'scbds', 'cbds', 'cbds-randomized-orthogonal', 'cbds-randomized-gaussian', 'cbds-permuted'};
+        bds_Algorithms = {'ds', 'ds-randomized-orthogonal', 'pbds', 'rbds', 'pads', 'scbds', 'cbds', 'cbds-randomized-orthogonal',...
+         'cbds-randomized-gaussian', 'cbds-permuted', 'cbds-rotated-initial-point'};
         if any(ismember(bds_Algorithms, options.solver_names))
             options.solver_names(strcmpi(options.solver_names, 'ds')) = {'ds-noisy'};
+            options.solver_names(strcmpi(options.solver_names, 'ds-randomized-orthogonal')) = {'ds-randomized-orthogonal-noisy'};
             options.solver_names(strcmpi(options.solver_names, 'pbds')) = {'pbds-noisy'};
             options.solver_names(strcmpi(options.solver_names, 'rbds')) = {'rbds-noisy'};
             options.solver_names(strcmpi(options.solver_names, 'pads')) = {'pads-noisy'};
@@ -148,6 +134,7 @@ function profile_optiprofiler(options)
             options.solver_names(strcmpi(options.solver_names, 'cbds-randomized-orthogonal')) = {'cbds-randomized-orthogonal-noisy'};
             options.solver_names(strcmpi(options.solver_names, 'cbds-randomized-gaussian')) = {'cbds-randomized-gaussian-noisy'};
             options.solver_names(strcmpi(options.solver_names, 'cbds-permuted')) = {'cbds-permuted-noisy'};
+            options.solver_names(strcmpi(options.solver_names, 'cbds-rotated-initial-point')) = {'cbds-rotated-initial-point-noisy'};
         end
     end
 
@@ -199,12 +186,26 @@ function profile_optiprofiler(options)
                 solvers{i} = @ds_block_test;
             case 'ds-noisy'
                 solvers{i} = @(fun, x0) ds_test_noisy(fun, x0, true);
+            case 'ds-randomized-orthogonal'
+                solvers{i} = @ds_randomized_orthogonal_test;
+            case 'ds-randomized-orthogonal-noisy'
+                solvers{i} = @(fun, x0) ds_randomized_orthogonal_test_noisy(fun, x0, true);
             case 'pbds'
                 solvers{i} = @pbds_test;
             case 'pbds-noisy'
                 solvers{i} = @(fun, x0) pbds_test_noisy(fun, x0, true);
             case 'pbds-orig'
                 solvers{i} = @pbds_orig_test;
+            case 'pbds-permuted-0'
+                solvers{i} = @pbds_permuted_0_test;
+            case 'pbds-permuted-1'
+                solvers{i} = @pbds_permuted_1_test;
+            case 'pbds-permuted-quarter-n'
+                solvers{i} = @pbds_permuted_quarter_n_test;
+            case 'pbds-permuted-half-n'
+                solvers{i} = @pbds_permuted_half_n_test;
+            case 'pbds-permuted-n'
+                solvers{i} = @pbds_permuted_n_test;
             case 'rbds'
                 solvers{i} = @rbds_test;
             case 'rbds-noisy'
@@ -252,6 +253,66 @@ function profile_optiprofiler(options)
                 solvers{i} = @(fun, x0) scbds_test_noisy(fun, x0, true);
             case 'cbds'
                 solvers{i} = @cbds_test;
+            case 'cbds-development'
+                solvers{i} = @cbds_development_test;
+            case 'cbds-10-func-tol-6'
+                solvers{i} = @cbds_development_10_func_tol_6_test;
+            case 'cbds-10-func-tol-8'
+                solvers{i} = @cbds_development_10_func_tol_8_test;
+            case 'cbds-10-func-tol-10'
+                solvers{i} = @cbds_development_10_func_tol_10_test;
+            case 'cbds-10-func-tol-12'
+                solvers{i} = @cbds_development_10_func_tol_12_test;
+            case 'cbds-15-func-tol-6'
+                solvers{i} = @cbds_development_15_func_tol_6_test;
+            case 'cbds-15-func-tol-8'
+                solvers{i} = @cbds_development_15_func_tol_8_test;
+            case 'cbds-15-func-tol-10'
+                solvers{i} = @cbds_development_15_func_tol_10_test;
+            case 'cbds-15-func-tol-12'
+                solvers{i} = @cbds_development_15_func_tol_12_test;
+            case 'cbds-20-func-tol-6'
+                solvers{i} = @cbds_development_20_func_tol_6_test;
+            case 'cbds-20-func-tol-8'
+                solvers{i} = @cbds_development_20_func_tol_8_test;
+            case 'cbds-20-func-tol-10'
+                solvers{i} = @cbds_development_20_func_tol_10_test;
+            case 'cbds-20-func-tol-12'
+                solvers{i} = @cbds_development_20_func_tol_12_test;
+            case 'cbds-development-20-6-3'
+                solvers{i} = @cbds_development_20_6_3_test;
+            case 'cbds-development-20-6-4'
+                solvers{i} = @cbds_development_20_6_4_test;
+            case 'cbds-development-20-6-5'
+                solvers{i} = @cbds_development_20_6_5_test;
+            case 'cbds-development-20-6-6'
+                solvers{i} = @cbds_development_20_6_6_test;
+            case 'cbds-development-20-6-7'
+                solvers{i} = @cbds_development_20_6_7_test;
+            case 'cbds-development-20-6-8'
+                solvers{i} = @cbds_development_20_6_8_test;
+            case 'cbds-development-20-6-8-4'
+                solvers{i} = @cbds_development_20_6_8_4_test;
+            case 'cbds-development-20-6-8-5'
+                solvers{i} = @cbds_development_20_6_8_5_test;
+            case 'cbds-development-20-6-8-6'
+                solvers{i} = @cbds_development_20_6_8_6_test;
+            case 'cbds-development-20-6-8-4-6'
+                solvers{i} = @cbds_development_20_6_8_4_6_test;
+            case 'cbds-development-20-6-8-5-6'
+                solvers{i} = @cbds_development_20_6_8_5_6_test;
+            case 'cbds-development-20-6-8-6-6'
+                solvers{i} = @cbds_development_20_6_8_6_6_test;
+            case 'cbds-cycle-all'
+                solvers{i} = @cbds_cycle_all_test;
+            case 'cbds-cycle-1'
+                solvers{i} = @cbds_cycle_single_1_test;
+            case 'cbds-cycle-2'
+                solvers{i} = @cbds_cycle_single_2_test;
+            case 'cbds-cycle-3'
+                solvers{i} = @cbds_cycle_single_3_test;
+            case 'cbds-cycle-4'
+                solvers{i} = @cbds_cycle_single_4_test;
             case 'cbds-block'
                 solvers{i} = @cbds_block_test;
             case 'cbds-orig'
@@ -276,6 +337,10 @@ function profile_optiprofiler(options)
                 solvers{i} = @cbds_permuted_test;
             case 'cbds-permuted-noisy'
                 solvers{i} = @(fun, x0) cbds_permuted_test_noisy(fun, x0, true);
+            case 'cbds-rotated-initial-point'
+                solvers{i} = @cbds_rotated_initial_point_test;
+            case 'cbds-rotated-initial-point-noisy'
+                solvers{i} = @(fun, x0) cbds_rotated_initial_point_test_noisy(fun, x0, true);
             case 'pds'
                 solvers{i} = @pds_test;
             case 'bfo'
@@ -407,8 +472,7 @@ function profile_optiprofiler(options)
             options = rmfield(options, 'noise_level');
 
     end
-
-    benchmark(solvers, options)
+    [solver_scores, profile_scores] = benchmark(solvers, options);
 
 end
 
@@ -529,7 +593,7 @@ function x = fminunc_adaptive(fun, x0, noise_level)
 
     options.with_gradient = true;
     options.noise_level = noise_level;
-    x = test_fminunc(fun, x0, options);
+    x = fminunc_wrapper(fun, x0, options);
 
 end
 
@@ -553,6 +617,27 @@ function x = ds_test_noisy(fun, x0, is_noisy)
     option.Algorithm = 'ds';
     option.is_noisy = is_noisy;
     x = bds(fun, x0, option);
+end
+
+function x = ds_randomized_orthogonal_test(fun, x0)
+
+    option.Algorithm = 'ds';
+    [Q,R] = qr(randn(numel(x0), numel(x0)));
+    Q(:, diag(R) < 0) = -Q(:, diag(R) < 0);
+    option.direction_set = Q;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = ds_randomized_orthogonal_test_noisy(fun, x0, is_noisy)
+
+    option.Algorithm = 'ds';
+    [Q,R] = qr(randn(numel(x0), numel(x0)));
+    Q(:, diag(R) < 0) = -Q(:, diag(R) < 0);
+    option.direction_set = Q;
+    option.is_noisy = is_noisy;
+    x = bds(fun, x0, option);
+    
 end
 
 function x = pbds_test(fun, x0)
@@ -580,10 +665,430 @@ function x = pbds_orig_test(fun, x0)
     
 end
 
+function x = pbds_permuted_0_test(fun, x0)
+
+    option.Algorithm = 'pbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.permuting_period = 0;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = pbds_permuted_1_test(fun, x0)
+
+    option.Algorithm = 'pbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.permuting_period = 1;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = pbds_permuted_quarter_n_test(fun, x0)
+
+    option.Algorithm = 'pbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.permuting_period = ceil(numel(x0)/4);
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = pbds_permuted_half_n_test(fun, x0)
+
+    option.Algorithm = 'pbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.permuting_period = ceil(numel(x0)/2);
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = pbds_permuted_n_test(fun, x0)
+
+    option.Algorithm = 'pbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.permuting_period = numel(x0);
+    x = bds_development(fun, x0, option);
+    
+end
+
 function x = cbds_test(fun, x0)
 
     option.Algorithm = 'cbds';
     x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_development_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_10_func_tol_6_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 10;
+    option.func_tol = 1e-6;
+    option.use_function_value_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_10_func_tol_8_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 15;
+    option.func_tol = 1e-8;
+    option.use_function_value_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_10_func_tol_10_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 10;
+    option.func_tol = 1e-10;
+    option.use_function_value_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_10_func_tol_12_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 10;
+    option.func_tol = 1e-12;
+    option.use_function_value_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_15_func_tol_6_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 15;
+    option.func_tol = 1e-6;
+    option.use_function_value_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_15_func_tol_8_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 15;
+    option.func_tol = 1e-8;
+    option.use_function_value_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_15_func_tol_10_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 15;
+    option.func_tol = 1e-10;
+    option.use_function_value_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_15_func_tol_12_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 15;
+    option.func_tol = 1e-12;
+    option.use_function_value_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_20_func_tol_6_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 20;
+    option.func_tol = 1e-6;
+    option.use_function_value_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_20_func_tol_8_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 20;
+    option.func_tol = 1e-8;
+    option.use_function_value_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_20_func_tol_10_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 20;
+    option.func_tol = 1e-10;
+    option.use_function_value_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_20_func_tol_12_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 20;
+    option.func_tol = 1e-12;
+    option.use_function_value_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_20_6_3_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 20;
+    option.func_tol = 1e-6;
+    option.dist_tol = 1e-3;
+    option.use_point_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_20_6_4_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 20;
+    option.func_tol = 1e-6;
+    option.dist_tol = 1e-4;
+    option.use_point_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_20_6_5_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 20;
+    option.func_tol = 1e-6;
+    option.dist_tol = 1e-5;
+    option.use_point_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_20_6_6_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 20;
+    option.func_tol = 1e-6;
+    option.dist_tol = 1e-6;
+    option.use_point_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_20_6_7_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 20;
+    option.func_tol = 1e-6;
+    option.dist_tol = 1e-7;
+    option.use_point_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_20_6_8_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 20;
+    option.func_tol = 1e-6;
+    option.dist_tol = 1e-8;
+    option.use_point_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_20_6_8_4_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 20;
+    option.func_tol = 1e-6;
+    option.dist_tol = 1e-8;
+    option.use_point_stop = true;
+    option.use_estimated_gradient_stop = true;
+    option.grad_tol = 1e-4;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_20_6_8_5_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 20;
+    option.func_tol = 1e-6;
+    option.dist_tol = 1e-8;
+    option.use_point_stop = true;
+    option.use_estimated_gradient_stop = true;
+    option.grad_tol = 1e-5;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_20_6_8_6_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 20;
+    option.func_tol = 1e-6;
+    option.dist_tol = 1e-8;
+    option.use_point_stop = true;
+    option.use_estimated_gradient_stop = true;
+    option.grad_tol = 1e-6;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_20_6_8_4_6_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 20;
+    option.func_tol = 1e-6;
+    option.dist_tol = 1e-8;
+    option.use_point_stop = true;
+    option.use_estimated_gradient_stop = true;
+    option.grad_tol = 1e-4;
+    option.grad_rate_tol = 1e-6;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_20_6_8_5_6_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 20;
+    option.func_tol = 1e-6;
+    option.dist_tol = 1e-8;
+    option.use_point_stop = true;
+    option.use_estimated_gradient_stop = true;
+    option.grad_tol = 1e-5;
+    option.grad_rate_tol = 1e-6;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_development_20_6_8_6_6_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.iter_stop = 20;
+    option.func_tol = 1e-6;
+    option.dist_tol = 1e-8;
+    option.use_point_stop = true;
+    option.use_estimated_gradient_stop = true;
+    option.grad_tol = 1e-6;
+    option.grad_rate_tol = 1e-6;
+    x = bds_development(fun, x0, option);
+    
+end
+
+
+function x = cbds_cycle_all_test(fun, x0)
+
+    option.Algorithm = 'cycle_all';
+    option.expand = 2;
+    option.shrink = 0.5;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_cycle_single_1_test(fun, x0)
+
+    option.Algorithm = 'cycle_single_1';
+    option.expand = 2;
+    option.shrink = 0.5;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_cycle_single_2_test(fun, x0)
+
+    option.Algorithm = 'cycle_single_2';
+    option.expand = 2;
+    option.shrink = 0.5;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_cycle_single_3_test(fun, x0)
+
+    option.Algorithm = 'cycle_single_3';
+    option.expand = 2;
+    option.shrink = 0.5;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_cycle_single_4_test(fun, x0)
+
+    option.Algorithm = 'cycle_single_4';
+    option.expand = 2;
+    option.shrink = 0.5;
+    x = bds_development(fun, x0, option);
     
 end
 
@@ -615,7 +1120,7 @@ end
 
 function x = cbds_half_block_test(fun, x0)
 
-    option.num_blocks = ceil(numel(x0)/2);
+    option.batch_size = ceil(numel(x0)/2);
     option.expand = 2;
     option.shrink = 0.5;
     option.use_estimated_gradient_stop = false;
@@ -625,7 +1130,7 @@ end
 
 function x = cbds_quarter_block_test(fun, x0)
 
-    option.num_blocks = ceil(numel(x0)/4);
+    option.batch_size = ceil(numel(x0)/4);
     option.expand = 2;
     option.shrink = 0.5;
     option.use_estimated_gradient_stop = false;
@@ -635,7 +1140,7 @@ end
 
 function x = cbds_eighth_block_test(fun, x0)
 
-    option.num_blocks = ceil(numel(x0)/8);
+    option.batch_size = ceil(numel(x0)/8);
     option.expand = 2;
     option.shrink = 0.5;
     option.use_estimated_gradient_stop = false;
@@ -700,6 +1205,94 @@ function x = cbds_permuted_test_noisy(fun, x0, is_noisy)
     
 end
 
+function x = cbds_rotated_initial_point_test(fun, x0) 
+
+    option.Algorithm = 'cbds';
+
+    % Ensure x0 is a column vector
+    x0 = x0(:);
+    n = length(x0);
+
+    % Normalize the input vector
+    x0_hat = x0 / norm(x0);
+
+    % Construct the first standard basis vector
+    e1 = zeros(n, 1);
+    e1(1) = 1;
+
+    % Check if x0 is already aligned with e1
+    if norm(x0_hat - e1) < 1e-10
+        R = eye(n); % If x0 is already aligned with e1, return identity matrix
+    else
+        % Compute the Householder vector
+        u = x0_hat - e1;
+
+        % Avoid numerical instability when u is close to zero
+        if norm(u) < 1e-10
+            % Use a fallback: set u to a simple direction
+            u = zeros(n, 1);
+            u(2) = 1; % Choose a valid direction orthogonal to e1
+        else
+            u = u / norm(u); % Normalize u
+        end
+
+        % Compute the Householder reflection matrix implicitly
+        % H = I - 2 * (u * u'), but we avoid forming H explicitly
+        % Instead, we compute R directly
+        R = eye(n) - 2 * (u * u'); % Compute the full rotation matrix
+
+        % Ensure that the first column of R is aligned with x0.
+    end
+
+    option.direction_set = R;
+
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_rotated_initial_point_test_noisy(fun, x0, is_noisy)
+
+    option.Algorithm = 'cbds';
+
+    % Ensure x0 is a column vector
+    x0 = x0(:);
+    n = length(x0);
+
+    % Normalize the input vector
+    x0_hat = x0 / norm(x0);
+
+    % Construct the first standard basis vector
+    e1 = zeros(n, 1);
+    e1(1) = 1;
+
+    % Check if x0 is already aligned with e1
+    if norm(x0_hat - e1) < 1e-10
+        R = eye(n); % If x0 is already aligned with e1, return identity matrix
+    else
+        % Compute the Householder vector
+        u = x0_hat - e1;
+
+        % Avoid numerical instability when u is close to zero
+        if norm(u) < 1e-10
+            % Use a fallback: set u to a simple direction
+            u = zeros(n, 1);
+            u(2) = 1; % Choose a valid direction orthogonal to e1
+        else
+            u = u / norm(u); % Normalize u
+        end
+
+        % Compute the Householder reflection matrix implicitly
+        % H = I - 2 * (u * u'), but we avoid forming H explicitly
+        % Instead, we compute R directly
+        R = eye(n) - 2 * (u * u'); % Compute the full rotation matrix
+    end
+
+    option.direction_set = R;
+    option.is_noisy = is_noisy;
+    x = bds_development(fun, x0, option);
+
+end
+
 function x = rbds_test(fun, x0)
 
     option.Algorithm = 'rbds';
@@ -718,7 +1311,7 @@ end
 function x = rbds_zero_delay_test(fun, x0)
 
     option.Algorithm = 'rbds';
-    option.num_selected_blocks = 1;
+    option.batch_size = 1;
     option.expand = 2;
     option.shrink = 0.5;
     option.replacement_delay = 0;
@@ -729,7 +1322,7 @@ end
 function x = rbds_one_delay_test(fun, x0)
 
     option.Algorithm = 'rbds';
-    option.num_selected_blocks = 1;
+    option.batch_size = 1;
     option.expand = 2;
     option.shrink = 0.5;
     option.replacement_delay = 1;
@@ -740,7 +1333,7 @@ end
 function x = rbds_eighth_delay_test(fun, x0)
 
     option.Algorithm = 'rbds';
-    option.num_selected_blocks = 1;
+    option.batch_size = 1;
     option.expand = 2;
     option.shrink = 0.5;
     option.replacement_delay = ceil(numel(x0)/8);
@@ -751,7 +1344,7 @@ end
 function x = rbds_quarter_delay_test(fun, x0)
 
     option.Algorithm = 'rbds';
-    option.num_selected_blocks = 1;
+    option.batch_size = 1;
     option.expand = 2;
     option.shrink = 0.5;
     option.replacement_delay = ceil(numel(x0)/4);
@@ -762,7 +1355,7 @@ end
 function x = rbds_half_delay_test(fun, x0)
 
     option.Algorithm = 'rbds';
-    option.num_selected_blocks = 1;
+    option.batch_size = 1;
     option.expand = 2;
     option.shrink = 0.5;
     option.replacement_delay = ceil(numel(x0)/2);
@@ -773,7 +1366,7 @@ end
 function x = rbds_n_minus_1_delay_test(fun, x0)
 
     option.Algorithm = 'rbds';
-    option.num_selected_blocks = 1;
+    option.batch_size = 1;
     option.expand = 2;
     option.shrink = 0.5;
     option.replacement_delay = numel(x0) - 1;
@@ -786,7 +1379,7 @@ function x = rbds_num_selected_blocks_n_test(fun, x0)
     option.Algorithm = 'rbds';
     option.expand = 2;
     option.shrink = 0.5;
-    option.num_selected_blocks = numel(x0);
+    option.batch_size = numel(x0);
     option.replacement_delay = 0;
     x = bds(fun, x0, option);
     
@@ -797,7 +1390,7 @@ function x = rbds_num_selected_blocks_half_n_test(fun, x0)
     option.Algorithm = 'rbds';
     option.expand = 2;
     option.shrink = 0.5;
-    option.num_selected_blocks = ceil(numel(x0)/2);
+    option.batch_size = ceil(numel(x0)/2);
     option.replacement_delay = 0;
     x = bds(fun, x0, option);
 
@@ -808,7 +1401,7 @@ function x = rbds_num_selected_blocks_quarter_n_test(fun, x0)
     option.Algorithm = 'rbds';
     option.expand = 2;
     option.shrink = 0.5;
-    option.num_selected_blocks = ceil(numel(x0)/4);
+    option.batch_size = ceil(numel(x0)/4);
     option.replacement_delay = 0;
     x = bds(fun, x0, option);
 
@@ -819,7 +1412,7 @@ function x = rbds_num_selected_blocks_eighth_n_test(fun, x0)
     option.Algorithm = 'rbds';
     option.expand = 2;
     option.shrink = 0.5;
-    option.num_selected_blocks = ceil(numel(x0)/8);
+    option.batch_size = ceil(numel(x0)/8);
     option.replacement_delay = 0;
     x = bds(fun, x0, option);
 
@@ -830,7 +1423,7 @@ function x = rbds_num_selected_blocks_one_test(fun, x0)
     option.Algorithm = 'rbds';
     option.expand = 2;
     option.shrink = 0.5;
-    option.num_selected_blocks = 1;
+    option.batch_size = 1;
     option.replacement_delay = 0;
     x = bds(fun, x0, option);
 
@@ -847,7 +1440,7 @@ end
 function x = scbds_test(fun, x0)
 
     option.Algorithm = 'scbds';
-    x = bds(fun, x0, option);
+    x = bds_development(fun, x0, option);
     
 end
 
@@ -855,7 +1448,7 @@ function x = scbds_test_noisy(fun, x0, is_noisy)
 
     option.Algorithm = 'scbds';
     option.is_noisy = is_noisy;
-    x = bds(fun, x0, option);
+    x = bds_development(fun, x0, option);
     
 end
 
