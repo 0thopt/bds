@@ -97,8 +97,8 @@ ylabel(param2_name);
 
 colorbar; 
 
-% Find the top 2 maximum values
-[~, idx] = maxk(perfs(:), 2);
+% Find the top 5 maximum values
+[~, idx] = maxk(perfs(:), 5);
 
 markerSize = 10;  % 减小圆圈大小
 labelFontSize = 10;  % 减小字体大小
