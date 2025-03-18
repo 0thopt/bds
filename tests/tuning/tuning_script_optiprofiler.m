@@ -36,14 +36,14 @@ plot_parameters_optiprofiler(parameters, solver, competitor, options);
 options.feature = "linearly_transformed";
 fprintf('Feature:\t %s\n', options.feature);
 options.num_random = 3;
-plot_parameters(parameters, solver, competitor, options);   
+plot_parameters_optiprofiler(parameters, solver, competitor, options);   
 
 options.feature = "noisy_1e-3";
 fprintf('Feature:\t %s\n', options.feature);
 options.num_random = 3;
-plot_parameters(parameters, solver, competitor, options);   
+plot_parameters_optiprofiler(parameters, solver, competitor, options);   
 
 options.feature = "rotation_noisy_1e-3";
 fprintf('Feature:\t %s\n', options.feature);
 options.num_random = 3;
-plot_parameters(parameters, solver, competitor, options);   
+plot_parameters_optiprofiler(parameters, solver, competitor, options);   
