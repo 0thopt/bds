@@ -18,7 +18,7 @@ param2_name = param_names{2};
 perfs = NaN(size(p1));
 
 % Get performance for each parameter combination
-for ip = 1:numel(p1)
+parfor ip = 1:numel(p1)
     % Set solver options
     solver_options = struct();
     solver_options.(param1_name) = p1(ip);
