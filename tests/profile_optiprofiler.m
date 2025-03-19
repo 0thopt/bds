@@ -33,7 +33,6 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
     if ~isfield(options, 'feature_name')
         error('Please provide the feature name');
     end
-    keyboard
     if startsWith(options.feature_name, 'noisy')
         if sum(options.feature_name == '_') > 0
             options.noise_level = 10.^(str2double(options.feature_name(end-1:end)));

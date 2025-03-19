@@ -7,11 +7,13 @@ function plot_parameters_optiprofiler(parameters, solver, competitor, options)
 
 % Get parameter names
 param_names = fieldnames(parameters);
-if length(param_names) > 2 && ismember('window_size', param_names)
+if ismember('window_size', param_names)
     % If there are more than two parameters, and one of them is 'window_size', the
     % length of 'window_size' should be 1.
-    assert(isscalar(parameters.window_size), 'The length of window_size should be 1.');
-    param_names = [param_names(~strcmp(param_names, 'window_size')); 'window_size'];
+    if length(param_names) > 2
+        assert(isscalar(parameters.window_size), 'The length of window_size should be 1.');
+        param_names = [param_names(~strcmp(param_names, 'window_size')); 'window_size'];
+    end
     window_size = parameters.window_size;
 end
 param1_name = param_names{1};
@@ -108,11 +110,15 @@ else
 end
 
 % Set the title, x-axis and y-axis ticks
+set(gca, 'XScale', 'log', 'YScale', 'log');
+
 switch param1_name
     case 'expand'
-        xticks(1:5);
+        xticks(10.^(0:1:5));
+        xticklabels(arrayfun(@(x) sprintf('10^{%d}', x), 0:1:5, 'UniformOutput', false));
     case 'shrink'
-        xticks(0.2:0.1:0.9);
+        xticks(10.^(-1:0.1:0.9));
+        xticklabels(arrayfun(@(x) sprintf('10^{%d}', x), -1:0.1:0.9, 'UniformOutput', false));
     case 'window-size'
         xticks(10:5:20);
     case 'func-tol'
@@ -154,9 +160,15 @@ switch param2_name
         yticks(parameters.(param2_name));
 end
 
-title(gca, strrep(feature_str, '_', '-')); 
+titleHandle = title(gca, strrep(feature_str, '_', '-')); 
 xlabel(param1_name);
 ylabel(param2_name);
+
+% Adjust title position
+set(titleHandle, 'Units', 'normalized');
+titlePosition = get(titleHandle, 'Position');
+titlePosition(2) = titlePosition(2) + 0.015; % Adjust this value as needed
+set(titleHandle, 'Position', titlePosition);
 
 colorbar; 
 
@@ -165,9 +177,9 @@ colorbar;
 
 % Write all the points to a txt file
 fileID = fopen(fullfile(data_path, 'points.txt'), 'w');
-fprintf(fileID, 'p1\tp2\tperf\n');
+fprintf(fileID, '%-20s %-20s %-20s\n', param1_name, param2_name, 'perf');
 for i = 1:numel(p1)
-    fprintf(fileID, '%f\t%f\t%f\n', p1(i), p2(i), perfs(i));
+    fprintf(fileID, '%-20.16f %-20.16f %-20.16f\n', p1(i), p2(i), perfs(i));
 end
 fclose(fileID);
 
@@ -202,6 +214,8 @@ saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_vs_perfo
 % openfig('my3DPlot.fig');
 % Save eps of 3d plot 
 saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_3d.eps']), 'epsc');
+% Save pdf of 3d plot
+print(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_3d.pdf']), '-dpdf');
 % Try converting the eps to pdf.
 epsPath = fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_3d.eps']);
 % One way to convert eps to pdf, without showing the output of the command.
@@ -213,6 +227,8 @@ view(2); % Top-down view
 saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_2d.fig']), 'fig');
 % Save eps of 2d plot
 saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_2d.eps']), 'epsc');
+% Save pdf of 2d plot
+print(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_2d.pdf']), '-dpdf');
 % Try converting the eps to pdf.
 epsPath = fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_2d.eps']);
 % One way to convert eps to pdf, without showing the output of the command.
