@@ -1,10 +1,13 @@
 parameters = struct();
 % parameters.expand = 1.25:0.25:5;
 % parameters.shrink = [0.2:0.1:0.5, 0.55:0.05:0.9];
-parameters.window_size = 10:5:20;
+% parameters.window_size = 10:5:20;
+parameters.window_size = 10;
 % parameters.func_tol = 10.^(-6:-2:-12);
-parameters.dist_tol = 10.^(-6:-2:-12);
+% parameters.dist_tol = 10.^(-6:-2:-12);
 % parameters.func_tol = 10.^(-6:-2:-8);
+parameters.grad_tol_1 = 10.^(-6:-2:-8);
+parameters.grad_tol_2 = 10.^(-6:-2:-8);
 fields = fieldnames(parameters);
 for i = 1:length(fields)
     field = fields{i};
@@ -34,17 +37,18 @@ fprintf('Feature:\t %s\n', options.feature_name);
 options.n_runs = 1;
 plot_parameters_optiprofiler(parameters, solver, competitor, options);   
 
-% options.feature = "linearly_transformed";
-% fprintf('Feature:\t %s\n', options.feature);
-% options.num_random = 3;
+% options.feature_name = 'linearly_transformed';
+% fprintf('Feature:\t %s\n', options.feature_name);
+% options.n_runs = 3;
 % plot_parameters_optiprofiler(parameters, solver, competitor, options);   
 
-% options.feature = "noisy_1e-3";
-% fprintf('Feature:\t %s\n', options.feature);
-% options.num_random = 3;
+% options.feature_name = 'noisy_1e-3';
+% fprintf('Feature:\t %s\n', options.feature_name);
+% options.n_runs = 3;
 % plot_parameters_optiprofiler(parameters, solver, competitor, options);   
 
-% options.feature = "rotation_noisy_1e-3";
-% fprintf('Feature:\t %s\n', options.feature);
-% options.num_random = 3;
+% options.feature_name = 'rotation_noisy_1e-3';
+% fprintf('Feature:\t %s\n', options.feature_name);
+% options.n_runs = 3;
 % plot_parameters_optiprofiler(parameters, solver, competitor, options);   
+

@@ -33,6 +33,7 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
     if ~isfield(options, 'feature_name')
         error('Please provide the feature name');
     end
+    keyboard
     if startsWith(options.feature_name, 'noisy')
         if sum(options.feature_name == '_') > 0
             options.noise_level = 10.^(str2double(options.feature_name(end-1:end)));
@@ -256,77 +257,149 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
             case 'cbds-development'
                 solvers{i} = @cbds_development_test;
             case 'cbds-10-func-tol-6'
-                solvers{i} = @cbds_development_10_func_tol_6_test;
+                solvers{i} = @cbds_10_func_tol_6_test;
             case 'cbds-10-func-tol-8'
-                solvers{i} = @cbds_development_10_func_tol_8_test;
+                solvers{i} = @cbds_10_func_tol_8_test;
             case 'cbds-10-func-tol-10'
-                solvers{i} = @cbds_development_10_func_tol_10_test;
+                solvers{i} = @cbds_10_func_tol_10_test;
             case 'cbds-10-func-tol-12'
-                solvers{i} = @cbds_development_10_func_tol_12_test;
+                solvers{i} = @cbds_10_func_tol_12_test;
             case 'cbds-15-func-tol-6'
-                solvers{i} = @cbds_development_15_func_tol_6_test;
+                solvers{i} = @cbds_15_func_tol_6_test;
             case 'cbds-15-func-tol-8'
-                solvers{i} = @cbds_development_15_func_tol_8_test;
+                solvers{i} = @cbds_15_func_tol_8_test;
             case 'cbds-15-func-tol-10'
-                solvers{i} = @cbds_development_15_func_tol_10_test;
+                solvers{i} = @cbds_15_func_tol_10_test;
             case 'cbds-15-func-tol-12'
-                solvers{i} = @cbds_development_15_func_tol_12_test;
+                solvers{i} = @cbds_15_func_tol_12_test;
             case 'cbds-20-func-tol-6'
-                solvers{i} = @cbds_development_20_func_tol_6_test;
+                solvers{i} = @cbds_20_func_tol_6_test;
             case 'cbds-20-func-tol-8'
-                solvers{i} = @cbds_development_20_func_tol_8_test;
+                solvers{i} = @cbds_20_func_tol_8_test;
             case 'cbds-20-func-tol-10'
-                solvers{i} = @cbds_development_20_func_tol_10_test;
+                solvers{i} = @cbds_20_func_tol_10_test;
             case 'cbds-20-func-tol-12'
-                solvers{i} = @cbds_development_20_func_tol_12_test;
+                solvers{i} = @cbds_20_func_tol_12_test;
             case 'cbds-10-dist-tol-6'
-                solvers{i} = @cbds_development_10_dist_tol_6_test;
+                solvers{i} = @cbds_10_dist_tol_6_test;
             case 'cbds-10-dist-tol-8'
-                solvers{i} = @cbds_development_10_dist_tol_8_test;
+                solvers{i} = @cbds_10_dist_tol_8_test;
             case 'cbds-10-dist-tol-10'
-                solvers{i} = @cbds_development_10_dist_tol_10_test;
+                solvers{i} = @cbds_10_dist_tol_10_test;
             case 'cbds-10-dist-tol-12'
-                solvers{i} = @cbds_development_10_dist_tol_12_test;
+                solvers{i} = @cbds_10_dist_tol_12_test;
             case 'cbds-15-dist-tol-6'
-                solvers{i} = @cbds_development_15_dist_tol_6_test;
+                solvers{i} = @cbds_15_dist_tol_6_test;
             case 'cbds-15-dist-tol-8'
-                solvers{i} = @cbds_development_15_dist_tol_8_test;
+                solvers{i} = @cbds_15_dist_tol_8_test;
             case 'cbds-15-dist-tol-10'
-                solvers{i} = @cbds_development_15_dist_tol_10_test;
+                solvers{i} = @cbds_15_dist_tol_10_test;
             case 'cbds-15-dist-tol-12'
-                solvers{i} = @cbds_development_15_dist_tol_12_test;
+                solvers{i} = @cbds_15_dist_tol_12_test;
             case 'cbds-20-dist-tol-6'
-                solvers{i} = @cbds_development_20_dist_tol_6_test;
+                solvers{i} = @cbds_20_dist_tol_6_test;
             case 'cbds-20-dist-tol-8'
-                solvers{i} = @cbds_development_20_dist_tol_8_test;
+                solvers{i} = @cbds_20_dist_tol_8_test;
             case 'cbds-20-dist-tol-10'
-                solvers{i} = @cbds_development_20_dist_tol_10_test;
+                solvers{i} = @cbds_20_dist_tol_10_test;
             case 'cbds-20-dist-tol-12'
-                solvers{i} = @cbds_development_20_dist_tol_12_test;            
-            case 'cbds-development-20-6-3'
-                solvers{i} = @cbds_development_20_6_3_test;
-            case 'cbds-development-20-6-4'
-                solvers{i} = @cbds_development_20_6_4_test;
-            case 'cbds-development-20-6-5'
-                solvers{i} = @cbds_development_20_6_5_test;
-            case 'cbds-development-20-6-6'
-                solvers{i} = @cbds_development_20_6_6_test;
-            case 'cbds-development-20-6-7'
-                solvers{i} = @cbds_development_20_6_7_test;
-            case 'cbds-development-20-6-8'
-                solvers{i} = @cbds_development_20_6_8_test;
-            case 'cbds-development-20-6-8-4'
-                solvers{i} = @cbds_development_20_6_8_4_test;
-            case 'cbds-development-20-6-8-5'
-                solvers{i} = @cbds_development_20_6_8_5_test;
-            case 'cbds-development-20-6-8-6'
-                solvers{i} = @cbds_development_20_6_8_6_test;
-            case 'cbds-development-20-6-8-4-6'
-                solvers{i} = @cbds_development_20_6_8_4_6_test;
-            case 'cbds-development-20-6-8-5-6'
-                solvers{i} = @cbds_development_20_6_8_5_6_test;
-            case 'cbds-development-20-6-8-6-6'
-                solvers{i} = @cbds_development_20_6_8_6_6_test;
+                solvers{i} = @cbds_20_dist_tol_12_test;  
+            case 'cbds-10-grad-tol-1-6-grad-tol-2-6'
+                solvers{i} = @cbds_10_grad_tol_1_6_grad_tol_2_6_test;
+            case 'cbds-10-grad-tol-1-6-grad-tol-2-8'
+                solvers{i} = @cbds_10_grad_tol_1_6_grad_tol_2_8_test;
+            case 'cbds-10-grad-tol-1-6-grad-tol-2-10'
+                solvers{i} = @cbds_10_grad_tol_1_6_grad_tol_2_10_test;
+            case 'cbds-10-grad-tol-1-6-grad-tol-2-12'
+                solvers{i} = @cbds_10_grad_tol_1_6_grad_tol_2_12_test;
+            case 'cbds-15-grad-tol-1-6-grad-tol-2-6'
+                solvers{i} = @cbds_15_grad_tol_1_6_grad_tol_2_6_test;
+            case 'cbds-15-grad-tol-1-6-grad-tol-2-8'
+                solvers{i} = @cbds_15_grad_tol_1_6_grad_tol_2_8_test;
+            case 'cbds-15-grad-tol-1-6-grad-tol-2-10'
+                solvers{i} = @cbds_15_grad_tol_1_6_grad_tol_2_10_test;
+            case 'cbds-15-grad-tol-1-6-grad-tol-2-12'
+                solvers{i} = @cbds_15_grad_tol_1_6_grad_tol_2_12_test;
+            case 'cbds-20-grad-tol-1-6-grad-tol-2-6'
+                solvers{i} = @cbds_20_grad_tol_1_6_grad_tol_2_6_test;
+            case 'cbds-20-grad-tol-1-6-grad-tol-2-8'
+                solvers{i} = @cbds_20_grad_tol_1_6_grad_tol_2_8_test;
+            case 'cbds-20-grad-tol-1-6-grad-tol-2-10'
+                solvers{i} = @cbds_20_grad_tol_1_6_grad_tol_2_10_test;
+            case 'cbds-20-grad-tol-1-6-grad-tol-2-12'
+                solvers{i} = @cbds_20_grad_tol_1_6_grad_tol_2_12_test;
+            case 'cbds-10-grad-tol-1-8-grad-tol-2-6'
+                solvers{i} = @cbds_10_grad_tol_1_8_grad_tol_2_6_test;
+            case 'cbds-10-grad-tol-1-8-grad-tol-2-8'
+                solvers{i} = @cbds_10_grad_tol_1_8_grad_tol_2_8_test;
+            case 'cbds-10-grad-tol-1-8-grad-tol-2-10'
+                solvers{i} = @cbds_10_grad_tol_1_8_grad_tol_2_10_test;
+            case 'cbds-10-grad-tol-1-8-grad-tol-2-12'
+                solvers{i} = @cbds_10_grad_tol_1_8_grad_tol_2_12_test;
+            case 'cbds-15-grad-tol-1-8-grad-tol-2-6'
+                solvers{i} = @cbds_15_grad_tol_1_8_grad_tol_2_6_test;
+            case 'cbds-15-grad-tol-1-8-grad-tol-2-8'
+                solvers{i} = @cbds_15_grad_tol_1_8_grad_tol_2_8_test;
+            case 'cbds-15-grad-tol-1-8-grad-tol-2-10'
+                solvers{i} = @cbds_15_grad_tol_1_8_grad_tol_2_10_test;
+            case 'cbds-15-grad-tol-1-8-grad-tol-2-12'
+                solvers{i} = @cbds_15_grad_tol_1_8_grad_tol_2_12_test;
+            case 'cbds-20-grad-tol-1-8-grad-tol-2-6'
+                solvers{i} = @cbds_20_grad_tol_1_8_grad_tol_2_6_test;
+            case 'cbds-20-grad-tol-1-8-grad-tol-2-8'
+                solvers{i} = @cbds_20_grad_tol_1_8_grad_tol_2_8_test;
+            case 'cbds-20-grad-tol-1-8-grad-tol-2-10'
+                solvers{i} = @cbds_20_grad_tol_1_8_grad_tol_2_10_test;
+            case 'cbds-20-grad-tol-1-8-grad-tol-2-12'
+                solvers{i} = @cbds_20_grad_tol_1_8_grad_tol_2_12_test;
+            case 'cbds-10-grad-tol-1-10-grad-tol-2-6'
+                solvers{i} = @cbds_10_grad_tol_1_10_grad_tol_2_6_test;
+            case 'cbds-10-grad-tol-1-10-grad-tol-2-8'
+                solvers{i} = @cbds_10_grad_tol_1_10_grad_tol_2_8_test;
+            case 'cbds-10-grad-tol-1-10-grad-tol-2-10'
+                solvers{i} = @cbds_10_grad_tol_1_10_grad_tol_2_10_test;
+            case 'cbds-10-grad-tol-1-10-grad-tol-2-12'
+                solvers{i} = @cbds_10_grad_tol_1_10_grad_tol_2_12_test;
+            case 'cbds-15-grad-tol-1-10-grad-tol-2-6'
+                solvers{i} = @cbds_15_grad_tol_1_10_grad_tol_2_6_test;
+            case 'cbds-15-grad-tol-1-10-grad-tol-2-8'
+                solvers{i} = @cbds_15_grad_tol_1_10_grad_tol_2_8_test;
+            case 'cbds-15-grad-tol-1-10-grad-tol-2-10'
+                solvers{i} = @cbds_15_grad_tol_1_10_grad_tol_2_10_test;
+            case 'cbds-15-grad-tol-1-10-grad-tol-2-12'
+                solvers{i} = @cbds_15_grad_tol_1_10_grad_tol_2_12_test;
+            case 'cbds-20-grad-tol-1-10-grad-tol-2-6'
+                solvers{i} = @cbds_20_grad_tol_1_10_grad_tol_2_6_test;
+            case 'cbds-20-grad-tol-1-10-grad-tol-2-8'
+                solvers{i} = @cbds_20_grad_tol_1_10_grad_tol_2_8_test;
+            case 'cbds-20-grad-tol-1-10-grad-tol-2-10'
+                solvers{i} = @cbds_20_grad_tol_1_10_grad_tol_2_10_test;
+            case 'cbds-20-grad-tol-1-10-grad-tol-2-12'
+                solvers{i} = @cbds_20_grad_tol_1_10_grad_tol_2_12_test;
+            case 'cbds-10-grad-tol-1-12-grad-tol-2-6'
+                solvers{i} = @cbds_10_grad_tol_1_12_grad_tol_2_6_test;
+            case 'cbds-10-grad-tol-1-12-grad-tol-2-8'
+                solvers{i} = @cbds_10_grad_tol_1_12_grad_tol_2_8_test;
+            case 'cbds-10-grad-tol-1-12-grad-tol-2-10'
+                solvers{i} = @cbds_10_grad_tol_1_12_grad_tol_2_10_test;
+            case 'cbds-10-grad-tol-1-12-grad-tol-2-12'
+                solvers{i} = @cbds_10_grad_tol_1_12_grad_tol_2_12_test;
+            case 'cbds-15-grad-tol-1-12-grad-tol-2-6'
+                solvers{i} = @cbds_15_grad_tol_1_12_grad_tol_2_6_test;
+            case 'cbds-15-grad-tol-1-12-grad-tol-2-8'
+                solvers{i} = @cbds_15_grad_tol_1_12_grad_tol_2_8_test;
+            case 'cbds-15-grad-tol-1-12-grad-tol-2-10'
+                solvers{i} = @cbds_15_grad_tol_1_12_grad_tol_2_10_test;
+            case 'cbds-15-grad-tol-1-12-grad-tol-2-12'
+                solvers{i} = @cbds_15_grad_tol_1_12_grad_tol_2_12_test;
+            case 'cbds-20-grad-tol-1-12-grad-tol-2-6'
+                solvers{i} = @cbds_20_grad_tol_1_12_grad_tol_2_6_test;
+            case 'cbds-20-grad-tol-1-12-grad-tol-2-8'
+                solvers{i} = @cbds_20_grad_tol_1_12_grad_tol_2_8_test;
+            case 'cbds-20-grad-tol-1-12-grad-tol-2-10'
+                solvers{i} = @cbds_20_grad_tol_1_12_grad_tol_2_10_test;
+            case 'cbds-20-grad-tol-1-12-grad-tol-2-12'
+                solvers{i} = @cbds_20_grad_tol_1_12_grad_tol_2_12_test;
             case 'cbds-cycle-all'
                 solvers{i} = @cbds_cycle_all_test;
             case 'cbds-cycle-1'
@@ -755,7 +828,7 @@ function x = cbds_development_test(fun, x0)
     
 end
 
-function x = cbds_development_10_func_tol_6_test(fun, x0)
+function x = cbds_10_func_tol_6_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
@@ -767,7 +840,7 @@ function x = cbds_development_10_func_tol_6_test(fun, x0)
     
 end
 
-function x = cbds_development_10_func_tol_8_test(fun, x0)
+function x = cbds_10_func_tol_8_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
@@ -779,7 +852,7 @@ function x = cbds_development_10_func_tol_8_test(fun, x0)
     
 end
 
-function x = cbds_development_10_func_tol_10_test(fun, x0)
+function x = cbds_10_func_tol_10_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
@@ -791,7 +864,7 @@ function x = cbds_development_10_func_tol_10_test(fun, x0)
     
 end
 
-function x = cbds_development_10_func_tol_12_test(fun, x0)
+function x = cbds_10_func_tol_12_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
@@ -803,7 +876,7 @@ function x = cbds_development_10_func_tol_12_test(fun, x0)
     
 end
 
-function x = cbds_development_15_func_tol_6_test(fun, x0)
+function x = cbds_15_func_tol_6_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
@@ -815,7 +888,7 @@ function x = cbds_development_15_func_tol_6_test(fun, x0)
     
 end
 
-function x = cbds_development_15_func_tol_8_test(fun, x0)
+function x = cbds_15_func_tol_8_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
@@ -827,7 +900,7 @@ function x = cbds_development_15_func_tol_8_test(fun, x0)
     
 end
 
-function x = cbds_development_15_func_tol_10_test(fun, x0)
+function x = cbds_15_func_tol_10_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
@@ -839,7 +912,7 @@ function x = cbds_development_15_func_tol_10_test(fun, x0)
     
 end
 
-function x = cbds_development_15_func_tol_12_test(fun, x0)
+function x = cbds_15_func_tol_12_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
@@ -851,7 +924,7 @@ function x = cbds_development_15_func_tol_12_test(fun, x0)
     
 end
 
-function x = cbds_development_20_func_tol_6_test(fun, x0)
+function x = cbds_20_func_tol_6_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
@@ -863,7 +936,7 @@ function x = cbds_development_20_func_tol_6_test(fun, x0)
     
 end
 
-function x = cbds_development_20_func_tol_8_test(fun, x0)
+function x = cbds_20_func_tol_8_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
@@ -875,7 +948,7 @@ function x = cbds_development_20_func_tol_8_test(fun, x0)
     
 end
 
-function x = cbds_development_20_func_tol_10_test(fun, x0)
+function x = cbds_20_func_tol_10_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
@@ -887,7 +960,7 @@ function x = cbds_development_20_func_tol_10_test(fun, x0)
     
 end
 
-function x = cbds_development_20_func_tol_12_test(fun, x0)
+function x = cbds_20_func_tol_12_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
@@ -899,7 +972,7 @@ function x = cbds_development_20_func_tol_12_test(fun, x0)
     
 end
 
-function x = cbds_development_10_dist_tol_6_test(fun, x0)
+function x = cbds_10_dist_tol_6_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
@@ -911,7 +984,7 @@ function x = cbds_development_10_dist_tol_6_test(fun, x0)
     
 end
 
-function x = cbds_development_10_dist_tol_8_test(fun, x0)
+function x = cbds_10_dist_tol_8_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
@@ -923,7 +996,7 @@ function x = cbds_development_10_dist_tol_8_test(fun, x0)
     
 end
 
-function x = cbds_development_10_dist_tol_10_test(fun, x0)
+function x = cbds_10_dist_tol_10_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
@@ -935,7 +1008,7 @@ function x = cbds_development_10_dist_tol_10_test(fun, x0)
     
 end
 
-function x = cbds_development_10_dist_tol_12_test(fun, x0)
+function x = cbds_10_dist_tol_12_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
@@ -947,7 +1020,7 @@ function x = cbds_development_10_dist_tol_12_test(fun, x0)
     
 end
 
-function x = cbds_development_15_dist_tol_6_test(fun, x0)
+function x = cbds_15_dist_tol_6_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
@@ -959,7 +1032,7 @@ function x = cbds_development_15_dist_tol_6_test(fun, x0)
     
 end
 
-function x = cbds_development_15_dist_tol_8_test(fun, x0)
+function x = cbds_15_dist_tol_8_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
@@ -971,7 +1044,7 @@ function x = cbds_development_15_dist_tol_8_test(fun, x0)
     
 end
 
-function x = cbds_development_15_dist_tol_10_test(fun, x0)
+function x = cbds_15_dist_tol_10_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
@@ -983,7 +1056,7 @@ function x = cbds_development_15_dist_tol_10_test(fun, x0)
     
 end
 
-function x = cbds_development_15_dist_tol_12_test(fun, x0)
+function x = cbds_15_dist_tol_12_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
@@ -995,7 +1068,7 @@ function x = cbds_development_15_dist_tol_12_test(fun, x0)
     
 end
 
-function x = cbds_development_20_dist_tol_6_test(fun, x0)
+function x = cbds_20_dist_tol_6_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
@@ -1007,7 +1080,7 @@ function x = cbds_development_20_dist_tol_6_test(fun, x0)
     
 end
 
-function x = cbds_development_20_dist_tol_8_test(fun, x0)
+function x = cbds_20_dist_tol_8_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
@@ -1019,7 +1092,7 @@ function x = cbds_development_20_dist_tol_8_test(fun, x0)
     
 end
 
-function x = cbds_development_20_dist_tol_10_test(fun, x0)
+function x = cbds_20_dist_tol_10_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
@@ -1031,7 +1104,7 @@ function x = cbds_development_20_dist_tol_10_test(fun, x0)
     
 end
 
-function x = cbds_development_20_dist_tol_12_test(fun, x0)
+function x = cbds_20_dist_tol_12_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
@@ -1043,177 +1116,629 @@ function x = cbds_development_20_dist_tol_12_test(fun, x0)
     
 end
 
-function x = cbds_development_20_6_3_test(fun, x0)
+function x = cbds_10_grad_tol_1_6_grad_tol_2_6_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
     option.shrink = 0.5;
-    option.iter_stop = 20;
-    option.func_tol = 1e-6;
-    option.dist_tol = 1e-3;
-    option.use_point_stop = true;
-    x = bds_development(fun, x0, option);
-    
-end
-
-function x = cbds_development_20_6_4_test(fun, x0)
-
-    option.Algorithm = 'cbds';
-    option.expand = 2;
-    option.shrink = 0.5;
-    option.iter_stop = 20;
-    option.func_tol = 1e-6;
-    option.dist_tol = 1e-4;
-    option.use_point_stop = true;
-    x = bds_development(fun, x0, option);
-    
-end
-
-function x = cbds_development_20_6_5_test(fun, x0)
-
-    option.Algorithm = 'cbds';
-    option.expand = 2;
-    option.shrink = 0.5;
-    option.iter_stop = 20;
-    option.func_tol = 1e-6;
-    option.dist_tol = 1e-5;
-    option.use_point_stop = true;
-    x = bds_development(fun, x0, option);
-    
-end
-
-function x = cbds_development_20_6_6_test(fun, x0)
-
-    option.Algorithm = 'cbds';
-    option.expand = 2;
-    option.shrink = 0.5;
-    option.iter_stop = 20;
-    option.func_tol = 1e-6;
-    option.dist_tol = 1e-6;
-    option.use_point_stop = true;
-    x = bds_development(fun, x0, option);
-    
-end
-
-function x = cbds_development_20_6_7_test(fun, x0)
-
-    option.Algorithm = 'cbds';
-    option.expand = 2;
-    option.shrink = 0.5;
-    option.iter_stop = 20;
-    option.func_tol = 1e-6;
-    option.dist_tol = 1e-7;
-    option.use_point_stop = true;
-    x = bds_development(fun, x0, option);
-    
-end
-
-function x = cbds_development_20_6_8_test(fun, x0)
-
-    option.Algorithm = 'cbds';
-    option.expand = 2;
-    option.shrink = 0.5;
-    option.iter_stop = 20;
-    option.func_tol = 1e-6;
-    option.dist_tol = 1e-8;
-    option.use_point_stop = true;
-    x = bds_development(fun, x0, option);
-    
-end
-
-function x = cbds_development_20_6_8_4_test(fun, x0)
-
-    option.Algorithm = 'cbds';
-    option.expand = 2;
-    option.shrink = 0.5;
-    option.iter_stop = 20;
-    option.func_tol = 1e-6;
-    option.dist_tol = 1e-8;
-    option.use_point_stop = true;
+    option.window_size = 10;
+    option.grad_tol_1 = 1e-6;
+    option.grad_tol_2 = 1e-6;
     option.use_estimated_gradient_stop = true;
-    option.grad_tol = 1e-4;
     x = bds_development(fun, x0, option);
     
 end
 
-function x = cbds_development_20_6_8_5_test(fun, x0)
+function x = cbds_10_grad_tol_1_6_grad_tol_2_8_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
     option.shrink = 0.5;
-    option.iter_stop = 20;
-    option.func_tol = 1e-6;
-    option.dist_tol = 1e-8;
-    option.use_point_stop = true;
+    option.window_size = 10;
+    option.grad_tol_1 = 1e-6;
+    option.grad_tol_2 = 1e-8;
     option.use_estimated_gradient_stop = true;
-    option.grad_tol = 1e-5;
     x = bds_development(fun, x0, option);
     
 end
 
-function x = cbds_development_20_6_8_6_test(fun, x0)
+function x = cbds_10_grad_tol_1_6_grad_tol_2_10_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
     option.shrink = 0.5;
-    option.iter_stop = 20;
-    option.func_tol = 1e-6;
-    option.dist_tol = 1e-8;
-    option.use_point_stop = true;
+    option.window_size = 10;
+    option.grad_tol_1 = 1e-6;
+    option.grad_tol_2 = 1e-10;
     option.use_estimated_gradient_stop = true;
-    option.grad_tol = 1e-6;
     x = bds_development(fun, x0, option);
     
 end
 
-function x = cbds_development_20_6_8_4_6_test(fun, x0)
+function x = cbds_10_grad_tol_1_6_grad_tol_2_12_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
     option.shrink = 0.5;
-    option.iter_stop = 20;
-    option.func_tol = 1e-6;
-    option.dist_tol = 1e-8;
-    option.use_point_stop = true;
+    option.window_size = 10;
+    option.grad_tol_1 = 1e-6;
+    option.grad_tol_2 = 1e-12;
     option.use_estimated_gradient_stop = true;
-    option.grad_tol = 1e-4;
-    option.grad_rate_tol = 1e-6;
     x = bds_development(fun, x0, option);
     
 end
 
-function x = cbds_development_20_6_8_5_6_test(fun, x0)
+function x = cbds_10_grad_tol_1_8_grad_tol_2_6_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
     option.shrink = 0.5;
-    option.iter_stop = 20;
-    option.func_tol = 1e-6;
-    option.dist_tol = 1e-8;
-    option.use_point_stop = true;
+    option.window_size = 10;
+    option.grad_tol_1 = 1e-8;
+    option.grad_tol_2 = 1e-6;
     option.use_estimated_gradient_stop = true;
-    option.grad_tol = 1e-5;
-    option.grad_rate_tol = 1e-6;
     x = bds_development(fun, x0, option);
     
 end
 
-function x = cbds_development_20_6_8_6_6_test(fun, x0)
+function x = cbds_10_grad_tol_1_8_grad_tol_2_8_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
     option.shrink = 0.5;
-    option.iter_stop = 20;
-    option.func_tol = 1e-6;
-    option.dist_tol = 1e-8;
-    option.use_point_stop = true;
+    option.window_size = 10;
+    option.grad_tol_1 = 1e-8;
+    option.grad_tol_2 = 1e-8;
     option.use_estimated_gradient_stop = true;
-    option.grad_tol = 1e-6;
-    option.grad_rate_tol = 1e-6;
     x = bds_development(fun, x0, option);
     
 end
 
+function x = cbds_10_grad_tol_1_8_grad_tol_2_10_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 10;
+    option.grad_tol_1 = 1e-8;
+    option.grad_tol_2 = 1e-10;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_10_grad_tol_1_8_grad_tol_2_12_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 10;
+    option.grad_tol_1 = 1e-8;
+    option.grad_tol_2 = 1e-12;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_10_grad_tol_1_10_grad_tol_2_6_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 10;
+    option.grad_tol_1 = 1e-10;
+    option.grad_tol_2 = 1e-6;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_10_grad_tol_1_10_grad_tol_2_8_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 10;
+    option.grad_tol_1 = 1e-10;
+    option.grad_tol_2 = 1e-8;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_10_grad_tol_1_10_grad_tol_2_10_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 10;
+    option.grad_tol_1 = 1e-10;
+    option.grad_tol_2 = 1e-10;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_10_grad_tol_1_10_grad_tol_2_12_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 10;
+    option.grad_tol_1 = 1e-10;
+    option.grad_tol_2 = 1e-12;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_10_grad_tol_1_12_grad_tol_2_6_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 10;
+    option.grad_tol_1 = 1e-12;
+    option.grad_tol_2 = 1e-6;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_10_grad_tol_1_12_grad_tol_2_8_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 10;
+    option.grad_tol_1 = 1e-12;
+    option.grad_tol_2 = 1e-8;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_10_grad_tol_1_12_grad_tol_2_10_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 10;
+    option.grad_tol_1 = 1e-12;
+    option.grad_tol_2 = 1e-10;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_10_grad_tol_1_12_grad_tol_2_12_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 10;
+    option.grad_tol_1 = 1e-12;
+    option.grad_tol_2 = 1e-12;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_15_grad_tol_1_6_grad_tol_2_6_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 15;
+    option.grad_tol_1 = 1e-6;
+    option.grad_tol_2 = 1e-6;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_15_grad_tol_1_6_grad_tol_2_8_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 15;
+    option.grad_tol_1 = 1e-6;
+    option.grad_tol_2 = 1e-8;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_15_grad_tol_1_6_grad_tol_2_10_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 15;
+    option.grad_tol_1 = 1e-6;
+    option.grad_tol_2 = 1e-10;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_15_grad_tol_1_6_grad_tol_2_12_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 15;
+    option.grad_tol_1 = 1e-6;
+    option.grad_tol_2 = 1e-12;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_15_grad_tol_1_8_grad_tol_2_6_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 15;
+    option.grad_tol_1 = 1e-8;
+    option.grad_tol_2 = 1e-6;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_15_grad_tol_1_8_grad_tol_2_8_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 15;
+    option.grad_tol_1 = 1e-8;
+    option.grad_tol_2 = 1e-8;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_15_grad_tol_1_8_grad_tol_2_10_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 15;
+    option.grad_tol_1 = 1e-8;
+    option.grad_tol_2 = 1e-10;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_15_grad_tol_1_8_grad_tol_2_12_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 15;
+    option.grad_tol_1 = 1e-8;
+    option.grad_tol_2 = 1e-12;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_15_grad_tol_1_10_grad_tol_2_6_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 15;
+    option.grad_tol_1 = 1e-10;
+    option.grad_tol_2 = 1e-6;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_15_grad_tol_1_10_grad_tol_2_8_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 15;
+    option.grad_tol_1 = 1e-10;
+    option.grad_tol_2 = 1e-8;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_15_grad_tol_1_10_grad_tol_2_10_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 15;
+    option.grad_tol_1 = 1e-10;
+    option.grad_tol_2 = 1e-10;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_15_grad_tol_1_10_grad_tol_2_12_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 15;
+    option.grad_tol_1 = 1e-10;
+    option.grad_tol_2 = 1e-12;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_15_grad_tol_1_12_grad_tol_2_6_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 15;
+    option.grad_tol_1 = 1e-12;
+    option.grad_tol_2 = 1e-6;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_15_grad_tol_1_12_grad_tol_2_8_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 15;
+    option.grad_tol_1 = 1e-12;
+    option.grad_tol_2 = 1e-8;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_15_grad_tol_1_12_grad_tol_2_10_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 15;
+    option.grad_tol_1 = 1e-12;
+    option.grad_tol_2 = 1e-10;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_15_grad_tol_1_12_grad_tol_2_12_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 15;
+    option.grad_tol_1 = 1e-12;
+    option.grad_tol_2 = 1e-12;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_20_grad_tol_1_6_grad_tol_2_6_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 20;
+    option.grad_tol_1 = 1e-6;
+    option.grad_tol_2 = 1e-6;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_20_grad_tol_1_6_grad_tol_2_8_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 20;
+    option.grad_tol_1 = 1e-6;
+    option.grad_tol_2 = 1e-8;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_20_grad_tol_1_6_grad_tol_2_10_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 20;
+    option.grad_tol_1 = 1e-6;
+    option.grad_tol_2 = 1e-10;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_20_grad_tol_1_6_grad_tol_2_12_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 20;
+    option.grad_tol_1 = 1e-6;
+    option.grad_tol_2 = 1e-12;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_20_grad_tol_1_8_grad_tol_2_6_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 20;
+    option.grad_tol_1 = 1e-8;
+    option.grad_tol_2 = 1e-6;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_20_grad_tol_1_8_grad_tol_2_8_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 20;
+    option.grad_tol_1 = 1e-8;
+    option.grad_tol_2 = 1e-8;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_20_grad_tol_1_8_grad_tol_2_10_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 20;
+    option.grad_tol_1 = 1e-8;
+    option.grad_tol_2 = 1e-10;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_20_grad_tol_1_8_grad_tol_2_12_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 20;
+    option.grad_tol_1 = 1e-8;
+    option.grad_tol_2 = 1e-12;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_20_grad_tol_1_10_grad_tol_2_6_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 20;
+    option.grad_tol_1 = 1e-10;
+    option.grad_tol_2 = 1e-6;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_20_grad_tol_1_10_grad_tol_2_8_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 20;
+    option.grad_tol_1 = 1e-10;
+    option.grad_tol_2 = 1e-8;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_20_grad_tol_1_10_grad_tol_2_10_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 20;
+    option.grad_tol_1 = 1e-10;
+    option.grad_tol_2 = 1e-10;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_20_grad_tol_1_10_grad_tol_2_12_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 20;
+    option.grad_tol_1 = 1e-10;
+    option.grad_tol_2 = 1e-12;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_20_grad_tol_1_12_grad_tol_2_6_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 20;
+    option.grad_tol_1 = 1e-12;
+    option.grad_tol_2 = 1e-6;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_20_grad_tol_1_12_grad_tol_2_8_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 20;
+    option.grad_tol_1 = 1e-12;
+    option.grad_tol_2 = 1e-8;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_20_grad_tol_1_12_grad_tol_2_10_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 20;
+    option.grad_tol_1 = 1e-12;
+    option.grad_tol_2 = 1e-10;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_20_grad_tol_1_12_grad_tol_2_12_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.window_size = 20;
+    option.grad_tol_1 = 1e-12;
+    option.grad_tol_2 = 1e-12;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
 
 function x = cbds_cycle_all_test(fun, x0)
 

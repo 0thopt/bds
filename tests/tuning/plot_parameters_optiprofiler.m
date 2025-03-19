@@ -7,7 +7,13 @@ function plot_parameters_optiprofiler(parameters, solver, competitor, options)
 
 % Get parameter names
 param_names = fieldnames(parameters);
-assert(length(param_names) == 2, 'There should be two parameters.');
+if length(param_names) > 2 && ismember('window_size', param_names)
+    % If there are more than two parameters, and one of them is 'window_size', the
+    % length of 'window_size' should be 1.
+    assert(isscalar(parameters.window_size), 'The length of window_size should be 1.');
+    param_names = [param_names(~strcmp(param_names, 'window_size')); 'window_size'];
+    window_size = parameters.window_size;
+end
 param1_name = param_names{1};
 param2_name = param_names{2};
 
@@ -28,6 +34,9 @@ parfor ip = 1:numel(p1)
     % should then pass solver_options to the solver.
     local_options = options;
     local_options.solver_options = solver_options;
+    if length(param_names) > 2 && ismember('window_size', param_names)
+        local_options.solver_options.window_size = window_size;
+    end
 
     % Compute performance
     fprintf('Evaluating performance for %s = %f, %s = %f\n', param1_name, p1(ip), param2_name, p2(ip));
@@ -45,6 +54,8 @@ end
 time_str = char(datetime('now', 'Format', 'yy_MM_dd_HH_mm'));
 feature_str = [char(solver), '_vs_', char(competitor), '_', num2str(options.mindim), '_', ...
                 num2str(options.maxdim), '_', char(options.feature_name), '_', char(options.p_type)];
+param_names = strjoin(param_names, '_');
+feature_str = [feature_str, '_', param_names];
 data_path_name = [feature_str, '_', time_str];
 data_path = fullfile(data_path, data_path_name);
 mkdir(data_path);
@@ -71,9 +82,14 @@ save(fullfile(data_path, 'parameters.mat'), 'parameters');
 fileID = fopen(fullfile(data_path, 'parameters.txt'), 'w');
 fprintf(fileID, 'parameters.%s = [%s];\n', param1_name, num2str(parameters.(param1_name)));
 fprintf(fileID, 'parameters.%s = [%s];\n', param2_name, num2str(parameters.(param2_name)));
+if length(param_names) > 2 && any(ismember('window_size', param_names))
+    fprintf(fileID, 'parameters.window_size = %d;\n', window_size);
+end
 fclose(fileID);
 
 % Plot
+param1_name = strrep(param1_name, '_', '-');
+param2_name = strrep(param2_name, '_', '-');
 FigHandle=figure('Name', ['(', param1_name, ', ', param2_name, ')', ' v.s. performance']);
 hold on;
 
@@ -91,26 +107,81 @@ else
          'EdgeColor', [0.2 0.2 0.2], 'LineWidth', 0.5);
 end
 
+% Set the title, x-axis and y-axis ticks
+switch param1_name
+    case 'expand'
+        xticks(1:5);
+    case 'shrink'
+        xticks(0.2:0.1:0.9);
+    case 'window-size'
+        xticks(10:5:20);
+    case 'func-tol'
+        xticks(10.^(-12:1:-6));
+        xticklabels(arrayfun(@(x) sprintf('10^{%d}', x), -12:1:-6, 'UniformOutput', false));
+    case 'dist-tol'
+        xticks(10.^(-12:1:-6));
+        xticklabels(arrayfun(@(x) sprintf('10^{%d}', x), -12:1:-6, 'UniformOutput', false));
+    case 'grad-tol-1'
+        xticks(10.^(-12:1:-6));
+        xticklabels(arrayfun(@(x) sprintf('10^{%d}', x), -12:1:-6, 'UniformOutput', false));
+    case 'grad-tol-2'
+        xticks(10.^(-12:1:-6));
+        xticklabels(arrayfun(@(x) sprintf('10^{%d}', x), -12:1:-6, 'UniformOutput', false));
+    otherwise
+        xticks(parameters.(param1_name));
+end
+
+switch param2_name
+    case 'expand'
+        yticks(1:5);
+    case 'shrink'
+        yticks(0.2:0.1:0.9);
+    case 'window-size'
+        yticks(10:5:20);
+    case 'func-tol'
+        yticks(10.^(-12:1:-6));
+        yticklabels(arrayfun(@(x) sprintf('10^{%d}', x), -12:1:-6, 'UniformOutput', false));
+    case 'dist-tol'
+        yticks(10.^(-12:1:-6));
+        yticklabels(arrayfun(@(x) sprintf('10^{%d}', x), -12:1:-6, 'UniformOutput', false));
+    case 'grad-tol-1'
+        yticks(10.^(-12:1:-6));
+        yticklabels(arrayfun(@(x) sprintf('10^{%d}', x), -12:1:-6, 'UniformOutput', false));
+    case 'grad-tol-2'
+        yticks(10.^(-12:1:-6));
+        yticklabels(arrayfun(@(x) sprintf('10^{%d}', x), -12:1:-6, 'UniformOutput', false));
+    otherwise
+        yticks(parameters.(param2_name));
+end
+
 title(gca, strrep(feature_str, '_', '-')); 
 xlabel(param1_name);
 ylabel(param2_name);
 
 colorbar; 
 
-% Find the top 5 maximum values
-[~, idx] = maxk(perfs(:), 5);
+% Find the top 3 maximum values
+[~, idx] = maxk(perfs(:), 3);
 
-markerSize = 10;  % 减小圆圈大小
-labelFontSize = 10;  % 减小字体大小
+% Write all the points to a txt file
+fileID = fopen(fullfile(data_path, 'points.txt'), 'w');
+fprintf(fileID, 'p1\tp2\tperf\n');
+for i = 1:numel(p1)
+    fprintf(fileID, '%f\t%f\t%f\n', p1(i), p2(i), perfs(i));
+end
+fclose(fileID);
 
-% 添加偏移
+markerSize = 10;  % Set the size of the circles
+labelFontSize = 10;  % Set the font size for the labels
+
+% Add a small offset to the z-coordinate of the points to make them visible
 z_offset = (max(perfs(:)) - min(perfs(:))) * 0.001;
 
-% 画空心圆，使用深色边缘
+% Draw the top 3 points with a black circle and a black label
 h_points = plot3(p1(idx), p2(idx), perfs(idx) + z_offset, 'o', 'MarkerSize', markerSize, ...
       'MarkerFaceColor', 'none', 'MarkerEdgeColor', [0.1 0.1 0.1], 'LineWidth', 1.5);
 
-% 添加黑色标号
+% Add labels to the top 3 points
 h_text = zeros(length(idx), 1);
 for i = 1:length(idx)
     h_text(i) = text(p1(idx(i)), p2(idx(i)), perfs(idx(i)) + z_offset, num2str(i), ...
@@ -118,7 +189,7 @@ for i = 1:length(idx)
          'Color', 'k', 'FontSize', labelFontSize, 'FontWeight', 'bold');
 end
 
-% 将点和文本移到最上层
+% Move the points and labels to the top
 uistack(h_points, 'top');
 for i = 1:length(h_text)
     uistack(h_text(i), 'top');

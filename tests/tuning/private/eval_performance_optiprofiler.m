@@ -15,7 +15,7 @@ function perf = eval_performance_optiprofiler(solver, competitor, options)
     parameters.draw_plots = true;
     currentFilePath = mfilename('fullpath');
     parameters.savepath = fullfile(fileparts(fileparts(currentFilePath)), 'tuning_data');
-    solver_options_list = ["expand", "shrink", "window_size", "func_tol", "dist_tol"];
+    solver_options_list = ["expand", "shrink", "window_size", "func_tol", "dist_tol", "grad_tol_1", "grad_tol_2"];
     for i = 1:numel(solver_options_list)
         fieldName = solver_options_list(i);
         

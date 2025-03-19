@@ -392,19 +392,6 @@ else
     alpha_tol = get_default_constant("StepTolerance");
 end
 
-
-if isfield(options, "grad_tol")
-    grad_tol = options.grad_tol;
-else
-    grad_tol = get_default_constant("grad_tol");
-end
-
-if isfield(options, "grad_rate_tol")
-    grad_rate_tol = options.grad_rate_tol;
-else
-    grad_rate_tol = get_default_constant("grad_rate_tol");
-end
-
 % Set the value of alpha_threshold. If the step size is smaller than alpha_threshold, then the step size
 % will be not allowed to shrink below alpha_threshold.
 if isfield(options, "alpha_threshold")
@@ -604,6 +591,16 @@ if isfield(options, "dist_tol")
 else
     dist_tol = 1e-6;
 end
+if isfield(options, "grad_tol_1")
+    grad_tol_1 = options.grad_tol_1;
+else
+    grad_tol_1 = 1e-6;
+end
+if isfield(options, "grad_tol_2")
+    grad_tol_2 = options.grad_tol_2;
+else
+    grad_tol_2 = 1e-8;
+end
 
 terminate = false;
 % Check whether FTARGET is reached by fopt. If it is true, then terminate.
@@ -640,30 +637,17 @@ for iter = 1:maxit
             g(i_real) = (fhist(nf - 2*(i_real - 1) - 1) - fhist(nf - 2*(i_real - 1))) / (2*alpha_hist(i_real, iter-1));
         end
         grad_hist = [grad_hist norm(g)];
-        if min(grad_hist) < grad_tol 
+        % The recommendation is grad_tol_1 should be greater than grad_tol_2.
+        if min(grad_hist) < grad_tol_1 * min(1, grad_hist(1)) || min(grad_hist) < grad_tol_2 * max(1, grad_hist(1))
             exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
             break;
         end
-        % e <= grad_tol && e <= grad_rate_tol * e_0
-        % OR e <= grad_threshold
-        grad_min = min(grad_hist);
-        % grad_tol_1 = 1e-6
-        % grad_tol_2 = 1e-8
-        grad_min < grad_tol_1 * min(1, grad_hist(1)) || grad_min < grad_tol_2 * max(1, grad_hist(1))
-        % grad_min < min(grad_tol, grad_rate_tol * grad_hist(1)) || grad_min < grad_threshold
-        % (grad_min < grad_tol && grad_min < grad_rate_tol * grad_hist(1)) || grad_min < grad_threshold
-        % min(grad_hist) < max(min(grad_tol, grad_rate_tol * min(grad_hist), grad_threshold))
-        % max(min(e_0 * grad_rate_tol, grad_tol), grad_tol) 
-        % min(grad_hist) < max(grad_tol * min(1, grad_hist(1)), grad_tol)
-        % if min(grad_hist) < grad_tol || (length(grad_hist) > 1 && ...
-        %         (grad_hist(1) - grad_hist(end)) / grad_hist(1) > (1 - grad_rate_tol))
-        %     if min(grad_hist) < grad_tol
-        %         exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
-        %     else
-        %         exitflag = get_exitflag("ESTIMATED_GRADIENT_FULLY_REDUCED");
-        %     end
-        %     break;
-        % end
+        % % e <= grad_tol && e <= grad_rate_tol * e_0
+        % % OR e <= grad_threshold
+        % grad_min = min(grad_hist);
+        % % grad_tol_1 = 1e-6
+        % % grad_tol_2 = 1e-8
+        % grad_min < grad_tol_1 * min(1, grad_hist(1)) || grad_min < grad_tol_2 * max(1, grad_hist(1))
     end
 
     % Track the best function value observed so far. Although fopt could be used for this purpose,
