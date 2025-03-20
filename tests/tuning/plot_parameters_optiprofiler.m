@@ -1,18 +1,16 @@
-function plot_parameters_optiprofiler(parameters, solver, competitor, options)
+function plot_parameters_optiprofiler(parameters, options)
 % parameters: a structure with two fields; the field names are the names of the parameters; for each
 % field, the value is a vector representing the values of the corresponding parameter.
-% solver: a string representing the solver whose performance is to be evaluated.
-% competitor: a string representing the competitor solver.
 % options: a structure representing the options to be passed to the performance function.
 
 % Get parameter names
 param_names = fieldnames(parameters);
 if ismember('window_size', param_names)
-    % If there are more than two parameters, and one of them is 'window_size', the
-    % length of 'window_size' should be 1.
-    if length(param_names) > 2
-        assert(isscalar(parameters.window_size), 'The length of window_size should be 1.');
-        param_names = [param_names(~strcmp(param_names, 'window_size')); 'window_size'];
+    % If there are grad_tol_1 and grad_tol_2 in param_names, the length of window_size should be 1.
+    if ismember('grad_tol_1', param_names) && ismember('grad_tol_2', param_names)
+        if length(parameters.window_size) > 1
+            error('The length of window_size should be 1.');
+        end
     end
     window_size = parameters.window_size;
 end
@@ -25,6 +23,18 @@ param2_name = param_names{2};
 % Initialize performance matrix
 perfs = NaN(size(p1));
 
+if ~isfield(parameters, 'baseline_params')
+    error('baseline_params must be provided in parameters');
+else
+    % The field names of baseline_params should be the same as the field names of parameters.
+    baseline_params_names = fieldnames(parameters.baseline_params);
+    if ~all(ismember(baseline_params_names, param_names))
+        error('The field names of baseline_params should be the same as the field names of parameters.');
+    end
+end
+baseline_params = parameters.baseline_params;
+options.baseline_params = baseline_params;
+
 % Get performance for each parameter combination
 parfor ip = 1:numel(p1)
     % Set solver options
@@ -36,13 +46,10 @@ parfor ip = 1:numel(p1)
     % should then pass solver_options to the solver.
     local_options = options;
     local_options.solver_options = solver_options;
-    if length(param_names) > 2 && ismember('window_size', param_names)
-        local_options.solver_options.window_size = window_size;
-    end
 
     % Compute performance
     fprintf('Evaluating performance for %s = %f, %s = %f\n', param1_name, p1(ip), param2_name, p2(ip));
-    perfs(ip) = eval_performance_optiprofiler(solver, competitor, local_options);
+    perfs(ip) = eval_performance_optiprofiler(local_options);
 end
 
 % We save the results in the `data_path` folder. 
@@ -55,10 +62,10 @@ end
 
 % Create a subfolder stamped with the current time for the current test. 
 time_str = char(datetime('now', 'Format', 'yy_MM_dd_HH_mm'));
-feature_str = [char(solver), '_vs_', char(competitor), '_', num2str(options.mindim), '_', ...
+feature_str = [num2str(options.mindim), '_', ...
                 num2str(options.maxdim), '_', char(options.feature_name), '_', char(options.p_type)];
 
-if ismember('window_size', param_names) && length(param_names) > 2
+if ismember('window_size', param_names) && isscalar(parameters.window_size)
     % If 'window_size' is one of the parameters, include its value in the feature string.
     feature_str = [feature_str, '_', 'window_size_', num2str(window_size)];
     % Remove 'window_size' from param_names to avoid duplication.
@@ -84,7 +91,9 @@ fprintf(fileID, 'options.p_type = "%s";\n', options.p_type);
 fprintf(fileID, 'options.tau_weights = [%s];\n', num2str(options.tau_weights));
 fprintf(fileID, 'options.feature_name = "%s";\n', options.feature_name);
 fprintf(fileID, 'options.n_runs = %d;\n', options.n_runs);
-fprintf(fileID, 'options.tau_indices = [%s];\n', num2str(options.tau_indices));
+fprintf(fileID, 'options.max_tol_order = [%s];\n', num2str(options.max_tol_order));
+fprintf(fileID, 'options.is_stopping_criterion = %d;\n', options.is_stopping_criterion);
+fprintf(fileID, 'options.draw_plots = %d;\n', options.draw_plots);
 fclose(fileID);
 
 % Save the parameters into a mat file.
@@ -181,8 +190,13 @@ set(titleHandle, 'Position', titlePosition);
 
 colorbar; 
 
-% Find the top 3 maximum values
-[~, idx] = maxk(perfs(:), 3);
+% Fist checkout the number of points to be plotted. If there are more than 5 points, plot the top 5 points.
+% If there are less than 5 points, plot the top 3 points.
+if numel(perfs) < 5
+    [~, idx] = maxk(perfs(:), 3);
+else
+    [~, idx] = maxk(perfs(:), 5);
+end
 
 % Write all the points to a txt file
 fileID = fopen(fullfile(data_path, 'points.txt'), 'w');

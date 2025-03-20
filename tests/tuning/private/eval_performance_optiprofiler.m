@@ -1,40 +1,35 @@
-function perf = eval_performance_optiprofiler(solver, competitor, options)
+function perf = eval_performance_optiprofiler(options)
 
     % perf = rand();
     % return
 
-    parameters = struct();
-
-    parameters.n_jobs = 1;
-    parameters.mindim = options.mindim;
-    parameters.maxdim = options.maxdim;
-    parameters.n_runs = options.n_runs;
-    parameters.p_type = options.p_type;
-    parameters.feature_name = options.feature_name;
+    options.n_jobs = 1;
     % parameters.draw_plots = options.draw_plots;
-    parameters.draw_plots = true;
-    currentFilePath = mfilename('fullpath');
-    parameters.savepath = fullfile(fileparts(fileparts(currentFilePath)), 'tuning_data');
-    solver_options_list = ["expand", "shrink", "window_size", "func_tol", "dist_tol", "grad_tol_1", "grad_tol_2"];
-    for i = 1:numel(solver_options_list)
-        fieldName = solver_options_list(i);
-        
-        if isfield(options.solver_options, fieldName)
-            fieldValue = options.solver_options.(fieldName);
-            if fieldValue < 1
-                fieldValue = strcat(char(strrep(fieldName, '_', '-')), '-', int2str(int32(-log10(fieldValue))));
-            else
-                fieldValue = int2str(int32(fieldValue));
-            end
-            solver = strcat(solver, '-', fieldValue);
+    options.draw_plots = false;
+    parameters = options.solver_options;
+    options = rmfield(options, 'solver_options');
+    is_stopping_criterion = options.is_stopping_criterion;
+    options = rmfield(options, 'is_stopping_criterion');
+    tau_weights = options.tau_weights;
+    options = rmfield(options, 'tau_weights');
+    % For each field in options.baseline_params, if the field exists in parameters,
+    % concatenate the baseline parameter value to the existing parameter value in parameters.
+    baseline_fields = fieldnames(options.baseline_params);
+    for i = 1:length(baseline_fields)
+        field = baseline_fields{i};
+        if isfield(parameters, field)
+            % Concatenate the baseline parameter value to the existing parameter value
+            parameters.(field) = [parameters.(field), options.baseline_params.(field)];
         end
     end
-    parameters.solver_names = {solver, competitor};
-    [~, profile_scores] = profile_optiprofiler(parameters);
-    if options.is_stopping_criterion
-        perf = 0.5 * sum(profile_scores(1, :, 1, 1).*options.tau_weights) + 0.5 * sum(profile_scores(1, :, 2, 1).*options.tau_weights);
+    options = rmfield(options, 'baseline_params');
+    currentFilePath = mfilename('fullpath');
+    options.savepath = fullfile(fileparts(fileparts(currentFilePath)), 'tuning_data');
+    [~, profile_scores] = tuning_optiprofiler(parameters, options);
+    if is_stopping_criterion
+        perf = 0.5 * sum(profile_scores(1, :, 1, 1).*tau_weights) + 0.5 * sum(profile_scores(1, :, 2, 1).*tau_weights);
     else
-        perf = sum(profile_scores(1, :, 1, 1).*options.tau_weights);
+        perf = sum(profile_scores(1, :, 1, 1).*tau_weights);
     end
     
 end
