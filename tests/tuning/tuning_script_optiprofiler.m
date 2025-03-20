@@ -38,7 +38,9 @@ function tuning_script_optiprofiler(parameters, options)
     if  (options.max_tol_order ~= length(options.tau_weights))
         error('max_tol_order must be equal to the length of tau_weights');
     end
-    options.is_stopping_criterion = true;
+    if ~isfield(options, 'is_stopping_criterion')
+        options.is_stopping_criterion = true;
+    end
     options.draw_plots = false;
     options.feature_name = 'plain';
     fprintf('Feature:\t %s\n', options.feature_name);

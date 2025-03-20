@@ -83,3 +83,5 @@ tests/tuning/tuning_data/
 tests/out
 tests/competitors/out
 tests/cbds_*
+tests/tuning/tuning_data/
+tests/tuning/solver_1_solver_2*
