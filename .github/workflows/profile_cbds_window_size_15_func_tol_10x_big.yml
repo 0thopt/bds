@@ -83,7 +83,7 @@ jobs:
               options.dim = '${{ matrix.dim }}';
               options.run_plain = ${{ matrix.run_plain }};
               options.summarize_log_ratio_profiles = ${{ matrix.summarize_log_ratio_profiles }};
-              tuning_optiprofiler(options);
+              tuning_optiprofiler(parameters, options);
               cd(root_dir);
 
       - name: Change the summary file name
