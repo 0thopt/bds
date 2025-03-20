@@ -259,7 +259,7 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
         end
             options = rmfield(options, 'noise_level');
     end
-
+    
     [solver_scores, profile_scores] = benchmark(solvers, options);
 end
 
