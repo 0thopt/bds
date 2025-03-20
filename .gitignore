@@ -81,5 +81,6 @@ tests/optiprofiler
 *.eps
 tests/optiprofiler_script/out
 tests/tuning/tuning_data/
+tests/tuning/solver_1*
 tests/out
 tests/competitors/out
