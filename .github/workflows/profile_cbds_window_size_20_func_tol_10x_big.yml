@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Profile BDS and bfgs, big
+    name: Profile cbds with window size 20 and func tol 10x, big
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
