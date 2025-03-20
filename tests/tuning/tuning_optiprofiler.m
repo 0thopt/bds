@@ -263,6 +263,63 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
     [solver_scores, profile_scores] = benchmark(solvers, options);
 end
 
+function x0 = mod_x0(rand_stream, problem)
+
+    [Q, R] = qr(rand_stream.randn(problem.n));
+    Q(:, diag(R) < 0) = -Q(:, diag(R) < 0);
+    x0 = Q * problem.x0;
+end
+
+function x0 = mod_x0_permuted(rand_stream, problem)
+
+    P = eye(problem.n);
+    P = P(rand_stream.randperm(problem.n), :);
+    x0 = P * problem.x0;
+end
+
+function f = mod_fun_1(x, rand_stream, problem)
+
+    f = problem.fun(x);
+    f = f + max(1, abs(f)) * 1e-1 * rand_stream.randn(1);
+end
+
+function f = mod_fun_2(x, rand_stream, problem)
+
+    f = problem.fun(x);
+    f = f + max(1, abs(f)) * 1e-2 * rand_stream.randn(1);
+end
+
+function f = mod_fun_3(x, rand_stream, problem)
+
+    f = problem.fun(x);
+    f = f + max(1, abs(f)) * 1e-3 * rand_stream.randn(1);
+end
+
+function f = mod_fun_4(x, rand_stream, problem)
+
+    f = problem.fun(x);
+    f = f + max(1, abs(f)) * 1e-4 * rand_stream.randn(1);
+end
+
+function [A, b, inv] = mod_affine(rand_stream, problem)
+
+    [Q, R] = qr(rand_stream.randn(problem.n));
+    Q(:, diag(R) < 0) = -Q(:, diag(R) < 0);
+    A = Q';
+    b = zeros(problem.n, 1);
+    inv = Q;
+end
+
+function [A, b, inv] = perm_affine(rand_stream, problem)
+
+    p = rand_stream.randperm(problem.n);
+    P = eye(problem.n);
+    P = P(p,:);
+    A = P';
+    b = zeros(problem.n, 1);    
+    inv = P;
+end
+
 function x = cbds_expand_shrink(fun, x0, expand, shrink)
 
     option.Algorithm = 'cbds';
