@@ -52,12 +52,21 @@ data_path = fullfile(current_path, "tuning_data");
 if ~exist(data_path, 'dir')
     mkdir(data_path);
 end
-% Creat a subfolder stamped with the current time for the current test. 
+
+% Create a subfolder stamped with the current time for the current test. 
 time_str = char(datetime('now', 'Format', 'yy_MM_dd_HH_mm'));
 feature_str = [char(solver), '_vs_', char(competitor), '_', num2str(options.mindim), '_', ...
                 num2str(options.maxdim), '_', char(options.feature_name), '_', char(options.p_type)];
-param_names = strjoin(param_names, '_');
-feature_str = [feature_str, '_', param_names];
+
+if ismember('window_size', param_names) && length(param_names) > 2
+    % If 'window_size' is one of the parameters, include its value in the feature string.
+    feature_str = [feature_str, '_', 'window_size_', num2str(window_size)];
+    % Remove 'window_size' from param_names to avoid duplication.
+    param_names = param_names(~strcmp(param_names, 'window_size'));
+end
+
+param_names_str = strjoin(param_names, '_');
+feature_str = [feature_str, '_', param_names_str];
 data_path_name = [feature_str, '_', time_str];
 data_path = fullfile(data_path, data_path_name);
 mkdir(data_path);
