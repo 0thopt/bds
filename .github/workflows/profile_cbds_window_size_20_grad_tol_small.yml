@@ -1,4 +1,4 @@
-name: Profile cbds with window size and dist tol, small
+name: Profile cbds with window size 20 and grad tol, small
 
 on:
   # Trigger the workflow on # push or pull request
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Profile cbds with window size and dist tol, small
+    name: Profile cbds with window size 20 and grad tol, small
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -77,8 +77,9 @@ jobs:
   
               % profile
               clear all
-              parameters.window_size = 10:5:20;
-              parameters.dist_tol = 10.^(-6:-2:-12);
+              parameters.window_size = 20;
+              parameters.grad_tol_1 = 10.^(-6:-2:-12);
+              parameters.grad_tol_2 = 10.^(-6:-2:-12);
               options.dim = '${{ matrix.dim }}';
               options.run_plain = '${{ matrix.run_plain }}';
               options.summarize_log_ratio_profiles = '${{ matrix.summarize_log_ratio_profiles }}';
@@ -103,7 +104,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: tuning_window_size_dist_tol_${{ matrix.dim }}_${{ matrix.feature }}_${{ matrix.run_plain }}
+          name: tuning_window_size_20_grad_tol_${{ matrix.dim }}_${{ matrix.feature }}_${{ matrix.run_plain }}
           path: ./tests/tuning/tuning_data/**
 
   

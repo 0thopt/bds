@@ -97,6 +97,7 @@ jobs:
               options.is_stopping_criterion = true;
               options.feature_name = '${{ matrix.feature }}';
               fprintf('Feature:\t %s\n', options.feature_name);
+              cd(fullfile(root_dir, 'tests', 'tuning'));
               tuning_script_optiprofiler(parameters, options);
     
       - name: Upload artifact
