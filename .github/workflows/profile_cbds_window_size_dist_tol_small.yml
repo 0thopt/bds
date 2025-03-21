@@ -1,0 +1,108 @@
+name: Profile cbds with window size and dist tol, small
+
+on:
+  # Trigger the workflow on # push or pull request
+  # push:
+  # Trigger the workflow manually
+  schedule:
+  - cron: '0 0 */2 * *'
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Profile cbds with window size and dist tol, small
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        matlab: [latest]
+        dim: [small]
+        with_optim_toolbox: [yes]
+        run_plain: [false]
+        summarize_log_ratio_profiles: [false]
+        feature: [plain, noisy_1e-3, linearly_transformed, rotation_noisy_1e-3]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          ref: development
+
+      - name: Checkout OptiProfiler
+        uses: actions/checkout@v4
+        with:
+          repository: optiprofiler/optiprofiler
+          path: optiprofiler
+          submodules: recursive
+          ref: c71d78a4dd0838fb1925e3c97885aded39fffe38
+
+      - name: Install Texlive
+        run: sudo apt-get update && sudo apt-get install texlive
+
+      - name: Check whether LaTeX is installed
+        run: pdflatex --version
+
+      - name: Cache MATLAB
+        id: cache-matlab
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.tool_cache }}/MATLAB
+          key: ${{ matrix.os }}-${{ matrix.matlab }}-${{ matrix.with_optim_toolbox }}
+
+      - name: Set up MATLAB with optimization toolbox
+        if: ${{ matrix.with_optim_toolbox == 'yes' }}
+        uses: matlab-actions/setup-matlab@v2.1.2
+        with:
+          release: ${{ matrix.matlab }}
+          products: Optimization_Toolbox
+
+      - name: Run test
+        uses: matlab-actions/run-command@v2.1.1
+        with:
+            command: |
+              root_dir = pwd()
+              ls
+  
+              % Setup optiprofiler
+              cd(fullfile(root_dir, 'optiprofiler'));
+              setup
+              cd(root_dir);
+  
+              % Setup bds
+              setup
+              cd(fullfile(root_dir, 'tests'));
+              addpath(pwd);
+  
+              % profile
+              clear all
+              parameters.window_size = 10:5:20;
+              parameters.dist_tol = 10.^(-6:-2:-12);
+              options.dim = '${{ matrix.dim }}';
+              options.run_plain = '${{ matrix.run_plain }}';
+              options.summarize_log_ratio_profiles = '${{ matrix.summarize_log_ratio_profiles }}';
+              if ~isfield(options, 'n_runs')
+                  options.n_runs = 1;
+              end
+              options.p_type = 'u';
+              options.max_tol_order = 10;
+              options.tau_weights = [0.12*ones(1, 8) 0.02 0.02];
+              if sum(options.tau_weights) ~= 1
+                  error('Sum of tau_weights must be 1');
+              end
+              if  (options.max_tol_order ~= length(options.tau_weights))
+                  error('max_tol_order must be equal to the length of tau_weights');
+              end
+              options.is_stopping_criterion = true;
+              options.feature_name = '${{ matrix.feature }}';
+              fprintf('Feature:\t %s\n', options.feature_name);
+              tuning_script_optiprofiler(parameters, options);
+    
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tuning_window_size_dist_tol_${{ matrix.dim }}_${{ matrix.feature }}_${{ matrix.run_plain }}
+          path: ./tests/tuning/tuning_data/**
+
+  
