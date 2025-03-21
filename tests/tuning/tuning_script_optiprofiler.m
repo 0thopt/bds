@@ -12,25 +12,23 @@ function tuning_script_optiprofiler(parameters, options)
     end
     switch options.feature_name
         case 'plain'
-            if ~isfield(parameters, 'n_runs')
+            if ~isfield(options, 'n_runs')
                 options.n_runs = 1;
             end
         case 'linearly_transformed'
-            if ~isfield(parameters, 'n_runs')
+            if ~isfield(options, 'n_runs')
                 options.n_runs = 3;
             end
         case 'noisy_1e-3'
-            if ~isfield(parameters, 'n_runs')
+            if ~isfield(options, 'n_runs')
                 options.n_runs = 3;
             end
         case 'rotation_noisy_1e-3'
-            if ~isfield(parameters, 'n_runs')
+            if ~isfield(options, 'n_runs')
                 options.n_runs = 3;
             end
     end
-    if ~isfield(parameters, 'n_runs')
-        options.n_runs = 1;
-    end
+   
     if ~isfield(options, 'p_type')
         options.p_type = 'u';
     end

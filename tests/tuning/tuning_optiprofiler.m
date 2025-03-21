@@ -190,6 +190,22 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
     if options.run_plain
         options.benchmark_id = [options.benchmark_id, '_plain'];
     end
+    
+    % When tuning with parallel computing, the benchmark_id should be unique. In our test, we use the
+    % value of the parameters to make the benchmark_id unique.
+    switch true
+        case ismember('window_size', param_fields) && ismember('func_tol', param_fields)
+            options.benchmark_id = [options.benchmark_id, '_', 'window_size_', num2str(parameters.window_size(1))];
+            options.benchmark_id = [options.benchmark_id, '_', 'func_tol_', int2str(int32(-log10(parameters.func_tol(1)))), '_x'];
+        case ismember('window_size', param_fields) && ismember('dist_tol', param_fields)
+            options.benchmark_id = [options.benchmark_id, '_', 'window_size_', num2str(parameters.window_size(1))];
+            options.benchmark_id = [options.benchmark_id, '_', 'dist_tol_', int2str(int32(-log10(parameters.dist_tol(1)))), '_x'];
+        case ismember('window_size', param_fields) && ismember('grad_tol_1', param_fields) && ismember('grad_tol_2', param_fields)
+            options.benchmark_id = [options.benchmark_id, '_', 'window_size_', num2str(parameters.window_size(1))];
+            options.benchmark_id = [options.benchmark_id, '_', 'grad_tol_1_', int2str(int32(-log10(parameters.grad_tol_1(1)))), '_x'];
+            options.benchmark_id = [options.benchmark_id, '_', 'grad_tol_2_', int2str(int32(-log10(parameters.grad_tol_2(1)))), '_x'];
+    end
+
     options.benchmark_id = [options.benchmark_id, '_', time_str];
     options.excludelist = {'DIAMON2DLS',...
             'DIAMON2D',...
@@ -259,7 +275,7 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
         end
             options = rmfield(options, 'noise_level');
     end
-    
+
     [solver_scores, profile_scores] = benchmark(solvers, options);
 end
 

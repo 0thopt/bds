@@ -24,7 +24,7 @@ function perf = eval_performance_optiprofiler(options)
     end
     options = rmfield(options, 'baseline_params');
     currentFilePath = mfilename('fullpath');
-    options.savepath = fullfile(fileparts(fileparts(currentFilePath)), 'tuning_data');
+    options.savepath = fullfile((fileparts(currentFilePath)), 'tuning_data');
     [~, profile_scores] = tuning_optiprofiler(parameters, options);
     if is_stopping_criterion
         perf = 0.5 * sum(profile_scores(1, :, 1, 1).*tau_weights) + 0.5 * sum(profile_scores(1, :, 2, 1).*tau_weights);
