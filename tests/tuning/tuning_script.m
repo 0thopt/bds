@@ -4,8 +4,8 @@ parameters.dist_tol = 10.^(-6:-2:-12);
 % parameters.func_tol = 10.^(-6:-2:-12);
 % parameters.grad_tol_1 = 10.^(-6:-2:-12);
 % parameters.grad_tol_2 = 10.^(-6:-2:-12);
-options.mindim = 6;
-options.maxdim = 50;
+options.mindim = 1;
+options.maxdim = 1;
 if ~isfield(options, 'n_runs')
     options.n_runs = 1;
 end
