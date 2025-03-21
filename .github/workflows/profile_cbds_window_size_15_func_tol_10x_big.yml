@@ -77,18 +77,22 @@ jobs:
   
               % profile
               cd(fullfile(root_dir, 'tests', 'tuning'));
-              parameters.window_size = [15 1e5];
+              parameters.window_size = [15 1e8];
               parameters.func_tol = [1e-10 eps];
               options.feature_name = '${{ matrix.feature }}';
-              options.dim = '${{ matrix.dim }}';
+              % options.dim = '${{ matrix.dim }}';
+              options.n_runs = 1;
+              options.savepath = fullfile(root_dir, 'tests', 'tuning', 'tuning_data');
               options.run_plain = ${{ matrix.run_plain }};
               options.summarize_log_ratio_profiles = ${{ matrix.summarize_log_ratio_profiles }};
               tuning_optiprofiler(parameters, options);
               cd(root_dir);
+              cd tests/tuning/tuning_data
+              ls -R
 
       - name: Change the summary file name
         run: |
-          cd ./tests/
+          cd ./tests/tuning/tuning_data
           ls -R
           find . -type f -name 'summary.pdf' | while read -r file; do
             # Obtain the parent directory and name
@@ -120,7 +124,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: tuning_window_size_15_func_tol_10x_${{ matrix.dim }}_${{ matrix.feature }}_${{ matrix.run_plain }}
-          path: ./tests/**
+          path: ./tests/tuning/tuning_data/**
 
   merge_artifacts:
     name: Merge Artifacts
@@ -142,17 +146,17 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          path: tests/downloaded_artifacts
+          path: tests/tuning/tuning_data/downloaded_artifacts
 
       - name: List all files
         run: |
-          cd tests/downloaded_artifacts
+          cd tests/tuning/tuning_data/downloaded_artifacts
           ls -R
 
       - name: Merge PDF files
         run: |
-          cp tests/tools/merge_pdf.sh tests/downloaded_artifacts
-          cd tests/downloaded_artifacts/
+          cp tests/tools/merge_pdf.sh tests/tuning/tuning_data/downloaded_artifacts
+          cd tests/tuning/tuning_data/downloaded_artifacts/
 
           ARTIFACT_NAME=$(ls | grep "profile_optiprofiler" | head -n 1)
           BASE_INFO=$(echo $ARTIFACT_NAME | sed -n 's/.*optiprofiler_\([^_]*_[^_]*_\(small\|big\)\).*/\1/p')
@@ -172,7 +176,7 @@ jobs:
           mv merged.pdf "summary_cbds_window_size_15_func_tol_10x_big.pdf"
           cd ..
           if [ -d "summary" ]; then
-            mv summary "summary_${BASE_INFO}"
+            mv summary "summary_cbds_window_size_15_func_tol_10x_big"
           fi
 
       - name: Upload merged artifact
@@ -181,7 +185,7 @@ jobs:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
           name: merged_profiles_cbds_window_size_15_func_tol_10x_big
-          path: tests/downloaded_artifacts/**
+          path: tests/tuning/tuning_data/downloaded_artifacts/**
 
       - name: Upload summary files
         uses: actions/upload-artifact@v4
@@ -189,4 +193,4 @@ jobs:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
           name: summary_files_cbds_window_size_15_func_tol_10x_big
-          path: tests/downloaded_artifacts/summary_${{ env.BASE_INFO }}/**
+          path: tests/tuning/tuning_data/downloaded_artifacts/summary_${{ env.BASE_INFO }}/**
