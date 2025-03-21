@@ -1,12 +1,12 @@
 clear all
-parameters.window_size = 10:5:20;
-% parameters.window_size = 15;
-parameters.dist_tol = 10.^(-6:-2:-12);
+% parameters.window_size = 10:5:20;
+parameters.window_size = 15;
+% parameters.dist_tol = 10.^(-6:-2:-12);
 % parameters.func_tol = 10.^(-6:-2:-12);
-% parameters.grad_tol_1 = 10.^(-6:-2:-12);
-% parameters.grad_tol_2 = 10.^(-6:-2:-12);
-options.mindim = 1;
-options.maxdim = 1;
+parameters.grad_tol_1 = 10.^(-6:-2:-12);
+parameters.grad_tol_2 = 10.^(-6:-2:-12);
+options.mindim = 6;
+options.maxdim = 50;
 if ~isfield(options, 'n_runs')
     options.n_runs = 1;
 end
@@ -21,9 +21,9 @@ if  (options.max_tol_order ~= length(options.tau_weights))
 end
 options.is_stopping_criterion = true;
 
-% options.feature_name = 'plain';
-% fprintf('Feature:\t %s\n', options.feature_name);
-% tuning_script_optiprofiler(parameters, options);
+options.feature_name = 'plain';
+fprintf('Feature:\t %s\n', options.feature_name);
+tuning_script_optiprofiler(parameters, options);
 
 options.feature_name = 'linearly_transformed';
 fprintf('Feature:\t %s\n', options.feature_name);
