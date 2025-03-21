@@ -80,7 +80,6 @@ jobs:
               parameters.grad_tol_1 = 10.^(-6:-2:-12);
               parameters.grad_tol_2 = 10.^(-6:-2:-12);
               options.dim = '${{ matrix.dim }}';
-              options.run_plain = '${{ matrix.run_plain }}';
               options.summarize_log_ratio_profiles = '${{ matrix.summarize_log_ratio_profiles }}';
               if ~isfield(options, 'n_runs')
                   options.n_runs = 1;
