@@ -76,7 +76,6 @@ jobs:
               addpath(pwd);
   
               % profile
-              clear all
               parameters.window_size = 10:5:20;
               parameters.func_tol = 10.^(-6:-2:-12);
               options.dim = '${{ matrix.dim }}';

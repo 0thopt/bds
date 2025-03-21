@@ -76,7 +76,6 @@ jobs:
               addpath(pwd);
   
               % profile
-              clear all
               cd(fullfile(root_dir, 'tests', 'tuning'));
               ls
               parameters.window_size = 10:5:20;

@@ -76,7 +76,6 @@ jobs:
               addpath(pwd);
   
               % profile
-              clear all
               parameters.window_size = 20;
               parameters.grad_tol_1 = 10.^(-6:-2:-12);
               parameters.grad_tol_2 = 10.^(-6:-2:-12);
