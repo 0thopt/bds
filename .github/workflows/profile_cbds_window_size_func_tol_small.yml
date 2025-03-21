@@ -19,8 +19,6 @@ jobs:
         matlab: [latest]
         dim: [small]
         with_optim_toolbox: [yes]
-        run_plain: [false]
-        summarize_log_ratio_profiles: [false]
         feature: [plain, noisy_1e-3, linearly_transformed, rotation_noisy_1e-3]
 
     steps:
@@ -79,7 +77,6 @@ jobs:
               parameters.window_size = 10:5:20;
               parameters.func_tol = 10.^(-6:-2:-12);
               options.dim = '${{ matrix.dim }}';
-              options.summarize_log_ratio_profiles = '${{ matrix.summarize_log_ratio_profiles }}';
               if ~isfield(options, 'n_runs')
                   options.n_runs = 1;
               end
