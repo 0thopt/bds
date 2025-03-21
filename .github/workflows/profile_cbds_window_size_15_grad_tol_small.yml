@@ -2,7 +2,7 @@ name: Profile cbds with window size 15 and grad tol, small
 
 on:
   # Trigger the workflow on # push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   schedule:
   - cron: '0 0 */2 * *'
@@ -19,8 +19,6 @@ jobs:
         matlab: [latest]
         dim: [small]
         with_optim_toolbox: [yes]
-        run_plain: [false]
-        summarize_log_ratio_profiles: [false]
         feature: [plain, noisy_1e-3, linearly_transformed, rotation_noisy_1e-3]
 
     steps:
@@ -80,7 +78,6 @@ jobs:
               parameters.grad_tol_1 = 10.^(-6:-2:-12);
               parameters.grad_tol_2 = 10.^(-6:-2:-12);
               options.dim = '${{ matrix.dim }}';
-              options.summarize_log_ratio_profiles = '${{ matrix.summarize_log_ratio_profiles }}';
               if ~isfield(options, 'n_runs')
                   options.n_runs = 1;
               end
