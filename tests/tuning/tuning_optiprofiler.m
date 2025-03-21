@@ -35,8 +35,8 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
                 index = index + 1;
             end
     end
+    
     options.solver_names = solver_names;
-
     if ~isfield(options, 'feature_name')
         error('Please provide the feature name');
     end

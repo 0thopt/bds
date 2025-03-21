@@ -7,13 +7,23 @@ function plot_parameters_optiprofiler(parameters, options)
 param_names = fieldnames(parameters);
 if ismember('window_size', param_names)
     % If there are grad_tol_1 and grad_tol_2 in param_names, the length of window_size should be 1.
+    % In addition, grad_tol_1 and grad_tol_2 should be moved to the first two positions in param_names.
     if ismember('grad_tol_1', param_names) && ismember('grad_tol_2', param_names)
         if length(parameters.window_size) > 1
             error('The length of window_size should be 1.');
         end
+        % Move grad_tol_1 and grad_tol_2 to the first two positions
+        param_names = [{'grad_tol_1', 'grad_tol_2'}, reshape(param_names(~ismember(param_names, {'grad_tol_1', 'grad_tol_2'})), 1, [])];
     end
-    window_size = parameters.window_size;
 end
+
+% Extract window_size if it exists
+if ismember('window_size', param_names) && isscalar(parameters.window_size)
+    window_size = parameters.window_size;
+else
+    window_size = [];
+end
+
 param1_name = param_names{1};
 param2_name = param_names{2};
 
@@ -36,7 +46,7 @@ baseline_params = parameters.baseline_params;
 options.baseline_params = baseline_params;
 
 % Get performance for each parameter combination
-parfor ip = 1:numel(p1)
+for ip = 1:numel(p1)
     % Set solver options
     solver_options = struct();
     solver_options.(param1_name) = p1(ip);
@@ -46,6 +56,9 @@ parfor ip = 1:numel(p1)
     % should then pass solver_options to the solver.
     local_options = options;
     local_options.solver_options = solver_options;
+    if ~isempty(window_size)
+        local_options.window_size = window_size;
+    end
 
     % Compute performance
     fprintf('Evaluating performance for %s = %f, %s = %f\n', param1_name, p1(ip), param2_name, p2(ip));
