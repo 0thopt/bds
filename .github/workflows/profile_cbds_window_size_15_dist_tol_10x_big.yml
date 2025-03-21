@@ -81,8 +81,8 @@ jobs:
               parameters.dist_tol = [1e-10 eps];
               options.feature_name = '${{ matrix.feature }}';
               % options.dim = '${{ matrix.dim }}';
-              options.mindim = 1;
-              options.maxdim = 1;
+              options.mindim = 2;
+              options.maxdim = 2;
               options.n_runs = 1;
               options.run_plain = ${{ matrix.run_plain }};
               options.summarize_log_ratio_profiles = ${{ matrix.summarize_log_ratio_profiles }};
