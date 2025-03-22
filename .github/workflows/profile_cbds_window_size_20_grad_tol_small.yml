@@ -18,6 +18,7 @@ jobs:
         os: [ubuntu-latest]
         matlab: [latest]
         dim: [small]
+        with_optim_toolbox: [yes]
         summarize_log_ratio_profiles: [false]
         feature: [plain, noisy_1e-3, linearly_transformed, rotation_noisy_1e-3]
 
@@ -99,7 +100,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: tuning_window_size_20_grad_tol_${{ matrix.dim }}_${{ matrix.feature }}_${{ matrix.run_plain }}
+          name: tuning_window_size_20_grad_tol_${{ matrix.dim }}_${{ matrix.feature }}
           path: ./tests/tuning/tuning_data/**
 
   

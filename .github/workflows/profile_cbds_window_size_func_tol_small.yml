@@ -98,7 +98,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: tuning_window_size_func_tol_${{ matrix.dim }}_${{ matrix.feature }}_${{ matrix.run_plain }}
+          name: tuning_window_size_func_tol_${{ matrix.dim }}_${{ matrix.feature }}
           path: ./tests/tuning/tuning_data/**
 
   
