@@ -46,7 +46,7 @@ baseline_params = parameters.baseline_params;
 options.baseline_params = baseline_params;
 
 % Get performance for each parameter combination
-parfor ip = 1:numel(p1)
+for ip = 1:numel(p1)
     % Set solver options
     solver_options = struct();
     solver_options.(param1_name) = p1(ip);
