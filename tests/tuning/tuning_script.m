@@ -1,6 +1,6 @@
 clear all
 % parameters.window_size = 10:5:20;
-parameters.window_size = 15;
+parameters.window_size = 20;
 % parameters.dist_tol = 10.^(-6:-2:-12);
 % parameters.func_tol = 10.^(-6:-2:-12);
 parameters.grad_tol_1 = 10.^(-6:-2:-12);
@@ -29,9 +29,9 @@ options.feature_name = 'linearly_transformed';
 fprintf('Feature:\t %s\n', options.feature_name);
 tuning_script_optiprofiler(parameters, options);
 
-% options.feature_name = 'noisy_1e-3';
-% fprintf('Feature:\t %s\n', options.feature_name);
-% tuning_script_optiprofiler(parameters, options);
+options.feature_name = 'noisy_1e-3';
+fprintf('Feature:\t %s\n', options.feature_name);
+tuning_script_optiprofiler(parameters, options);
 
 % options.feature_name = 'rotation_noisy_1e-3';
 % fprintf('Feature:\t %s\n', options.feature_name);
