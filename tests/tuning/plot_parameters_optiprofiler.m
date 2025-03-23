@@ -84,6 +84,8 @@ if ismember('window_size', param_names) && isscalar(parameters.window_size)
     % Remove 'window_size' from param_names to avoid duplication.
     param_names = param_names(~strcmp(param_names, 'window_size'));
 end
+% Remove 'baseline_params' from param_names to avoid duplication.
+param_names = param_names(~strcmp(param_names, 'baseline_params'));
 
 param_names_str = strjoin(param_names, '_');
 feature_str = [feature_str, '_', param_names_str];
