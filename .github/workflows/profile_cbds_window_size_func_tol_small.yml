@@ -1,4 +1,4 @@
-name: Profile cbds with func tol, small
+name: Profile cbds with window size and func tol, small
 
 on:
   # Trigger the workflow on # push or pull request
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Profile cbds with func tol, small
+    name: Profile cbds with window size and func tol, small
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
