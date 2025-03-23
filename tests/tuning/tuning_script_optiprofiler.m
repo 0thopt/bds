@@ -32,14 +32,11 @@ function tuning_script_optiprofiler(parameters, options)
     if ~isfield(options, 'p_type')
         options.p_type = 'u';
     end
-    if sum(options.tau_weights) ~= 1
+    if sum(options.tau_weights(:)) ~= 1
         error('Sum of tau_weights must be 1');
     end
-    if  (options.max_tol_order ~= length(options.tau_weights))
+    if  (options.max_tol_order ~= size(options.tau_weights, 2))
         error('max_tol_order must be equal to the length of tau_weights');
-    end
-    if ~isfield(options, 'is_stopping_criterion')
-        options.is_stopping_criterion = true;
     end
     options.draw_plots = false;
     if isfield(parameters, 'window_size') && isfield(parameters, 'func_tol')

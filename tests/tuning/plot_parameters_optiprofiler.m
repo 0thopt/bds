@@ -32,6 +32,13 @@ param2_name = param_names{2};
 
 % Initialize performance matrix
 perfs = NaN(size(p1));
+% Initialize profile_scores matrix as a cell array
+profile_scores = cell(size(p1));
+for i = 1:numel(profile_scores)
+    % The size of each element of profile_scores should be the
+    % same as the size of tau_weights.
+    profile_scores{i} = NaN(size(options.tau_weights));
+end
 
 if ~isfield(parameters, 'baseline_params')
     error('baseline_params must be provided in parameters');
@@ -44,6 +51,16 @@ else
 end
 baseline_params = parameters.baseline_params;
 options.baseline_params = baseline_params;
+
+if ~isfield(options, 'tau_weights')
+    error('tau_weights must be provided in options');
+else
+    if ~(isnumeric(options.tau_weights) && isequal(size(options.tau_weights), [2, 10, 2, 3]))
+        error('tau_weights must be a 2x10x2x3 numeric array');
+    end
+end
+tau_weights = options.tau_weights;
+options = rmfield(options, 'tau_weights');
 
 % Get performance for each parameter combination
 parfor ip = 1:numel(p1)
@@ -62,7 +79,9 @@ parfor ip = 1:numel(p1)
 
     % Compute performance
     fprintf('Evaluating performance for %s = %f, %s = %f\n', param1_name, p1(ip), param2_name, p2(ip));
-    perfs(ip) = eval_performance_optiprofiler(local_options);
+    profile_scores{ip} = eval_performance_optiprofiler(local_options);
+    perfs(ip) = tuning_score(profile_scores{ip}, tau_weights);
+
 end
 
 % We save the results in the `data_path` folder. 
@@ -94,7 +113,7 @@ data_path = fullfile(data_path, data_path_name);
 mkdir(data_path);
 
 % Save performance data 
-save(fullfile(data_path, 'performance_data.mat'), 'p1', 'p2', 'perfs');
+save(fullfile(data_path, 'performance_data.mat'), 'p1', 'p2', 'perfs','profile_scores')
 
 % Save options into a mat file.
 save(fullfile(data_path, 'options.mat'), 'options');
@@ -103,12 +122,36 @@ fileID = fopen(fullfile(data_path, 'options.txt'), 'w');
 fprintf(fileID, 'options.mindim = %d;\n', options.mindim);
 fprintf(fileID, 'options.maxdim = %d;\n', options.maxdim);
 fprintf(fileID, 'options.p_type = "%s";\n', options.p_type);
-fprintf(fileID, 'options.tau_weights = [%s];\n', num2str(options.tau_weights));
+fprintf(fileID, 'options.tau_weights = [%s];\n', num2str(tau_weights));
 fprintf(fileID, 'options.feature_name = "%s";\n', options.feature_name);
 fprintf(fileID, 'options.n_runs = %d;\n', options.n_runs);
 fprintf(fileID, 'options.max_tol_order = [%s];\n', num2str(options.max_tol_order));
-fprintf(fileID, 'options.is_stopping_criterion = %d;\n', options.is_stopping_criterion);
 fprintf(fileID, 'options.draw_plots = %d;\n', options.draw_plots);
+fclose(fileID);
+
+% Save tau_weights into a txt file.
+fileID = fopen(fullfile(data_path, 'tau_weights.txt'), 'w');
+for i = 1:size(tau_weights, 2)
+    fprintf(fileID, 'tau_weights(:, %d, :, :) = [\n', i);
+    for j = 1:size(tau_weights, 1)
+        for k = 1:size(tau_weights, 3)
+            fprintf(fileID, '    [');
+            for l = 1:size(tau_weights, 4)
+                fprintf(fileID, '%.2f', tau_weights(j, i, k, l));
+                if l < size(tau_weights, 4)
+                    fprintf(fileID, ', ');
+                end
+            end
+            fprintf(fileID, ']');
+            if k < size(tau_weights, 3)
+                fprintf(fileID, ',\n');
+            else
+                fprintf(fileID, '\n');
+            end
+        end
+    end
+    fprintf(fileID, '];\n');
+end
 fclose(fileID);
 
 % Save the parameters into a mat file.
@@ -122,97 +165,6 @@ if length(param_names) > 2 && any(ismember('window_size', param_names))
 end
 fclose(fileID);
 
-% Plot
-param1_name = strrep(param1_name, '_', '-');
-param2_name = strrep(param2_name, '_', '-');
-FigHandle=figure('Name', ['(', param1_name, ', ', param2_name, ')', ' v.s. performance']);
-hold on;
-
-colormap(jet);
-
-if isfield(options, 'log_color') && options.log_color
-    % Use log scale of perfs for a better usage of the color spectrum.
-    max_perf = max(perfs(:));
-    min_perf = min(perfs(:));
-    C = min_perf + (max_perf - min_perf) .* log(perfs - min_perf + 1) ./ log(max_perf - min_perf + 1);
-    surf(p1, p2, perfs, C, 'FaceColor','interp', 'FaceAlpha', 0.8, ...
-         'EdgeColor', [0.2 0.2 0.2], 'LineWidth', 0.5);
-else
-    surf(p1, p2, perfs, 'FaceColor','interp', 'FaceAlpha', 0.8, ...
-         'EdgeColor', [0.2 0.2 0.2], 'LineWidth', 0.5);
-end
-
-% Set the title, x-axis and y-axis ticks
-set(gca, 'XScale', 'log', 'YScale', 'log');
-
-switch param1_name
-    case 'expand'
-        xticks(10.^(0:1:5));
-        xticklabels(arrayfun(@(x) sprintf('10^{%d}', x), 0:1:5, 'UniformOutput', false));
-    case 'shrink'
-        xticks(10.^(-1:0.1:0.9));
-        xticklabels(arrayfun(@(x) sprintf('10^{%d}', x), -1:0.1:0.9, 'UniformOutput', false));
-    case 'window-size'
-        xticks(10:5:20);
-    case 'func-tol'
-        xticks(10.^(-12:1:-6));
-        xticklabels(arrayfun(@(x) sprintf('10^{%d}', x), -12:1:-6, 'UniformOutput', false));
-    case 'dist-tol'
-        xticks(10.^(-12:1:-6));
-        xticklabels(arrayfun(@(x) sprintf('10^{%d}', x), -12:1:-6, 'UniformOutput', false));
-    case 'grad-tol-1'
-        xticks(10.^(-12:1:-6));
-        xticklabels(arrayfun(@(x) sprintf('10^{%d}', x), -12:1:-6, 'UniformOutput', false));
-    case 'grad-tol-2'
-        xticks(10.^(-12:1:-6));
-        xticklabels(arrayfun(@(x) sprintf('10^{%d}', x), -12:1:-6, 'UniformOutput', false));
-    otherwise
-        xticks(parameters.(param1_name));
-end
-
-switch param2_name
-    case 'expand'
-        yticks(1:5);
-    case 'shrink'
-        yticks(0.2:0.1:0.9);
-    case 'window-size'
-        yticks(10:5:20);
-    case 'func-tol'
-        yticks(10.^(-12:1:-6));
-        yticklabels(arrayfun(@(x) sprintf('10^{%d}', x), -12:1:-6, 'UniformOutput', false));
-    case 'dist-tol'
-        yticks(10.^(-12:1:-6));
-        yticklabels(arrayfun(@(x) sprintf('10^{%d}', x), -12:1:-6, 'UniformOutput', false));
-    case 'grad-tol-1'
-        yticks(10.^(-12:1:-6));
-        yticklabels(arrayfun(@(x) sprintf('10^{%d}', x), -12:1:-6, 'UniformOutput', false));
-    case 'grad-tol-2'
-        yticks(10.^(-12:1:-6));
-        yticklabels(arrayfun(@(x) sprintf('10^{%d}', x), -12:1:-6, 'UniformOutput', false));
-    otherwise
-        yticks(parameters.(param2_name));
-end
-
-titleHandle = title(gca, strrep(feature_str, '_', '-')); 
-xlabel(param1_name);
-ylabel(param2_name);
-
-% Adjust title position
-set(titleHandle, 'Units', 'normalized');
-titlePosition = get(titleHandle, 'Position');
-titlePosition(2) = titlePosition(2) + 0.015; % Adjust this value as needed
-set(titleHandle, 'Position', titlePosition);
-
-colorbar; 
-
-% Fist checkout the number of points to be plotted. If there are more than 5 points, plot the top 5 points.
-% If there are less than 5 points, plot the top 3 points.
-if numel(perfs) < 5
-    [~, idx] = maxk(perfs(:), 3);
-else
-    [~, idx] = maxk(perfs(:), 5);
-end
-
 % Write all the points to a txt file
 fileID = fopen(fullfile(data_path, 'points.txt'), 'w');
 fprintf(fileID, '%-20s %-20s %-20s\n', param1_name, param2_name, 'perf');
@@ -221,58 +173,11 @@ for i = 1:numel(p1)
 end
 fclose(fileID);
 
-markerSize = 10;  % Set the size of the circles
-labelFontSize = 10;  % Set the font size for the labels
-
-% Add a small offset to the z-coordinate of the points to make them visible
-z_offset = (max(perfs(:)) - min(perfs(:))) * 0.001;
-
-% Draw the top 3 points with a black circle and a black label
-h_points = plot3(p1(idx), p2(idx), perfs(idx) + z_offset, 'o', 'MarkerSize', markerSize, ...
-      'MarkerFaceColor', 'none', 'MarkerEdgeColor', [0.1 0.1 0.1], 'LineWidth', 1.5);
-
-% Add labels to the top 3 points
-h_text = zeros(length(idx), 1);
-for i = 1:length(idx)
-    h_text(i) = text(p1(idx(i)), p2(idx(i)), perfs(idx(i)) + z_offset, num2str(i), ...
-         'VerticalAlignment', 'middle', 'HorizontalAlignment', 'center', ...
-         'Color', 'k', 'FontSize', labelFontSize, 'FontWeight', 'bold');
-end
-
-% Move the points and labels to the top
-uistack(h_points, 'top');
-for i = 1:length(h_text)
-    uistack(h_text(i), 'top');
-end
-
-view(3) % 3D view
-% Save fig
-saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_3d.fig']), 'fig');
-% Use openfig to open the fig file.
-% openfig('my3DPlot.fig');
-% Save eps of 3d plot 
-saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_3d.eps']), 'epsc');
-% Save pdf of 3d plot
-print(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_3d.pdf']), '-dpdf');
-% Try converting the eps to pdf.
-epsPath = fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_3d.eps']);
-% One way to convert eps to pdf, without showing the output of the command.
-system(('epstopdf '+epsPath+' 2> /dev/null'));
-
-% Save eps of 2d plot 
-view(2); % Top-down view
-% Save fig
-saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_2d.fig']), 'fig');
-% Save eps of 2d plot
-saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_2d.eps']), 'epsc');
-% Save pdf of 2d plot
-print(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_2d.pdf']), '-dpdf');
-% Try converting the eps to pdf.
-epsPath = fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_2d.eps']);
-% One way to convert eps to pdf, without showing the output of the command.
-system(('epstopdf '+epsPath+' 2> /dev/null'));
-
-
-fprintf('Performance data and plots saved in \n %s\n', data_path);
+% Plot the performance data
+tuning_plot(perfs, p1, p2, param1_name, param2_name, data_path, feature_str)
 
 end
+
+
+
+

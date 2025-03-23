@@ -194,6 +194,13 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
     % When tuning with parallel computing, the benchmark_id should be unique. In our test, we use the
     % value of the parameters to make the benchmark_id unique.
     switch true
+        case ismember('expand', param_fields) && ismember('shrink', param_fields)
+            % Preserve 
+            expand_str = num2str(parameters.expand(1), '%.2f');
+            expand_str = strrep(expand_str, '.', '');
+            shrink_str = num2str(parameters.shrink(1), '%.2f');
+            shrink_str = shrink_str(3:end); % Remove '0.'
+            options.benchmark_id = [options.benchmark_id, '_', 'expand_', expand_str, '_shrink_', shrink_str];
         case ismember('window_size', param_fields) && ismember('func_tol', param_fields)
             options.benchmark_id = [options.benchmark_id, '_', 'window_size_', num2str(parameters.window_size(1))];
             options.benchmark_id = [options.benchmark_id, '_', 'func_tol_', int2str(int32(-log10(parameters.func_tol(1)))), '_x'];
