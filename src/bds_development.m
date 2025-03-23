@@ -455,22 +455,6 @@ fhist = NaN(1, MaxFunctionEvaluations);
 fopt_hist = NaN(1, MaxFunctionEvaluations);
 xopt_hist = NaN(n, MaxFunctionEvaluations);
 
-% Initialize the boolean variable to indicate whether the algorithm should return the history of visited points.
-if isfield(options, "output_xhist")
-    output_xhist = options.output_xhist;
-else
-    output_xhist = get_default_constant("output_xhist");
-end
-% If xhist exceeds the maximum memory size allowed, then we will not output xhist.
-if output_xhist
-    try
-        xhist = NaN(n, MaxFunctionEvaluations);
-    catch
-        output_xhist = false;
-        warning("xhist will be not included in the output due to the limit of memory.");
-    end
-end
-
 % Decide whether to output the history of blocks visited.
 if isfield(options, "output_block_hist")
     output_block_hist = options.output_block_hist;
@@ -518,6 +502,7 @@ else
 end
 if isfield(options, "use_estimated_gradient_stop")
     use_estimated_gradient_stop = options.use_estimated_gradient_stop;
+    options.output_xhist = true;
 else
     use_estimated_gradient_stop = false;
 end
@@ -525,6 +510,22 @@ if isfield(options, "use_point_stop")
     use_point_stop = options.use_point_stop;
 else
     use_point_stop = false;
+end
+
+% Initialize the boolean variable to indicate whether the algorithm should return the history of visited points.
+if isfield(options, "output_xhist")
+    output_xhist = options.output_xhist;
+else
+    output_xhist = get_default_constant("output_xhist");
+end
+% If xhist exceeds the maximum memory size allowed, then we will not output xhist.
+if output_xhist
+    try
+        xhist = NaN(n, MaxFunctionEvaluations);
+    catch
+        output_xhist = false;
+        warning("xhist will be not included in the output due to the limit of memory.");
+    end
 end
 
 % Decide whether to print during the computation.
@@ -634,7 +635,7 @@ for iter = 1:maxit
         % function values stored in the previous iteration.
         for i = 1:n
             i_real = block_indices(i);
-            g(i_real) = (fhist(nf - 2*(i_real - 1) - 2) - fhist(nf - 2*(i_real - 1) - 1)) / (2*alpha_hist(i_real, iter-1));
+            g(i_real) = (fhist(nf - 2*(i_real - 1) - 2) - fhist(nf - 2*(i_real - 1) - 1)) / norm(xhist(:, nf - 2*(i_real - 1) - 2) - xhist(:, nf - 2*(i_real - 1) - 1));
         end
         grad_hist = [grad_hist norm(g)];
         % The recommendation is grad_tol_1 should be greater than grad_tol_2.
