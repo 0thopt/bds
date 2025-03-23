@@ -83,7 +83,7 @@ jobs:
               parameters.grad_tol_1 = [1e-6 1e-31];
               parameters.grad_tol_2 = [1e-12 1e-31];
               options.feature_name = '${{ matrix.feature }}';
-              % options.dim = '${{ matrix.dim }}';
+              options.dim = '${{ matrix.dim }}';
               options.n_runs = 1;
               options.savepath = fullfile(root_dir, 'tests', 'tuning', 'tuning_data');
               options.run_plain = ${{ matrix.run_plain }};
@@ -196,4 +196,4 @@ jobs:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
           name: summary_files_cbds_window_size_20_func_tol_10x_dist_tol_10x_grad_tol_6x_12x_big
-          path: tests/tuning/tuning_data/downloaded_artifacts/summary_${{ env.BASE_INFO }}/**
+          path: tests/tuning/tuning_data/downloaded_artifacts/summary_cbds_window_size_20_func_tol_10x_dist_tol_10x_grad_tol_6x_12x_big/**
