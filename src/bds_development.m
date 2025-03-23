@@ -681,11 +681,11 @@ for iter = 1:maxit
         % Step 4: Calculate the distance between the center point and each recent point
         point_distance = vecnorm(recent_points - center_point, 2, 1);
 
-        % Step 5: Find the minimum distance
-        min_point_distance = min(point_distance);
+        % Step 5: Find the maximum distance
+        max_point_distance = max(point_distance);
 
-        % Step 6: Check if the minimum distance is less than the tolerance
-        if min_point_distance < dist_tol
+        % Step 6: Check if the maximum distance is below the threshold
+        if max_point_distance < dist_tol
             exitflag = get_exitflag("INSUFFICIENT_POINT_CHANGE");
             break;
         end
