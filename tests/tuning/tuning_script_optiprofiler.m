@@ -39,25 +39,27 @@ function tuning_script_optiprofiler(parameters, options)
         error('max_tol_order must be equal to the length of tau_weights');
     end
     options.draw_plots = false;
-    if isfield(parameters, 'window_size') && isfield(parameters, 'func_tol')
-        if ~isfield(parameters, 'baseline_params')
-            parameters.baseline_params = struct('window_size', 1e5, 'func_tol', eps);
+
+    baseline_params_defaults = struct(...
+        'window_size', 1e5, ...
+        'func_tol', eps, ...
+        'dist_tol', eps, ...
+        'grad_tol_1', 1e-30, ...
+        'grad_tol_2', 1e-30, ...
+        'expand', 2, ...
+        'shrink', 0.5);
+    fields_to_check = {'window_size', 'func_tol', 'dist_tol', 'grad_tol_1', 'grad_tol_2', 'expand', 'shrink'};   
+    for i = 1:length(fields_to_check)
+        field = fields_to_check{i};
+        if isfield(parameters, field)
+            if ~isfield(parameters, 'baseline_params')
+                parameters.baseline_params = struct();
+            end
+            if ~isfield(parameters.baseline_params, field)
+                parameters.baseline_params.(field) = baseline_params_defaults.(field);
+            end
         end
     end
-    if isfield(parameters, 'window_size') && isfield(parameters, 'dist_tol')
-        if ~isfield(parameters, 'baseline_params')
-            parameters.baseline_params = struct('window_size', 1e5, 'dist_tol', eps);
-        end
-    end
-    if isfield(parameters, 'window_size') && isfield(parameters, 'grad_tol_1') && isfield(parameters, 'grad_tol_2')
-        if ~isfield(parameters, 'baseline_params')
-            parameters.baseline_params = struct('window_size', 1e5, 'grad_tol_1', eps, 'grad_tol_2', eps);
-        end
-    end
-    if isfield(parameters, 'expand') && isfield(parameters, 'shrink')
-        if ~isfield(parameters, 'baseline_params')
-            parameters.baseline_params = struct('expand', 2, 'shrink', 0.5);
-        end
-    end
+    
     plot_parameters_optiprofiler(parameters, options);
 end

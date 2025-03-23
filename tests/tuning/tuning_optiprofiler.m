@@ -28,12 +28,20 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
                 solver_names{index} = sprintf('solver_%d', index);
                 index = index + 1;
             end
-        case ismember('window_size', param_fields) && ismember('grad_tol_1', param_fields) && ismember('grad_tol_2', param_fields)
+        case ismember('grad_tol_1', param_fields) && ismember('grad_tol_2', param_fields)
             for i_solver = 1:2
-                solvers{index} = @(fun, x0) cbds_window_size_grad_tol_1_grad_tol_2(fun, x0, parameters.window_size(i_solver), parameters.grad_tol_1(i_solver), parameters.grad_tol_2(i_solver));
+                solvers{index} = @(fun, x0) cbds_grad_tol(fun, x0, parameters.grad_tol_1(i_solver), parameters.grad_tol_2(i_solver));
                 solver_names{index} = sprintf('solver_%d', index);
                 index = index + 1;
             end
+        case ismember('window_size', param_fields) && ismember('func_tol', param_fields) && ismember('dist_tol', param_fields) && ismember('grad_tol_1', param_fields) && ismember('grad_tol_2', param_fields)
+            for i_solver = 1:2
+                solvers{index} = @(fun, x0) cbds_window_size_func_tol_dist_tol_grad_tol(fun, x0, parameters.window_size(i_solver), parameters.func_tol(i_solver), parameters.dist_tol(i_solver), parameters.grad_tol_1(i_solver), parameters.grad_tol_2(i_solver));
+                solver_names{index} = sprintf('solver_%d', index);
+                index = index + 1;
+            end
+        
+
     end
     
     options.solver_names = solver_names;
@@ -193,24 +201,25 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
     
     % When tuning with parallel computing, the benchmark_id should be unique. In our test, we use the
     % value of the parameters to make the benchmark_id unique.
-    switch true
-        case ismember('expand', param_fields) && ismember('shrink', param_fields)
-            % Preserve 
-            expand_str = num2str(parameters.expand(1), '%.2f');
-            expand_str = strrep(expand_str, '.', '');
-            shrink_str = num2str(parameters.shrink(1), '%.2f');
-            shrink_str = shrink_str(3:end); % Remove '0.'
-            options.benchmark_id = [options.benchmark_id, '_', 'expand_', expand_str, '_shrink_', shrink_str];
-        case ismember('window_size', param_fields) && ismember('func_tol', param_fields)
-            options.benchmark_id = [options.benchmark_id, '_', 'window_size_', num2str(parameters.window_size(1))];
-            options.benchmark_id = [options.benchmark_id, '_', 'func_tol_', int2str(int32(-log10(parameters.func_tol(1)))), '_x'];
-        case ismember('window_size', param_fields) && ismember('dist_tol', param_fields)
-            options.benchmark_id = [options.benchmark_id, '_', 'window_size_', num2str(parameters.window_size(1))];
-            options.benchmark_id = [options.benchmark_id, '_', 'dist_tol_', int2str(int32(-log10(parameters.dist_tol(1)))), '_x'];
-        case ismember('window_size', param_fields) && ismember('grad_tol_1', param_fields) && ismember('grad_tol_2', param_fields)
-            options.benchmark_id = [options.benchmark_id, '_', 'window_size_', num2str(parameters.window_size(1))];
-            options.benchmark_id = [options.benchmark_id, '_', 'grad_tol_1_', int2str(int32(-log10(parameters.grad_tol_1(1)))), '_x'];
-            options.benchmark_id = [options.benchmark_id, '_', 'grad_tol_2_', int2str(int32(-log10(parameters.grad_tol_2(1)))), '_x'];
+    param_fields = fieldnames(parameters);
+    if ismember('expand', param_fields) && ismember('shrink', param_fields)
+        options.benchmark_id = append_param_to_id(options.benchmark_id, 'expand', parameters.expand(1));
+        options.benchmark_id = append_param_to_id(options.benchmark_id, 'shrink', parameters.shrink(1));
+    end
+    if ismember('window_size', param_fields)
+        options.benchmark_id = append_param_to_id(options.benchmark_id, 'window_size', parameters.window_size(1), '%.0f');
+    end
+    if ismember('func_tol', param_fields)
+        options.benchmark_id = append_param_to_id(options.benchmark_id, 'func_tol', parameters.func_tol(1));
+    end
+    if ismember('dist_tol', param_fields)
+        options.benchmark_id = append_param_to_id(options.benchmark_id, 'dist_tol', parameters.dist_tol(1));
+    end
+    if ismember('grad_tol_1', param_fields)
+        options.benchmark_id = append_param_to_id(options.benchmark_id, 'grad_tol_1', parameters.grad_tol_1(1));
+    end
+    if ismember('grad_tol_2', param_fields)
+        options.benchmark_id = append_param_to_id(options.benchmark_id, 'grad_tol_2', parameters.grad_tol_2(1));
     end
 
     options.benchmark_id = [options.benchmark_id, '_', time_str];
@@ -376,12 +385,26 @@ function x = cbds_window_size_dist_tol(fun, x0, window_size, dist_tol)
     
 end
 
-function x = cbds_window_size_grad_tol_1_grad_tol_2(fun, x0, window_size, grad_tol_1, grad_tol_2)
+function x = cbds_grad_tol(fun, x0, grad_tol_1, grad_tol_2)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.grad_tol_1 = grad_tol_1; 
+    option.grad_tol_2 = grad_tol_2;
+    option.use_estimated_gradient_stop = true;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_window_size_func_tol_dist_tol_grad_tol(fun, x0, window_size, func_tol, dist_tol, grad_tol_1, grad_tol_2)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
     option.shrink = 0.5;
     option.window_size = window_size;
+    option.func_tol = func_tol;
+    option.dist_tol = dist_tol;
     option.grad_tol_1 = grad_tol_1;
     option.grad_tol_2 = grad_tol_2;
     option.use_estimated_gradient_stop = true;
@@ -389,4 +412,19 @@ function x = cbds_window_size_grad_tol_1_grad_tol_2(fun, x0, window_size, grad_t
     option.use_point_stop = true;
     x = bds_development(fun, x0, option);
     
+end
+
+function benchmark_id = append_param_to_id(benchmark_id, param_name, param_value, format)
+    if nargin < 4
+        format = '%.2f';
+    end
+    param_str = num2str(param_value, format);
+    if strcmp(param_name, 'expand')
+        param_str = strrep(param_str, '.', '');
+    elseif strcmp(param_name, 'shrink')
+        param_str = param_str(3:end); % Remove '0.'
+    elseif contains(param_name, 'tol')
+        param_str = int2str(int32(-log10(param_value)));
+    end
+    benchmark_id = [benchmark_id, '_', param_name, '_', param_str];
 end

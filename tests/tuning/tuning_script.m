@@ -1,12 +1,12 @@
 clear all
-% parameters.window_size = 10:5:15;
+parameters.window_size = 10:2:20;
 % parameters.window_size = 20;
 % parameters.dist_tol = 10.^(-6:-2:-12);
-% parameters.func_tol = 10.^(-6:-2:-12);
+parameters.func_tol = 10.^(-4:-2:-16);
 % parameters.grad_tol_1 = 10.^(-6:-2:-12);
 % parameters.grad_tol_2 = 10.^(-6:-2:-12);
-parameters.expand = 1.2:0.1:1.8;
-parameters.shrink = 0.5:0.1:0.7;
+% parameters.expand = 1.2:0.1:1.8;
+% parameters.shrink = 0.5:0.1:0.7;
 options.mindim = 1;
 options.maxdim = 1;
 if ~isfield(options, 'n_runs')

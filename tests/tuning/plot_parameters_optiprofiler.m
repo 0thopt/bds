@@ -5,17 +5,6 @@ function plot_parameters_optiprofiler(parameters, options)
 
 % Get parameter names
 param_names = fieldnames(parameters);
-if ismember('window_size', param_names)
-    % If there are grad_tol_1 and grad_tol_2 in param_names, the length of window_size should be 1.
-    % In addition, grad_tol_1 and grad_tol_2 should be moved to the first two positions in param_names.
-    if ismember('grad_tol_1', param_names) && ismember('grad_tol_2', param_names)
-        if length(parameters.window_size) > 1
-            error('The length of window_size should be 1.');
-        end
-        % Move grad_tol_1 and grad_tol_2 to the first two positions
-        param_names = [{'grad_tol_1', 'grad_tol_2'}, reshape(param_names(~ismember(param_names, {'grad_tol_1', 'grad_tol_2'})), 1, [])];
-    end
-end
 
 % Extract window_size if it exists
 if ismember('window_size', param_names) && isscalar(parameters.window_size)
@@ -122,7 +111,6 @@ fileID = fopen(fullfile(data_path, 'options.txt'), 'w');
 fprintf(fileID, 'options.mindim = %d;\n', options.mindim);
 fprintf(fileID, 'options.maxdim = %d;\n', options.maxdim);
 fprintf(fileID, 'options.p_type = "%s";\n', options.p_type);
-fprintf(fileID, 'options.tau_weights = [%s];\n', num2str(tau_weights));
 fprintf(fileID, 'options.feature_name = "%s";\n', options.feature_name);
 fprintf(fileID, 'options.n_runs = %d;\n', options.n_runs);
 fprintf(fileID, 'options.max_tol_order = [%s];\n', num2str(options.max_tol_order));
