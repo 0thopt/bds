@@ -1,4 +1,4 @@
-name: Profile cbds with window size and dist tol, small
+name: Profile cbds with dist tol, small
 
 on:
   # Trigger the workflow on # push or pull request
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Profile cbds with window size and dist tol, small
+    name: Profile cbds with dist tol, small
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -73,33 +73,41 @@ jobs:
               cd(fullfile(root_dir, 'tests'));
               addpath(pwd);
   
-              % profile
+              % Start tuning
               cd(fullfile(root_dir, 'tests', 'tuning'));
-              ls
-              parameters.window_size = 10:5:20;
-              parameters.dist_tol = 10.^(-6:-2:-12);
-              options.dim = '${{ matrix.dim }}';
+              parameters.window_size = 10:2:20;
+              parameters.dist_tol = 10.^(-4:-2:-16);
               if ~isfield(options, 'n_runs')
                   options.n_runs = 1;
               end
               options.p_type = 'u';
-              options.max_tol_order = 10;
-              options.tau_weights = [0.12*ones(1, 8) 0.02 0.02];
-              if sum(options.tau_weights) ~= 1
+              % tau_weights should be a 2xmax_tol_orderx2x3 numeric array, where the sum of all 
+              % elements is 1. Normally, the max_tol_order is set to be 10.
+              if ~isfield(options, 'max_tol_order')
+                  options.max_tol_order = 10;
+              end
+              % To improve the score of output-base performance profile, we can set the value of
+              % last two elements of tau_weights(1, 1:max_tol_order, 2, 1) is 0.02 and the value of
+              % the first 1:max_tol_order-2 elements is 0.96/(max_tol_order-2). The rest of the elements
+              % in tau_weights are set to 0.
+              options.tau_weights = zeros(2, options.max_tol_order, 2, 3);
+              options.tau_weights(1, 1:options.max_tol_order, 2, 1) = [0.96/(options.max_tol_order-2)*ones(1, options.max_tol_order-2), 0.02, 0.02]; 
+              if sum(options.tau_weights(:)) ~= 1
                   error('Sum of tau_weights must be 1');
               end
-              if  (options.max_tol_order ~= length(options.tau_weights))
+              % Check if max_tol_order is equal to the length of tau_weights.
+              if  (options.max_tol_order ~= size(options.tau_weights, 2))
                   error('max_tol_order must be equal to the length of tau_weights');
               end
-              options.is_stopping_criterion = true;
-              options.feature_name = '${{ matrix.feature }}';
+              options.feature_name = ${{ matrix.feature }};
               fprintf('Feature:\t %s\n', options.feature_name);
               tuning_script_optiprofiler(parameters, options);
+              cd(root_dir);
     
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: tuning_window_size_dist_tol_${{ matrix.dim }}_${{ matrix.feature }}
+          name: tuning_dist_tol_small
           path: ./tests/tuning/tuning_data/**
 
   
