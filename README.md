@@ -59,6 +59,9 @@ The following tests are implemented by [Optiprofiler](https://github.com/optipro
     - [![Profile cbds with window_size and func_tol, small](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_window_size_func_tol_small.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_window_size_func_tol_small.yml)
     - [![Profile cbds with window_size 15 and grad_tol, small](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_window_size_15_grad_tol_small.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_window_size_15_grad_tol_small.yml)
     - [![Profile cbds with window_size 20 and grad_tol, small](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_window_size_20_grad_tol_small.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_window_size_20_grad_tol_small.yml)
+    - [![Profile cbds with window size 20, func_tol, dist_tol, grad_tol, big](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_window_size_func_tol_dist_tol_grad_tol_big.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_window_size_func_tol_dist_tol_grad_tol_big.yml)
+    - [![Profile cbds with window size 20, func_tol, dist_tol, grad_tol, small](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_window_size_func_tol_dist_tol_grad_tol_small.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_window_size_func_tol_dist_tol_grad_tol_small.yml)
+  
     
 - [Tests](https://github.com/0thopt/bds/actions) at [0thopt/bds](https://github.com/0thopt/bds)
 
