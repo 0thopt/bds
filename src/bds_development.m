@@ -634,7 +634,7 @@ for iter = 1:maxit
         % function values stored in the previous iteration.
         for i = 1:n
             i_real = block_indices(i);
-            g(i_real) = (fhist(nf - 2*(i_real - 1) - 1) - fhist(nf - 2*(i_real - 1))) / (2*alpha_hist(i_real, iter-1));
+            g(i_real) = (fhist(nf - 2*(i_real - 1) - 2) - fhist(nf - 2*(i_real - 1) - 1)) / (2*alpha_hist(i_real, iter-1));
         end
         grad_hist = [grad_hist norm(g)];
         % The recommendation is grad_tol_1 should be greater than grad_tol_2.
