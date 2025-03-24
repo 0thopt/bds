@@ -101,6 +101,7 @@ jobs:
                   error('max_tol_order must be equal to the length of tau_weights');
               end
               options.feature_name = '${{ matrix.feature }}';
+              options.dim = '${{ matrix.dim }}';
               fprintf('Feature:\t %s\n', options.feature_name);
               tuning_script_optiprofiler(parameters, options);
               cd(root_dir);
@@ -108,7 +109,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: tuning_func_tol_small
+          name: tuning_func_tol_${{ matrix.dim }}
           path: ./tests/tuning/tuning_data/**
 
   
