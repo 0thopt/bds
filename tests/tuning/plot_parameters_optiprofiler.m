@@ -83,6 +83,16 @@ end
 
 % Create a subfolder stamped with the current time for the current test. 
 time_str = char(datetime('now', 'Format', 'yy_MM_dd_HH_mm'));
+if isfield(options, 'dim')
+    if strcmpi(options.dim, 'small')
+        options.mindim = 2;
+        options.maxdim = 5;
+    elseif strcmpi(options.dim, 'big')
+        options.mindim = 6;
+        options.maxdim = 50;
+    end
+    options = rmfield(options, 'dim');
+end
 feature_str = [num2str(options.mindim), '_', ...
                 num2str(options.maxdim), '_', char(options.feature_name), '_', char(options.p_type)];
 
