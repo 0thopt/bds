@@ -19,8 +19,6 @@ function [profile_scores] = eval_performance_optiprofiler(options)
         end
     end
     options = rmfield(options, 'baseline_params');
-    currentFilePath = mfilename('fullpath');
-    options.savepath = fullfile(fileparts((fileparts(currentFilePath))), 'tuning_data');
     % If the field window_size exists in options, it means that we are tuning the grad_tol_1 and grad_tol_2 parameters.
     % In this case, we need to set the window_size parameter to a large value to avoid the window_size parameter to be tuned.
     if isfield(options, 'window_size')

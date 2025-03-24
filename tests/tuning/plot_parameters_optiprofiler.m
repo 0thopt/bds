@@ -51,28 +51,6 @@ end
 tau_weights = options.tau_weights;
 options = rmfield(options, 'tau_weights');
 
-% Get performance for each parameter combination
-parfor ip = 1:numel(p1)
-    % Set solver options
-    solver_options = struct();
-    solver_options.(param1_name) = p1(ip);
-    solver_options.(param2_name) = p2(ip);
-
-    % Pass solver_options to the performance function via local_options. The performance function
-    % should then pass solver_options to the solver.
-    local_options = options;
-    local_options.solver_options = solver_options;
-    if ~isempty(window_size)
-        local_options.window_size = window_size;
-    end
-
-    % Compute performance
-    fprintf('Evaluating performance for %s = %f, %s = %f\n', param1_name, p1(ip), param2_name, p2(ip));
-    profile_scores{ip} = eval_performance_optiprofiler(local_options);
-    perfs(ip) = tuning_score(profile_scores{ip}, tau_weights);
-
-end
-
 % We save the results in the `data_path` folder. 
 current_path = fileparts(mfilename("fullpath"));
 % Create the folder if it does not exist.
@@ -96,13 +74,7 @@ end
 feature_str = [num2str(options.mindim), '_', ...
                 num2str(options.maxdim), '_', char(options.feature_name), '_', char(options.p_type)];
 
-if ismember('window_size', param_names) && isscalar(parameters.window_size)
-    % If 'window_size' is one of the parameters, include its value in the feature string.
-    feature_str = [feature_str, '_', 'window_size_', num2str(window_size)];
-    % Remove 'window_size' from param_names to avoid duplication.
-    param_names = param_names(~strcmp(param_names, 'window_size'));
-end
-% Remove 'baseline_params' from param_names to avoid duplication.
+% Remove 'baseline_params' from param_names to decrease the length of the feature_str.
 param_names = param_names(~strcmp(param_names, 'baseline_params'));
 
 param_names_str = strjoin(param_names, '_');
@@ -110,6 +82,29 @@ feature_str = [feature_str, '_', param_names_str];
 data_path_name = [feature_str, '_', time_str];
 data_path = fullfile(data_path, data_path_name);
 mkdir(data_path);
+options.savepath = data_path;
+
+% Get performance for each parameter combination
+parfor ip = 1:numel(p1)
+    % Set solver options
+    solver_options = struct();
+    solver_options.(param1_name) = p1(ip);
+    solver_options.(param2_name) = p2(ip);
+
+    % Pass solver_options to the performance function via local_options. The performance function
+    % should then pass solver_options to the solver.
+    local_options = options;
+    local_options.solver_options = solver_options;
+    if ~isempty(window_size)
+        local_options.window_size = window_size;
+    end
+
+    % Compute performance
+    fprintf('Evaluating performance for %s = %f, %s = %f\n', param1_name, p1(ip), param2_name, p2(ip));
+    profile_scores{ip} = eval_performance_optiprofiler(local_options);
+    perfs(ip) = tuning_score(profile_scores{ip}, tau_weights);
+
+end
 
 % Save performance data 
 save(fullfile(data_path, 'performance_data.mat'), 'p1', 'p2', 'perfs','profile_scores')

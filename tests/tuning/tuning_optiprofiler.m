@@ -424,7 +424,11 @@ function benchmark_id = append_param_to_id(benchmark_id, param_name, param_value
     elseif strcmp(param_name, 'shrink')
         param_str = param_str(3:end); % Remove '0.'
     elseif contains(param_name, 'tol')
-        param_str = int2str(int32(-log10(param_value)));
+        if param_value > 1e-10
+            param_str = sprintf('0%d', int32(-log10(param_value)));
+        else
+            param_str = sprintf('%d', int32(-log10(param_value)));
+        end
     end
     benchmark_id = [benchmark_id, '_', param_name, '_', param_str];
 end
