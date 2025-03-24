@@ -37,7 +37,7 @@ jobs:
           repository: optiprofiler/optiprofiler
           path: optiprofiler
           submodules: recursive
-          ref: c71d78a4dd0838fb1925e3c97885aded39fffe38
+          ref: b0fd65e7f5a51dd1941f9ff80b90c34d26eede4c
 
       - name: Clone BFO
         uses: actions/checkout@v4
