@@ -676,11 +676,8 @@ for iter = 1:maxit
         [unique_points, ~, ~] = unique(recent_points', 'rows', 'stable');
         recent_points = unique_points';
 
-        % step 3: Locate the center of the recent points
-        center_point = mean(recent_points, 2);
-
-        % Step 4: Calculate the distance between the center point and each recent point
-        point_distance = vecnorm(recent_points - center_point, 2, 1);
+        % Step 4: Calculate the distance between the best point and the recent points
+        point_distance = vecnorm(recent_points - xopt, 2, 1);
 
         % Step 5: Find the maximum distance
         max_point_distance = max(point_distance);

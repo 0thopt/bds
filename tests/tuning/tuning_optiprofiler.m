@@ -369,7 +369,6 @@ function x = cbds_window_size_fun_tol(fun, x0, window_size, func_tol)
     option.expand = 2;
     option.shrink = 0.5;
     if window_size > 1e5
-        keyboard
         option.use_function_value_stop = false;
     else
         option.window_size = window_size;
