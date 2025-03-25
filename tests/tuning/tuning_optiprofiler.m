@@ -202,8 +202,10 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
     % When tuning with parallel computing, the benchmark_id should be unique. In our test, we use the
     % value of the parameters to make the benchmark_id unique.
     param_fields = fieldnames(parameters);
-    if ismember('expand', param_fields) && ismember('shrink', param_fields)
+    if ismember('expand', param_fields)
         options.benchmark_id = append_param_to_id(options.benchmark_id, 'expand', parameters.expand(1));
+    end
+    if ismember('shrink', param_fields)
         options.benchmark_id = append_param_to_id(options.benchmark_id, 'shrink', parameters.shrink(1));
     end
     if ismember('window_size', param_fields)
@@ -366,9 +368,14 @@ function x = cbds_window_size_fun_tol(fun, x0, window_size, func_tol)
     option.Algorithm = 'cbds';
     option.expand = 2;
     option.shrink = 0.5;
-    option.window_size = window_size;
-    option.func_tol = func_tol;
-    option.use_function_value_stop = true;
+    if window_size > 1e5
+        keyboard
+        option.use_function_value_stop = false;
+    else
+        option.window_size = window_size;
+        option.func_tol = func_tol;
+        option.use_function_value_stop = true;
+    end
     x = bds_development(fun, x0, option);
     
 end
@@ -378,9 +385,13 @@ function x = cbds_window_size_dist_tol(fun, x0, window_size, dist_tol)
     option.Algorithm = 'cbds';
     option.expand = 2;
     option.shrink = 0.5;
-    option.window_size = window_size;
-    option.dist_tol = dist_tol;
-    option.use_point_stop = true;
+    if window_size > 1e5
+        option.use_point_stop = false;
+    else
+        option.window_size = window_size;
+        option.dist_tol = dist_tol;
+        option.use_point_stop = true;
+    end
     x = bds_development(fun, x0, option);
     
 end
@@ -390,9 +401,13 @@ function x = cbds_grad_tol(fun, x0, grad_tol_1, grad_tol_2)
     option.Algorithm = 'cbds';
     option.expand = 2;
     option.shrink = 0.5;
-    option.grad_tol_1 = grad_tol_1; 
-    option.grad_tol_2 = grad_tol_2;
-    option.use_estimated_gradient_stop = true;
+    if grad_tol_1 == 1e-30 && grad_tol_2 == 1e-30
+        option.use_estimated_gradient_stop = false;
+    else
+        option.grad_tol_1 = grad_tol_1; 
+        option.grad_tol_2 = grad_tol_2;
+        option.use_estimated_gradient_stop = true;
+    end
     x = bds_development(fun, x0, option);
     
 end
