@@ -1,5 +1,5 @@
 function tuning_script_optiprofiler(parameters, options)
-
+    
     if isfield(options, 'dim')
         if strcmpi(options.dim, 'small')
             options.mindim = 2;
@@ -60,6 +60,6 @@ function tuning_script_optiprofiler(parameters, options)
             end
         end
     end
-    
+
     plot_parameters_optiprofiler(parameters, options);
 end
