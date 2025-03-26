@@ -223,8 +223,12 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
     if ismember('grad_tol_2', param_fields)
         options.benchmark_id = append_param_to_id(options.benchmark_id, 'grad_tol_2', parameters.grad_tol_2(1));
     end
-
     options.benchmark_id = [options.benchmark_id, '_', time_str];
+    
+    if ~isfield(options, 'savepath')
+        options.savepath = fullfile(fileparts(mfilename('fullpath')), 'tuning_data');
+    end
+
     options.excludelist = {'DIAMON2DLS',...
             'DIAMON2D',...
             'DIAMON3DLS',...

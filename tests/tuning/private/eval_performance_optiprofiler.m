@@ -25,6 +25,7 @@ function [profile_scores] = eval_performance_optiprofiler(options)
         parameters.window_size = [options.window_size, 1e8];
         options = rmfield(options, 'window_size');
     end
+    
     [~, profile_scores] = tuning_optiprofiler(parameters, options);
     
 end
