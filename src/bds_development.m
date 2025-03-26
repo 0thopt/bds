@@ -633,22 +633,26 @@ for iter = 1:maxit
         g = NaN(n, 1);
         % The following loop is to estimate the gradient at xopt using central difference, with the
         % function values stored in the previous iteration.
+        % First, we will orthogonalize the directions in D(:, 1 : 2 : 2*n-1) to get a orthonormal basis.
+        [Q, ~] = qr(D(:, 1 : 2 : 2*n-1), 0);
+        % % Get the coordinates of xopt with respect to the orthonormal basis.
+        % xopt_coordinates = Q' * xopt;
+        % Then, we will estimate the gradient at xopt using central difference.
         for i = 1:n
-            i_real = block_indices(i);
-            g(i_real) = (fhist(nf - 2*(i_real - 1) - 2) - fhist(nf - 2*(i_real - 1) - 1)) / norm(xhist(:, nf - 2*(i_real - 1) - 2) - xhist(:, nf - 2*(i_real - 1) - 1));
+            xopt_plus = Q' * xhist(:, nf - 2*(i_real - 1));
+            xopt_minus = Q' * xhist(:, nf - 2*(i_real - 1) - 1);
+            % The gradient at xopt in the i-th direction is estimated by central difference.
+            g(i) = (fhist(nf - 2*(i_real - 1)) - fhist(nf - 2*(i_real - 1) - 1)) / norm(xopt_minus - xopt_plus);
         end
+        % Finally, we will transform the gradient to the original coordinates.
+        g = Q * g;
+
         grad_hist = [grad_hist norm(g)];
         % The recommendation is grad_tol_1 should be greater than grad_tol_2.
         if min(grad_hist) < grad_tol_1 * min(1, grad_hist(1)) || min(grad_hist) < grad_tol_2 * max(1, grad_hist(1))
             exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
             break;
         end
-        % % e <= grad_tol && e <= grad_rate_tol * e_0
-        % % OR e <= grad_threshold
-        % grad_min = min(grad_hist);
-        % % grad_tol_1 = 1e-6
-        % % grad_tol_2 = 1e-8
-        % grad_min < grad_tol_1 * min(1, grad_hist(1)) || grad_min < grad_tol_2 * max(1, grad_hist(1))
     end
 
     % Track the best function value observed so far. Although fopt could be used for this purpose,
