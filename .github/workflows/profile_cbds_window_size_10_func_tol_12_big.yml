@@ -79,7 +79,7 @@ jobs:
               parameters.window_size = [10 1e8];
               parameters.func_tol = [1e-12 1e-30];
               options = struct();
-              options.dim = '${{ matrix.dim }}';
+              % options.dim = '${{ matrix.dim }}';
               options.mindim = 1;
               options.maxdim = 2;
               options.feature_name = '${{ matrix.feature }}';
