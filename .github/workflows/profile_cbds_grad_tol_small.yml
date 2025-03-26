@@ -75,8 +75,8 @@ jobs:
   
               % Start tuning
               cd(fullfile(root_dir, 'tests', 'tuning'));
-              parameters.grad_tol_1 = 10.^(-4:-2:-16);
-              parameters.grad_tol_2 = 10.^(-4:-2:-16);
+              parameters.grad_tol_1 = 10.^(-4:-2:-14);
+              parameters.grad_tol_2 = 10.^(-4:-2:-14);
               options = struct();
               if ~isfield(options, 'n_runs')
                   options.n_runs = 1;
