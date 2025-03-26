@@ -80,6 +80,7 @@ tests/optiprofiler
 *.eps
 tests/optiprofiler_script/out
 tests/tuning/tuning_data/
+tests/tuning/tuning_script.m
 tests/out
 tests/competitors/out
 tests/cbds_*
