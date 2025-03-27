@@ -75,7 +75,7 @@ jobs:
   
               % Start tuning
               cd(fullfile(root_dir, 'tests', 'tuning'));
-              parameters.window_size = 10:2:20;
+              parameters.window_size = 12:2:16;
               parameters.dist_tol = 10.^(-4:-2:-16);
               options = struct();
               if ~isfield(options, 'n_runs')
