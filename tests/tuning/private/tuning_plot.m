@@ -90,9 +90,9 @@ saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_vs_perfo
 % Save pdf of 3d plot
 print(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_3d.pdf']), '-dpdf');
 % Try converting the eps to pdf.
-epsPath = fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_3d.eps']);
-% One way to convert eps to pdf, without showing the output of the command.
-system(('epstopdf '+epsPath+' 2> /dev/null'));
+% epsPath = fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_3d.eps']);
+% % One way to convert eps to pdf, without showing the output of the command.
+% system(('epstopdf '+epsPath+' 2> /dev/null'));
 
 % Save eps of 2d plot 
 view(2); % Top-down view
@@ -103,9 +103,9 @@ saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_vs_perfo
 % Save pdf of 2d plot
 print(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_2d.pdf']), '-dpdf');
 % Try converting the eps to pdf.
-epsPath = fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_2d.eps']);
-% One way to convert eps to pdf, without showing the output of the command.
-system(('epstopdf '+epsPath+' 2> /dev/null'));
+% epsPath = fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_2d.eps']);
+% % One way to convert eps to pdf, without showing the output of the command.
+% system(('epstopdf '+epsPath+' 2> /dev/null'));
 
 
 fprintf('Performance data and plots saved in \n %s\n', data_path);
