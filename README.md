@@ -61,7 +61,8 @@ The following tests are implemented by [Optiprofiler](https://github.com/optipro
     - [![Profile cbds with window_size 18 and dist_tol 8x, big](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_window_size_18_dist_tol_08_small.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_window_size_18_dist_tol_08_big.yml)
     - [![Profile cbds with window_size 18 and dist_tol 10x, big](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_window_size_18_dist_tol_10_big.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_window_size_18_dist_tol_10_big.yml)
     - [![Profile cbds with window_size 18 and dist_tol 12x, big](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_window_size_18_dist_tol_12_big.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_window_size_18_dist_tol_12_big.yml)
-
+    - [![Profile cbds with window_size 14 and dist_tol 6x, small](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_window_size_14_dist_tol_06_small.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_window_size_14_dist_tol_06_small.yml)
+    - [![Profile cbds with window_size 14 and dist_tol 8x, small](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_window_size_14_dist_tol_08_small.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_window_size_14_dist_tol_08_small.yml)
   
     
 - [Tests](https://github.com/0thopt/bds/actions) at [0thopt/bds](https://github.com/0thopt/bds)
