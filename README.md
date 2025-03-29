@@ -92,6 +92,10 @@ The following tests are implemented by [Optiprofiler](https://github.com/optipro
     - [![Profile cbds and cbds with rotated initial point, small](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_cbds_cbds_rotated_initial_point_small.yml/badge.svg)](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_cbds_cbds_rotated_initial_point_small.yml)
     - [![Profile cbds with rotated initial point, big](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_cbds_rotated_initial_point_big.yml/badge.svg)](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_cbds_rotated_initial_point_big.yml)
     - [![Profile cbds rotated initial point, small](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_cbds_rotated_initial_point_small.yml/badge.svg)](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_cbds_rotated_initial_point_small.yml)
+    - [![Profile cbds with grad_tol 4x 10x, big](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_cbds_grad_tol_04_10_big.yml/badge.svg)](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_cbds_grad_tol_04_10_big.yml)
+    - [![Profile cbds with grad_tol 4x 12x, big](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_cbds_grad_tol_04_12_big.yml/badge.svg)](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_cbds_grad_tol_04_12_big.yml)
+    - [![Profile cbds with grad_tol 4x 14x, big](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_cbds_grad_tol_04_14_big.yml/badge.svg)](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_cbds_grad_tol_04_14_big.yml)
+
 
   
 - [Tests](https://github.com/dfopt/bds/actions) at [dfopt/bds](https://github.com/dfopt/bds)
