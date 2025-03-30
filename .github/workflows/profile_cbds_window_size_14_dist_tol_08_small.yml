@@ -1,4 +1,4 @@
-name: Profile cbds and window size 14 and dist tol 08, big
+name: Profile cbds and window size 14 and dist tol 08, small
 
 on:
   # Trigger the workflow on # push or pull request
@@ -10,14 +10,14 @@ on:
 
 jobs:
   test:
-    name: Profile cbds and window size 14 and dist tol 08, big
+    name: Profile cbds and window size 14 and dist tol 08, small
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
         matlab: [latest]
-        dim: [big]
+        dim: [small]
         with_optim_toolbox: [yes]
         feature: [plain, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, linearly_transformed, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
 
@@ -169,10 +169,10 @@ jobs:
           cd summary
           ls
           bash ../merge_pdf.sh
-          mv merged.pdf "summary_cbds_window_size_14_dist_tol_08x_big.pdf"
+          mv merged.pdf "summary_cbds_window_size_14_dist_tol_08x_small.pdf"
           cd ..
           if [ -d "summary" ]; then
-            mv summary "summary_cbds_window_size_14_dist_tol_08x_big"
+            mv summary "summary_cbds_window_size_14_dist_tol_08x_small"
           fi
 
       - name: Upload merged artifact
@@ -180,7 +180,7 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: merged_profiles_cbds_window_size_14_dist_tol_08x_big
+          name: merged_profiles_cbds_window_size_14_dist_tol_08x_small
           path: tests/tuning/tuning_data/downloaded_artifacts/**
 
       - name: Upload summary files
@@ -188,5 +188,5 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: summary_files_cbds_window_size_14_dist_tol_08x_big
-          path: tests/tuning/tuning_data/downloaded_artifacts/summary_cbds_window_size_14_dist_tol_08x_big/**
+          name: summary_files_cbds_window_size_14_dist_tol_08x_small
+          path: tests/tuning/tuning_data/downloaded_artifacts/summary_cbds_window_size_14_dist_tol_08x_small/**
