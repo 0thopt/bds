@@ -1,6 +1,6 @@
-function tuning_plot(perfs, p1, p2, param1_name, param2_name, data_path, feature_str, log_color)
+function tuning_plot(perfs, p1, p2, param1_name, param2_name, mindim, maxdim, feature_name, data_path, feature_str, log_color)
 
-if nargin < 8
+if nargin < 11
     log_color = false;
 end
 
@@ -82,13 +82,13 @@ end
 
 view(3) % 3D view
 % Save fig
-saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_3d.fig']), 'fig');
+saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_', num2str(mindim), '_', num2str(maxdim), '_', feature_name, '.fig']), 'fig');
 % Use openfig to open the fig file.
 % openfig('my3DPlot.fig');
 % Save eps of 3d plot 
-saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_3d.eps']), 'epsc');
+saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_', num2str(mindim), '_', num2str(maxdim), '_', feature_name, '.eps']), 'epsc');
 % Save pdf of 3d plot
-print(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_3d.pdf']), '-dpdf');
+print(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_', num2str(mindim), '_', num2str(maxdim), '_', feature_name, '.pdf']), '-dpdf');
 % Try converting the eps to pdf.
 % epsPath = fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_3d.eps']);
 % % One way to convert eps to pdf, without showing the output of the command.
@@ -97,11 +97,11 @@ print(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_vs_perfor
 % Save eps of 2d plot 
 view(2); % Top-down view
 % Save fig
-saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_2d.fig']), 'fig');
+saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_', num2str(mindim), '_', num2str(maxdim), '_', feature_name, '_3d.fig']), 'fig');
 % Save eps of 2d plot
-saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_2d.eps']), 'epsc');
+saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_', num2str(mindim), '_', num2str(maxdim), '_', feature_name, '_3d.eps']), 'epsc');
 % Save pdf of 2d plot
-print(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_2d.pdf']), '-dpdf');
+print(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_', num2str(mindim), '_', num2str(maxdim), '_', feature_name, '_3d.pdf']), '-dpdf');
 % Try converting the eps to pdf.
 % epsPath = fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_2d.eps']);
 % % One way to convert eps to pdf, without showing the output of the command.

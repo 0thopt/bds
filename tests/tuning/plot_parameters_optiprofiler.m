@@ -167,7 +167,7 @@ end
 fclose(fileID);
 
 % Plot the performance data
-tuning_plot(perfs, p1, p2, param1_name, param2_name, data_path, feature_str)
+tuning_plot(perfs, p1, p2, param1_name, param2_name, options.mindim, options.maxdim, options.feature_name, data_path, feature_str);
 
 end
 
