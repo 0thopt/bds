@@ -587,10 +587,21 @@ if isfield(options, "func_tol")
 else
     func_tol = 1e-6;
 end
-if isfield(options, "dist_tol")
-    dist_tol = options.dist_tol;
+if isfield(options, "grad_tol")
+    options.grad_tol_1 = options.grad_tol;
 else
-    dist_tol = 1e-6;
+    options.grad_tol_1 = 1e-6;
+end
+if isfield(options, "grad_window_size")
+    grad_window_size = options.grad_window_size;
+else
+    grad_window_size = 3;
+end
+if isfield(options, "grad_tol_ratio")
+    grad_tol_ratio = options.grad_tol_ratio;
+    options.grad_tol_2 = grad_tol_ratio * options.grad_tol_1;
+else
+    options.grad_tol_2 = 1e-4 * options.grad_tol_1;
 end
 if isfield(options, "grad_tol_1")
     grad_tol_1 = options.grad_tol_1;
@@ -668,27 +679,6 @@ for iter = 1:maxit
         if abs(max(fopt_hist(iter-window_size:iter-1)) - min(fopt_hist(iter-window_size:iter-1))) < func_tol * max(1, abs(fopt_hist(iter)))
         % if max(fopt_hist(iter-window_size:iter-1)) < func_tol * max(1, abs(fopt_hist(iter))) + min(fopt_hist(iter-window_size:iter-1))
             exitflag = get_exitflag("INSUFFICIENT_OBJECTIVE_CHANGE");
-            break;
-        end
-    end
-
-    if iter > window_size && use_point_stop
-        % Step 1: Extract recent points
-        recent_points = xopt_hist(:, iter-window_size:iter-1);
-
-        % Step 2: Remove duplicate points
-        [unique_points, ~, ~] = unique(recent_points', 'rows', 'stable');
-        recent_points = unique_points';
-
-        % Step 4: Calculate the distance between the best point and the recent points
-        point_distance = vecnorm(recent_points - xopt, 2, 1);
-
-        % Step 5: Find the maximum distance
-        max_point_distance = max(point_distance);
-
-        % Step 6: Check if the maximum distance is below the threshold
-        if max_point_distance < dist_tol
-            exitflag = get_exitflag("INSUFFICIENT_POINT_CHANGE");
             break;
         end
     end

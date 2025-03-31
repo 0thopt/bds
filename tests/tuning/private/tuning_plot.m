@@ -82,13 +82,13 @@ end
 
 view(3) % 3D view
 % Save fig
-saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_', num2str(mindim), '_', num2str(maxdim), '_', feature_name, '.fig']), 'fig');
+saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_', num2str(mindim), '_', num2str(maxdim), '_', feature_name, '_3d.fig']), 'fig');
 % Use openfig to open the fig file.
 % openfig('my3DPlot.fig');
 % Save eps of 3d plot 
-saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_', num2str(mindim), '_', num2str(maxdim), '_', feature_name, '.eps']), 'epsc');
+saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_', num2str(mindim), '_', num2str(maxdim), '_', feature_name, '_3d.eps']), 'epsc');
 % Save pdf of 3d plot
-print(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_', num2str(mindim), '_', num2str(maxdim), '_', feature_name, '.pdf']), '-dpdf');
+print(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_', num2str(mindim), '_', num2str(maxdim), '_', feature_name, '_3d.pdf']), '-dpdf');
 % Try converting the eps to pdf.
 % epsPath = fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_3d.eps']);
 % % One way to convert eps to pdf, without showing the output of the command.
@@ -97,11 +97,11 @@ print(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_', num2st
 % Save eps of 2d plot 
 view(2); % Top-down view
 % Save fig
-saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_', num2str(mindim), '_', num2str(maxdim), '_', feature_name, '_3d.fig']), 'fig');
+saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_', num2str(mindim), '_', num2str(maxdim), '_', feature_name, '.fig']), 'fig');
 % Save eps of 2d plot
-saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_', num2str(mindim), '_', num2str(maxdim), '_', feature_name, '_3d.eps']), 'epsc');
+saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_', num2str(mindim), '_', num2str(maxdim), '_', feature_name, '.eps']), 'epsc');
 % Save pdf of 2d plot
-print(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_', num2str(mindim), '_', num2str(maxdim), '_', feature_name, '_3d.pdf']), '-dpdf');
+print(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_', num2str(mindim), '_', num2str(maxdim), '_', feature_name, '.pdf']), '-dpdf');
 % Try converting the eps to pdf.
 % epsPath = fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_2d.eps']);
 % % One way to convert eps to pdf, without showing the output of the command.
@@ -124,9 +124,9 @@ function set_dynamic_ticks(param_name, data, axis)
             % Set the ticks to be integers
             ticks = min(data(:)):1:max(data(:));
             labels = arrayfun(@(x) sprintf('%d', x), ticks, 'UniformOutput', false);
-        case {'func-tol', 'dist-tol', 'grad-tol-1', 'grad-tol-2'}
-            % Set the ticks to be powers of 10
-            ticks = logspace(log10(min(data(:))), log10(max(data(:))), 9);
+        case {'func-tol', 'dist-tol', 'grad-tol-1', 'grad-tol-2', 'grad-tol'}
+            % Set the ticks to be the number of corresponding decimal places
+            ticks = logspace(log10(min(data(:))), log10(max(data(:))), log10(max(data(:))) - log10(min(data(:))) + 1);
             labels = arrayfun(@(x) sprintf('10^{%d}', round(log10(x))), ticks, 'UniformOutput', false);
         otherwise
             ticks = linspace(min(data(:)), max(data(:)), 5);
@@ -134,9 +134,11 @@ function set_dynamic_ticks(param_name, data, axis)
     end
 
     if strcmp(axis, 'x')
+        set(gca, 'XScale', 'log'); % Set x-axis to log scale if needed
         xticks(ticks);
         xticklabels(labels);
     elseif strcmp(axis, 'y')
+        set(gca, 'YScale', 'log'); % Set y-axis to log scale if needed
         yticks(ticks);
         yticklabels(labels);
     else

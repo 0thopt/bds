@@ -22,26 +22,18 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
                 solver_names{index} = sprintf('solver_%d', index);
                 index = index + 1;
             end
-        case ismember('window_size', param_fields) && ismember('dist_tol', param_fields)
-            for i_solver = 1:2
-                solvers{index} = @(fun, x0) cbds_window_size_dist_tol(fun, x0, parameters.window_size(i_solver), parameters.dist_tol(i_solver));
-                solver_names{index} = sprintf('solver_%d', index);
-                index = index + 1;
-            end
         case ismember('grad_tol_1', param_fields) && ismember('grad_tol_2', param_fields)
             for i_solver = 1:2
                 solvers{index} = @(fun, x0) cbds_grad_tol(fun, x0, parameters.grad_tol_1(i_solver), parameters.grad_tol_2(i_solver));
                 solver_names{index} = sprintf('solver_%d', index);
                 index = index + 1;
             end
-        case ismember('window_size', param_fields) && ismember('func_tol', param_fields) && ismember('dist_tol', param_fields) && ismember('grad_tol_1', param_fields) && ismember('grad_tol_2', param_fields)
+        case ismember('grad_tol', param_fields) && ismember('grad_window_size', param_fields) && ismember('grad_tol_ratio', param_fields)
             for i_solver = 1:2
-                solvers{index} = @(fun, x0) cbds_window_size_func_tol_dist_tol_grad_tol(fun, x0, parameters.window_size(i_solver), parameters.func_tol(i_solver), parameters.dist_tol(i_solver), parameters.grad_tol_1(i_solver), parameters.grad_tol_2(i_solver));
+                solvers{index} = @(fun, x0) cbds_window_size_grad_tol(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol(i_solver));
                 solver_names{index} = sprintf('solver_%d', index);
                 index = index + 1;
             end
-        
-
     end
     
     options.solver_names = solver_names;
@@ -214,8 +206,14 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
     if ismember('func_tol', param_fields)
         options.benchmark_id = append_param_to_id(options.benchmark_id, 'func_tol', parameters.func_tol(1));
     end
-    if ismember('dist_tol', param_fields)
-        options.benchmark_id = append_param_to_id(options.benchmark_id, 'dist_tol', parameters.dist_tol(1));
+    if ismember('grad_tol', param_fields)
+        options.benchmark_id = append_param_to_id(options.benchmark_id, 'grad_tol', parameters.grad_tol(1));
+    end
+    if ismember('grad_window_size', param_fields)
+        options.benchmark_id = append_param_to_id(options.benchmark_id, 'grad_window_size', parameters.grad_window_size(1), '%.0f');
+    end
+    if ismember('grad_tol_ratio', param_fields)
+        options.benchmark_id = append_param_to_id(options.benchmark_id, 'grad_tol_ratio', parameters.grad_tol_ratio(1));
     end
     if ismember('grad_tol_1', param_fields)
         options.benchmark_id = append_param_to_id(options.benchmark_id, 'grad_tol_1', parameters.grad_tol_1(1));
@@ -383,22 +381,6 @@ function x = cbds_window_size_fun_tol(fun, x0, window_size, func_tol)
     
 end
 
-function x = cbds_window_size_dist_tol(fun, x0, window_size, dist_tol)
-
-    option.Algorithm = 'cbds';
-    option.expand = 2;
-    option.shrink = 0.5;
-    if window_size > 1e5
-        option.use_point_stop = false;
-    else
-        option.window_size = window_size;
-        option.dist_tol = dist_tol;
-        option.use_point_stop = true;
-    end
-    x = bds_development(fun, x0, option);
-    
-end
-
 function x = cbds_grad_tol(fun, x0, grad_tol_1, grad_tol_2)
 
     option.Algorithm = 'cbds';
@@ -415,19 +397,19 @@ function x = cbds_grad_tol(fun, x0, grad_tol_1, grad_tol_2)
     
 end
 
-function x = cbds_window_size_func_tol_dist_tol_grad_tol(fun, x0, window_size, func_tol, dist_tol, grad_tol_1, grad_tol_2)
+function x = cbds_window_size_grad_tol(fun, x0, grad_window_size, grad_tol_1, grad_tol_2)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
     option.shrink = 0.5;
-    option.window_size = window_size;
-    option.func_tol = func_tol;
-    option.dist_tol = dist_tol;
-    option.grad_tol_1 = grad_tol_1;
-    option.grad_tol_2 = grad_tol_2;
-    option.use_estimated_gradient_stop = true;
-    option.use_function_value_stop = true;
-    option.use_point_stop = true;
+    if grad_window_size > 1e5 || (grad_tol_1 == 1e-30 && grad_tol_2 == 1e-30)
+        option.use_estimated_gradient_stop = false;
+    else
+        option.grad_window_size = grad_window_size;
+        option.grad_tol_1 = grad_tol_1; 
+        option.grad_tol_2 = grad_tol_2;
+        option.use_estimated_gradient_stop = true;
+    end
     x = bds_development(fun, x0, option);
     
 end
