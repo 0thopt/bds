@@ -142,7 +142,7 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
         if strcmpi(options.feature_name, 'plain') || strcmpi(options.feature_name, 'quantized')
             options.n_runs = 1;
         else
-            options.n_runs = 3;
+            options.n_runs = 2;
         end
     end
     if ~isfield(options, 'solver_verbose')

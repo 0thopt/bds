@@ -1,4 +1,4 @@
-name: Profile cbds with grad tol ratio 2x, small
+name: Profile cbds with grad tol ratio 10x, small
 
 on:
   # Trigger the workflow on # push or pull request
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Profile cbds with grad tol ratio 2x, small
+    name: Profile cbds with grad tol ratio 10x, small
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
