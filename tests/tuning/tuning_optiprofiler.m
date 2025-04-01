@@ -6,7 +6,7 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
     solvers = cell(1, n_solvers);
     solver_names = cell(1, n_solvers);
     index = 1;
-
+    
     % According to the field of parameters, different solvers are tested.
     param_fields = fieldnames(parameters);
     switch true
@@ -30,7 +30,7 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
             end
         case ismember('grad_tol', param_fields) && ismember('grad_window_size', param_fields) && ismember('grad_tol_ratio', param_fields)
             for i_solver = 1:2
-                solvers{index} = @(fun, x0) cbds_window_size_grad_tol(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol(i_solver));
+                solvers{index} = @(fun, x0) cbds_window_size_grad_tol(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol(i_solver), parameters.grad_tol_ratio);
                 solver_names{index} = sprintf('solver_%d', index);
                 index = index + 1;
             end
@@ -397,17 +397,17 @@ function x = cbds_grad_tol(fun, x0, grad_tol_1, grad_tol_2)
     
 end
 
-function x = cbds_window_size_grad_tol(fun, x0, grad_window_size, grad_tol_1, grad_tol_2)
+function x = cbds_window_size_grad_tol(fun, x0, grad_window_size, grad_tol, grad_tol_ratio)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
     option.shrink = 0.5;
-    if grad_window_size > 1e5 || (grad_tol_1 == 1e-30 && grad_tol_2 == 1e-30)
+    if grad_window_size > 1e5 || (grad_tol == 1e-30 && grad_tol_ratio == 1e-30)
         option.use_estimated_gradient_stop = false;
     else
         option.grad_window_size = grad_window_size;
-        option.grad_tol_1 = grad_tol_1; 
-        option.grad_tol_2 = grad_tol_2;
+        option.grad_tol = grad_tol;
+        option.grad_tol_ratio = grad_tol_ratio; 
         option.use_estimated_gradient_stop = true;
     end
     x = bds_development(fun, x0, option);

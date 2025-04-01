@@ -659,10 +659,12 @@ for iter = 1:maxit
         g = Q * g;
 
         grad_hist = [grad_hist norm(g)];
-        % The recommendation is grad_tol_1 should be greater than grad_tol_2.
-        if min(grad_hist) < grad_tol_1 * min(1, grad_hist(1)) || min(grad_hist) < grad_tol_2 * max(1, grad_hist(1))
-            exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
-            break;
+        if length(grad_hist) > grad_window_size
+            grad_window_size_hist = grad_hist(end-grad_window_size+1:end);
+            if all(grad_window_size_hist < grad_tol_1 * min(1, grad_hist(1)) | grad_window_size_hist < grad_tol_2 * max(1, grad_hist(1)))
+                exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
+                break;
+            end
         end
     end
 

@@ -6,15 +6,36 @@ function plot_parameters_optiprofiler(parameters, options)
 % Get parameter names
 param_names = fieldnames(parameters);
 
-% Extract window_size if it exists
-if ismember('window_size', param_names) && isscalar(parameters.window_size)
-    window_size = parameters.window_size;
-else
-    window_size = [];
+% Define the valid parameter combinations and their corresponding param1_name and param2_name
+param_combinations = {
+    {'grad_tol', 'grad_tol_ratio', 'grad_window_size'}, {'grad_window_size', 'grad_tol'};
+    {'grad_tol_1', 'grad_tol_2'}, {'grad_tol_1', 'grad_tol_2'};
+    {'window_size', 'func_tol'}, {'window_size', 'func_tol'};
+};
+
+% Check which combination of parameters is provided
+param1_name = '';
+param2_name = '';
+for i = 1:size(param_combinations, 1)
+    required_params = param_combinations{i, 1};
+    if all(ismember(required_params, param_names))
+        param1_name = param_combinations{i, 2}{1};
+        param2_name = param_combinations{i, 2}{2};
+        break;
+    end
 end
 
-param1_name = param_names{1};
-param2_name = param_names{2};
+% If no valid combination is found, throw an error
+if isempty(param1_name) || isempty(param2_name)
+    error('The parameter names provided in parameters are not valid.');
+end
+
+% Extract window_size if it exists
+if ismember('grad_tol_ratio', param_names) && isscalar(parameters.grad_tol_ratio)
+    grad_tol_ratio = parameters.grad_tol_ratio;
+else
+    grad_tol_ratio = [];
+end
 
 % Create a grid of parameter values
 [p1, p2] = meshgrid(parameters.(param1_name), parameters.(param2_name));
@@ -76,6 +97,13 @@ feature_str = [num2str(options.mindim), '_', ...
 
 % Remove 'baseline_params' from param_names to decrease the length of the feature_str.
 param_names = param_names(~strcmp(param_names, 'baseline_params'));
+% Check if 'grad_tol_ratio' exists in param_names
+if ismember('grad_tol_ratio', param_names)
+    % Find the index of 'grad_tol_ratio'
+    idx = strcmp(param_names, 'grad_tol_ratio');   
+    % Append the value of grad_tol_ratio to the corresponding entry
+    param_names{idx} = ['ratio_', sprintf('0%d', int32(-log10(parameters.grad_tol_ratio)))];
+end
 
 param_names_str = strjoin(param_names, '_');
 feature_str = [feature_str, '_', param_names_str];
@@ -95,8 +123,8 @@ parfor ip = 1:numel(p1)
     % should then pass solver_options to the solver.
     local_options = options;
     local_options.solver_options = solver_options;
-    if ~isempty(window_size)
-        local_options.window_size = window_size;
+    if ~isempty(grad_tol_ratio)
+        local_options.grad_tol_ratio = grad_tol_ratio;
     end
 
     % Compute performance
