@@ -38,7 +38,9 @@ function tuning_script_optiprofiler(parameters, options)
     if  (options.max_tol_order ~= size(options.tau_weights, 2))
         error('max_tol_order must be equal to the length of tau_weights');
     end
-    options.draw_plots = false;
+    if ~isfield(options, 'draw_plots')
+        options.draw_plots = false;
+    end
 
     baseline_params_defaults = struct(...
         'window_size', 1e8, ...

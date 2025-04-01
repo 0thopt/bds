@@ -1,10 +1,6 @@
 function [profile_scores] = eval_performance_optiprofiler(options)
 
     options.n_jobs = 1;
-    % parameters.draw_plots = options.draw_plots;
-    if ~isfield(options, 'draw_plots')
-        options.draw_plots = false;
-    end
     parameters = options.solver_options;
     options = rmfield(options, 'solver_options');
     % For each field in options.baseline_params, if the field exists in parameters,
