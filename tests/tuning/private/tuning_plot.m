@@ -124,6 +124,10 @@ function set_dynamic_ticks(param_name, data, axis)
             % Set the ticks to be integers
             ticks = min(data(:)):1:max(data(:));
             labels = arrayfun(@(x) sprintf('%d', x), ticks, 'UniformOutput', false);
+        case 'grad-window-size'
+            % Set the ticks to be integers
+            ticks = min(data(:)):1:max(data(:));
+            labels = arrayfun(@(x) sprintf('%d', x), ticks, 'UniformOutput', false);
         case {'func-tol', 'dist-tol', 'grad-tol-1', 'grad-tol-2', 'grad-tol'}
             % Set the ticks to be the number of corresponding decimal places
             ticks = logspace(log10(min(data(:))), log10(max(data(:))), log10(max(data(:))) - log10(min(data(:))) + 1);
@@ -133,11 +137,11 @@ function set_dynamic_ticks(param_name, data, axis)
             labels = arrayfun(@(x) sprintf('%.2g', x), ticks, 'UniformOutput', false);
     end
 
-    if strcmp(axis, 'x')
-        set(gca, 'XScale', 'log'); % Set x-axis to log scale if needed
+    if strcmpi(axis, 'x')
+        set(gca, 'XScale', 'linear'); % Set x-axis to log scale if needed
         xticks(ticks);
         xticklabels(labels);
-    elseif strcmp(axis, 'y')
+    elseif strcmpi(axis, 'y')
         set(gca, 'YScale', 'log'); % Set y-axis to log scale if needed
         yticks(ticks);
         yticklabels(labels);
