@@ -138,7 +138,7 @@ function set_dynamic_ticks(param_name, data, axis)
     end
 
     if strcmpi(axis, 'x')
-        set(gca, 'XScale', 'linear'); % Set x-axis to log scale if needed
+        set(gca, 'XScale', 'linear'); % Set x-axis to linear scale if needed
         xticks(ticks);
         xticklabels(labels);
     elseif strcmpi(axis, 'y')
