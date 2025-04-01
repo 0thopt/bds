@@ -1,4 +1,4 @@
-name: Profile cbds with grad tol, small
+name: Profile cbds with grad tol ratio 3x, small
 
 on:
   # Trigger the workflow on # push or pull request
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Profile cbds with grad tol, small
+    name: Profile cbds with grad tol ratio 3x, small
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -75,8 +75,9 @@ jobs:
   
               % Start tuning
               cd(fullfile(root_dir, 'tests', 'tuning'));
-              parameters.grad_tol_1 = 10.^(-4:-2:-12);
-              parameters.grad_tol_2 = 10.^(-6:-2:-12);
+              parameters.grad_window_size = [1 2 3 5 10];
+              parameters.grad_tol = 10.^(-2:-2:-8);
+              parameters.grad_tol_ratio = 1e-3;
               options = struct();
               if ~isfield(options, 'n_runs')
                   options.n_runs = 1;
