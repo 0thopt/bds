@@ -82,5 +82,6 @@ tests/optiprofiler
 tests/optiprofiler_script/out
 tests/tuning/tuning_data/
 tests/tuning/solver_1*
+tests/tuning/private/tmp
 tests/out
 tests/competitors/out
