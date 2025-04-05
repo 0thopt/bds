@@ -1,16 +1,16 @@
 clear all
 % parameters.window_size = 10:2:20;
-parameters.window_size = [3 5 8];
-% parameters.grad_window_size = 10:2:14;
-parameters.func_tol = 10.^(-6:-2:-16);
-% parameters.grad_tol = 10.^(-4:-2:-8);
-% parameters.grad_tol_ratio = 1e-3;
+% parameters.window_size = [3 5 8];
+parameters.grad_window_size = 10:2:14;
+% parameters.func_tol = 10.^(-6:-2:-16);
+parameters.grad_tol = 10.^(-4:-2:-8);
+parameters.grad_tol_ratio = 1e-3;
 % parameters.grad_tol_1 = 10.^(-4:-2:-14);
 % parameters.grad_tol_2 = 10.^(-4:-2:-14);
 % parameters.expand = 1.2:0.1:1.8;
 % parameters.shrink = 0.5:0.1:0.7;
-options.mindim = 6;
-options.maxdim = 50;
+options.mindim = 1;
+options.maxdim = 1;
 if ~isfield(options, 'n_runs')
     options.n_runs = 1;
 end

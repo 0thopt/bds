@@ -98,11 +98,13 @@ feature_str = [num2str(options.mindim), '_', ...
 % Remove 'baseline_params' from param_names to decrease the length of the feature_str.
 param_names = param_names(~strcmp(param_names, 'baseline_params'));
 % Check if 'grad_tol_ratio' exists in param_names
-if ismember('grad_tol_ratio', param_names)
+if ismember('grad_tol_ratio', param_names) && ismember('grad_window_size', param_names)
     % Find the index of 'grad_tol_ratio'
     idx = strcmp(param_names, 'grad_tol_ratio');   
     % Append the value of grad_tol_ratio to the corresponding entry
     param_names{idx} = ['ratio_', sprintf('0%d', int32(-log10(parameters.grad_tol_ratio)))];
+    % Remove 'grad_window_size' from param_names
+    param_names = param_names(~strcmp(param_names, 'grad_window_size'));
 end
 
 param_names_str = strjoin(param_names, '_');
