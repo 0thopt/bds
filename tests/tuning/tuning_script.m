@@ -5,6 +5,7 @@ parameters.grad_window_size = 10:2:14;
 % parameters.func_tol = 10.^(-6:-2:-16);
 parameters.grad_tol = 10.^(-4:-2:-8);
 parameters.grad_tol_ratio = 1e-3;
+parameters.orthogonal_directions = true;
 % parameters.grad_tol_1 = 10.^(-4:-2:-14);
 % parameters.grad_tol_2 = 10.^(-4:-2:-14);
 % parameters.expand = 1.2:0.1:1.8;
@@ -34,17 +35,17 @@ if  (options.max_tol_order ~= size(options.tau_weights, 2))
     error('max_tol_order must be equal to the length of tau_weights');
 end
 
-options.feature_name = 'plain';
-fprintf('Feature:\t %s\n', options.feature_name);
-tuning_script_optiprofiler(parameters, options);
+% options.feature_name = 'plain';
+% fprintf('Feature:\t %s\n', options.feature_name);
+% tuning_script_optiprofiler(parameters, options);
 
-options.feature_name = 'linearly_transformed';
-fprintf('Feature:\t %s\n', options.feature_name);
-tuning_script_optiprofiler(parameters, options);
+% options.feature_name = 'linearly_transformed';
+% fprintf('Feature:\t %s\n', options.feature_name);
+% tuning_script_optiprofiler(parameters, options);
 
-options.feature_name = 'noisy_1e-3';
-fprintf('Feature:\t %s\n', options.feature_name);
-tuning_script_optiprofiler(parameters, options);
+% options.feature_name = 'noisy_1e-3';
+% fprintf('Feature:\t %s\n', options.feature_name);
+% tuning_script_optiprofiler(parameters, options);
 
 options.feature_name = 'rotation_noisy_1e-3';
 fprintf('Feature:\t %s\n', options.feature_name);

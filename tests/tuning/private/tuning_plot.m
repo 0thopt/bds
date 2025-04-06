@@ -33,6 +33,13 @@ set_dynamic_ticks(param1_name, p1, 'x');
 % Set y-axis ticks and labels dynamically based on p2
 set_dynamic_ticks(param2_name, p2, 'y');
 
+if ~contains(feature_str, 'orthogonal')
+    title_name = [param1_name, '_', param2_name, '_', num2str(mindim), '_', num2str(maxdim), '_', feature_name];
+else
+    title_name = [param1_name, '_', param2_name, '_', num2str(mindim), '_', num2str(maxdim), '_', feature_name, '_ortho'];
+    feature_str = strrep(feature_str, 'orthogonal_directions', 'orth_dir');
+end
+
 titleHandle = title(gca, strrep(feature_str, '_', '-')); 
 xlabel(param1_name);
 ylabel(param2_name);
@@ -82,13 +89,13 @@ end
 
 view(3) % 3D view
 % Save fig
-saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_', num2str(mindim), '_', num2str(maxdim), '_', feature_name, '_3d.fig']), 'fig');
+saveas(FigHandle, fullfile(data_path, [title_name, '_3d.fig']), 'fig');
 % Use openfig to open the fig file.
 % openfig('my3DPlot.fig');
 % Save eps of 3d plot 
-saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_', num2str(mindim), '_', num2str(maxdim), '_', feature_name, '_3d.eps']), 'epsc');
+saveas(FigHandle, fullfile(data_path, [title_name, '_3d.eps']), 'epsc');
 % Save pdf of 3d plot
-print(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_', num2str(mindim), '_', num2str(maxdim), '_', feature_name, '_3d.pdf']), '-dpdf');
+print(FigHandle, fullfile(data_path, [title_name, '_3d.pdf']), '-dpdf');
 % Try converting the eps to pdf.
 % epsPath = fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_3d.eps']);
 % % One way to convert eps to pdf, without showing the output of the command.
@@ -97,11 +104,11 @@ print(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_', num2st
 % Save eps of 2d plot 
 view(2); % Top-down view
 % Save fig
-saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_', num2str(mindim), '_', num2str(maxdim), '_', feature_name, '.fig']), 'fig');
+saveas(FigHandle, fullfile(data_path, [title_name, '.fig']), 'fig');
 % Save eps of 2d plot
-saveas(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_', num2str(mindim), '_', num2str(maxdim), '_', feature_name, '.eps']), 'epsc');
+saveas(FigHandle, fullfile(data_path, [title_name, '.eps']), 'epsc');
 % Save pdf of 2d plot
-print(FigHandle, fullfile(data_path, [param1_name, '_', param2_name, '_', num2str(mindim), '_', num2str(maxdim), '_', feature_name, '.pdf']), '-dpdf');
+print(FigHandle, fullfile(data_path, [title_name, '.pdf']), '-dpdf');
 % Try converting the eps to pdf.
 % epsPath = fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_2d.eps']);
 % % One way to convert eps to pdf, without showing the output of the command.
