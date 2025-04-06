@@ -40,6 +40,12 @@ jobs:
         with:
           ref: development        
           path: development
+          fetch-depth: 0 # get all history for all branches and tags
+          
+      # Check out specific commit in the development branch
+      - name: Check out specific commit
+        working-directory: development
+        run: git checkout 65d15b191201f788ca409f5b0458f25f830e9b60
 
       - name: Checkout OptiProfiler
         uses: actions/checkout@v4
