@@ -28,9 +28,15 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
                 solver_names{index} = sprintf('solver_%d', index);
                 index = index + 1;
             end
-        case ismember('grad_tol', param_fields) && ismember('grad_window_size', param_fields) && ismember('grad_tol_ratio', param_fields)
+        case ismember('grad_tol', param_fields) && ismember('grad_window_size', param_fields) && ismember('grad_tol_ratio', param_fields) && ~ismember('orthogonal_directions', param_fields)
             for i_solver = 1:2
                 solvers{index} = @(fun, x0) cbds_window_size_grad_tol(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol(i_solver), parameters.grad_tol_ratio);
+                solver_names{index} = sprintf('solver_%d', index);
+                index = index + 1;
+            end
+        case ismember('grad_tol', param_fields) && ismember('grad_window_size', param_fields) && ismember('grad_tol_ratio', param_fields) && ismember('orthogonal_directions', param_fields)
+            for i_solver = 1:2
+                solvers{index} = @(fun, x0) cbds_grad_window_size_grad_tol_orthogonal_directions(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol(i_solver), parameters.grad_tol_ratio);
                 solver_names{index} = sprintf('solver_%d', index);
                 index = index + 1;
             end
@@ -221,6 +227,9 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
     if ismember('grad_tol_2', param_fields)
         options.benchmark_id = append_param_to_id(options.benchmark_id, 'grad_tol_2', parameters.grad_tol_2(1));
     end
+    if ismember('orthogonal_directions', param_fields)
+        options.benchmark_id = strcat(options.benchmark_id, '_orthogonal_directions');
+    end
     options.benchmark_id = [options.benchmark_id, '_', time_str];
     
     if ~isfield(options, 'savepath')
@@ -410,6 +419,37 @@ function x = cbds_window_size_grad_tol(fun, x0, grad_window_size, grad_tol, grad
         option.grad_tol_ratio = grad_tol_ratio; 
         option.use_estimated_gradient_stop = true;
     end
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_grad_window_size_grad_tol_orthogonal_directions(fun, x0, grad_window_size, grad_tol, grad_tol_ratio)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    if grad_window_size > 1e5 || (grad_tol == 1e-30 && grad_tol_ratio == 1e-30)
+        option.use_estimated_gradient_stop = false;
+    else
+        option.grad_window_size = grad_window_size;
+        option.grad_tol = grad_tol;
+        option.grad_tol_ratio = grad_tol_ratio; 
+        option.use_estimated_gradient_stop = true;
+    end
+    % Generate a random seed based only on x0
+    x0_values = double(x0(:)); % Flatten x0 and convert to double
+    x0_indices = (1:numel(x0))'; % Ensure indices are a column vector
+
+    % Compute a hash value that is guaranteed to be a scalar
+    x0_hash = mod(sum(x0_values .* x0_indices), 2^32) + ... % Weighted sum
+            mod(prod(1 + abs(x0_values)), 2^32) + ...    % Modulo-limited product
+            numel(x0);  
+    random_seed = mod(x0_hash, 2^32); % Ensure the seed is within the 32-bit integer range
+    rng(random_seed); % Set the random seed
+
+    [Q,R] = qr(randn(numel(x0), numel(x0)));
+    Q(:, diag(R) < 0) = -Q(:, diag(R) < 0);
+    option.direction_set = Q;
     x = bds_development(fun, x0, option);
     
 end
