@@ -5,6 +5,8 @@ function constant_value = get_default_constant(constant_name)
 switch constant_name
     case {"MaxFunctionEvaluations_dim_factor"}
         constant_value = 500;
+    case {"scheme"}
+        constant_value = "cyclic";
     case {"Algorithm"}
         constant_value = "cbds";
     case {"is_noisy"}
