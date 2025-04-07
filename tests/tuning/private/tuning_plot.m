@@ -33,13 +33,6 @@ set_dynamic_ticks(param1_name, p1, 'x');
 % Set y-axis ticks and labels dynamically based on p2
 set_dynamic_ticks(param2_name, p2, 'y');
 
-if ~contains(feature_str, 'orthogonal')
-    title_name = [param1_name, '_', param2_name, '_', num2str(mindim), '_', num2str(maxdim), '_', feature_name];
-else
-    title_name = [param1_name, '_', param2_name, '_', num2str(mindim), '_', num2str(maxdim), '_', feature_name, '_ortho'];
-    feature_str = strrep(feature_str, 'orthogonal_directions', 'orth_dir');
-end
-
 titleHandle = title(gca, strrep(feature_str, '_', '-')); 
 xlabel(param1_name);
 ylabel(param2_name);
@@ -69,11 +62,11 @@ labelFontSize = 10;  % Set the font size for the labels
 % Add a small offset to the z-coordinate of the points to make them visible
 z_offset = (max(perfs(:)) - min(perfs(:))) * 0.001;
 
-% Draw the top 3 points with a black circle and a black label
+% Draw the top idx points with a black circle and a black label
 h_points = plot3(p1(idx), p2(idx), perfs(idx) + z_offset, 'o', 'MarkerSize', markerSize, ...
       'MarkerFaceColor', 'none', 'MarkerEdgeColor', [0.1 0.1 0.1], 'LineWidth', 1.5);
 
-% Add labels to the top 3 points
+% Add labels to the top idx points
 h_text = zeros(length(idx), 1);
 for i = 1:length(idx)
     h_text(i) = text(p1(idx(i)), p2(idx(i)), perfs(idx(i)) + z_offset, num2str(i), ...
@@ -89,13 +82,13 @@ end
 
 view(3) % 3D view
 % Save fig
-saveas(FigHandle, fullfile(data_path, [title_name, '_3d.fig']), 'fig');
+saveas(FigHandle, fullfile(data_path, [strrep(feature_str, '-', '_'), '_3d.fig']), 'fig');
 % Use openfig to open the fig file.
 % openfig('my3DPlot.fig');
 % Save eps of 3d plot 
-saveas(FigHandle, fullfile(data_path, [title_name, '_3d.eps']), 'epsc');
+saveas(FigHandle, fullfile(data_path, [strrep(feature_str, '-', '_'), '_3d.eps']), 'epsc');
 % Save pdf of 3d plot
-print(FigHandle, fullfile(data_path, [title_name, '_3d.pdf']), '-dpdf');
+print(FigHandle, fullfile(data_path, [strrep(feature_str, '-', '_'), '_3d.pdf']), '-dpdf');
 % Try converting the eps to pdf.
 % epsPath = fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_3d.eps']);
 % % One way to convert eps to pdf, without showing the output of the command.
@@ -104,11 +97,11 @@ print(FigHandle, fullfile(data_path, [title_name, '_3d.pdf']), '-dpdf');
 % Save eps of 2d plot 
 view(2); % Top-down view
 % Save fig
-saveas(FigHandle, fullfile(data_path, [title_name, '.fig']), 'fig');
+saveas(FigHandle, fullfile(data_path, [strrep(feature_str, '-', '_'), '.fig']), 'fig');
 % Save eps of 2d plot
-saveas(FigHandle, fullfile(data_path, [title_name, '.eps']), 'epsc');
+saveas(FigHandle, fullfile(data_path, [strrep(feature_str, '-', '_'), '.eps']), 'epsc');
 % Save pdf of 2d plot
-print(FigHandle, fullfile(data_path, [title_name, '.pdf']), '-dpdf');
+print(FigHandle, fullfile(data_path, [strrep(feature_str, '-', '_'), '.pdf']), '-dpdf');
 % Try converting the eps to pdf.
 % epsPath = fullfile(data_path, [param1_name, '_', param2_name, '_vs_performance_2d.eps']);
 % % One way to convert eps to pdf, without showing the output of the command.
@@ -127,7 +120,7 @@ function set_dynamic_ticks(param_name, data, axis)
         case 'shrink'
             ticks = min(data(:)):0.05:max(data(:));
             labels = arrayfun(@(x) sprintf('%.2f', x), ticks, 'UniformOutput', false);
-        case 'window-size'
+        case 'func-window-size'
             % Set the ticks to be integers
             ticks = min(data(:)):1:max(data(:));
             labels = arrayfun(@(x) sprintf('%d', x), ticks, 'UniformOutput', false);

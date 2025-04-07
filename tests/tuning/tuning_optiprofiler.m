@@ -16,15 +16,9 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
                 solver_names{index} = sprintf('solver_%d', index);
                 index = index + 1;
             end
-        case ismember('window_size', param_fields) && ismember('func_tol', param_fields)
+        case ismember('func_window_size', param_fields) && ismember('func_tol', param_fields) && ismember('func_tol_ratio', param_fields)
             for i_solver = 1:2
-                solvers{index} = @(fun, x0) cbds_window_size_fun_tol(fun, x0, parameters.window_size(i_solver), parameters.func_tol(i_solver));
-                solver_names{index} = sprintf('solver_%d', index);
-                index = index + 1;
-            end
-        case ismember('grad_tol_1', param_fields) && ismember('grad_tol_2', param_fields)
-            for i_solver = 1:2
-                solvers{index} = @(fun, x0) cbds_grad_tol(fun, x0, parameters.grad_tol_1(i_solver), parameters.grad_tol_2(i_solver));
+                solvers{index} = @(fun, x0) cbds_window_size_fun_tol(fun, x0, parameters.func_window_size(i_solver), parameters.func_tol(i_solver), parameters.func_tol_ratio);
                 solver_names{index} = sprintf('solver_%d', index);
                 index = index + 1;
             end
@@ -206,11 +200,14 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
     if ismember('shrink', param_fields)
         options.benchmark_id = append_param_to_id(options.benchmark_id, 'shrink', parameters.shrink(1));
     end
-    if ismember('window_size', param_fields)
-        options.benchmark_id = append_param_to_id(options.benchmark_id, 'window_size', parameters.window_size(1), '%.0f');
+    if ismember('func_window_size', param_fields)
+        options.benchmark_id = append_param_to_id(options.benchmark_id, 'func_window_size', parameters.func_window_size(1), '%.0f');
     end
     if ismember('func_tol', param_fields)
         options.benchmark_id = append_param_to_id(options.benchmark_id, 'func_tol', parameters.func_tol(1));
+    end
+    if ismember('func_tol_ratio', param_fields)
+        options.benchmark_id = append_param_to_id(options.benchmark_id, 'func_tol_ratio', parameters.func_tol_ratio(1));
     end
     if ismember('grad_tol', param_fields)
         options.benchmark_id = append_param_to_id(options.benchmark_id, 'grad_tol', parameters.grad_tol(1));
@@ -374,16 +371,17 @@ function x = cbds_expand_shrink(fun, x0, expand, shrink)
     
 end
 
-function x = cbds_window_size_fun_tol(fun, x0, window_size, func_tol)
+function x = cbds_window_size_fun_tol(fun, x0, func_window_size, func_tol, func_tol_ratio)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
     option.shrink = 0.5;
-    if window_size > 1e5
+    if func_window_size > 1e5 || func_tol == 1e-30 || func_tol_ratio == 1e-30
         option.use_function_value_stop = false;
     else
-        option.window_size = window_size;
+        option.func_window_size = func_window_size;
         option.func_tol = func_tol;
+        option.func_tol_ratio = func_tol_ratio;
         option.use_function_value_stop = true;
     end
     x = bds_development(fun, x0, option);

@@ -1,11 +1,12 @@
 clear all
-% parameters.window_size = 10:2:20;
+% parameters.func_window_size = [3 5 10 15];
 % parameters.window_size = [3 5 8];
 parameters.grad_window_size = 10:2:14;
-% parameters.func_tol = 10.^(-6:-2:-16);
+% parameters.func_tol = 10.^([-15 -10 -8 -5 -3]);
+% parameters.func_tol_ratio = 1e-2;
 parameters.grad_tol = 10.^(-4:-2:-8);
 parameters.grad_tol_ratio = 1e-3;
-parameters.orthogonal_directions = true;
+% parameters.orthogonal_directions = true;
 % parameters.grad_tol_1 = 10.^(-4:-2:-14);
 % parameters.grad_tol_2 = 10.^(-4:-2:-14);
 % parameters.expand = 1.2:0.1:1.8;

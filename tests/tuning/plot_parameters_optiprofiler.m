@@ -6,23 +6,19 @@ function plot_parameters_optiprofiler(parameters, options)
 % Get parameter names
 param_names = fieldnames(parameters);
 
-% Define the valid parameter combinations and their corresponding param1_name and param2_name
-param_combinations = {
-    {'grad_tol', 'grad_tol_ratio', 'grad_window_size'}, {'grad_window_size', 'grad_tol'};
-    {'grad_tol_1', 'grad_tol_2'}, {'grad_tol_1', 'grad_tol_2'};
-    {'window_size', 'func_tol'}, {'window_size', 'func_tol'};
-};
-
-% Check which combination of parameters is provided
-param1_name = '';
-param2_name = '';
-for i = 1:size(param_combinations, 1)
-    required_params = param_combinations{i, 1};
-    if all(ismember(required_params, param_names))
-        param1_name = param_combinations{i, 2}{1};
-        param2_name = param_combinations{i, 2}{2};
-        break;
-    end
+% Check if param_names contains the required fields for each combination
+if all(ismember({'grad_tol', 'grad_window_size', 'grad_tol_ratio'}, param_names))
+    param1_name = 'grad_window_size';
+    param2_name = 'grad_tol';
+elseif all(ismember({'func_tol', 'func_window_size', 'func_tol_ratio'}, param_names))
+    param1_name = 'func_window_size';
+    param2_name = 'func_tol';
+elseif all(ismember({'expand', 'shrink'}, param_names))
+    param1_name = 'expand';
+    param2_name = 'shrink';
+else
+    % If param_names does not match any combination, throw an error
+    error('Invalid param_names: %s. Must contain one of the predefined combinations.', mat2str(param_names));
 end
 
 % If no valid combination is found, throw an error
@@ -30,11 +26,16 @@ if isempty(param1_name) || isempty(param2_name)
     error('The parameter names provided in parameters are not valid.');
 end
 
-% Extract window_size if it exists
+% Set grad_tol_ratio and func_tol_ratio if they exist
 if ismember('grad_tol_ratio', param_names) && isscalar(parameters.grad_tol_ratio)
     grad_tol_ratio = parameters.grad_tol_ratio;
 else
     grad_tol_ratio = [];
+end
+if ismember('func_tol_ratio', param_names) && isscalar(parameters.func_tol_ratio)
+    func_tol_ratio = parameters.func_tol_ratio;
+else
+    func_tol_ratio = [];
 end
 
 % Create a grid of parameter values
@@ -105,6 +106,13 @@ if ismember('grad_tol_ratio', param_names) && ismember('grad_window_size', param
     param_names{idx} = ['ratio_', sprintf('0%d', int32(-log10(parameters.grad_tol_ratio)))];
     % Remove 'grad_window_size' from param_names
     param_names = param_names(~strcmp(param_names, 'grad_window_size'));
+elseif ismember('func_tol_ratio', param_names) && ismember('func_window_size', param_names)
+    % Find the index of 'func_tol_ratio'
+    idx = strcmp(param_names, 'func_tol_ratio');   
+    % Append the value of func_tol_ratio to the corresponding entry
+    param_names{idx} = ['ratio_', sprintf('0%d', int32(-log10(parameters.func_tol_ratio)))];
+    % Remove 'func_window_size' from param_names
+    param_names = param_names(~strcmp(param_names, 'func_window_size'));
 end
 
 param_names_str = strjoin(param_names, '_');
@@ -128,7 +136,10 @@ parfor ip = 1:numel(p1)
     if ~isempty(grad_tol_ratio)
         local_options.grad_tol_ratio = grad_tol_ratio;
     end
-
+    if ~isempty(func_tol_ratio)
+        local_options.func_tol_ratio = func_tol_ratio;
+    end
+    
     % Compute performance
     fprintf('Evaluating performance for %s = %f, %s = %f\n', param1_name, p1(ip), param2_name, p2(ip));
     profile_scores{ip} = eval_performance_optiprofiler(local_options);
