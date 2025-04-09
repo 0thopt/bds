@@ -1,8 +1,8 @@
 clear all
-parameters.func_window_size = [3 5 10 15];
+parameters.func_window_size = [3 5 8 10 12 15];
 % parameters.window_size = [3 5 8];
 % parameters.grad_window_size = 10:2:14;
-parameters.func_tol = 10.^([-15 -10 -8 -5 -3]);
+parameters.func_tol = 10.^([-15 -12 -10 -8 -5 -3]);
 parameters.func_tol_ratio = 1e-2;
 % parameters.grad_tol = 10.^(-4:-2:-8);
 % parameters.grad_tol_ratio = 1e-3;
