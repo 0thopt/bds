@@ -124,7 +124,7 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
     time_str = char(datetime('now', 'Format', 'yy_MM_dd_HH_mm'));
     options.silent = false;
     options.keep_pool = true;
-    options.p_type = 'u';
+    options.ptype = 'u';
     if isfield(options, 'dim')
         if strcmpi(options.dim, 'small')
             options.mindim = 2;
@@ -387,22 +387,6 @@ function x = cbds_window_size_fun_tol(fun, x0, func_window_size, func_tol, func_
         option.func_tol = func_tol;
         option.func_tol_ratio = func_tol_ratio;
         option.use_function_value_stop = true;
-    end
-    x = bds_development(fun, x0, option);
-    
-end
-
-function x = cbds_grad_tol(fun, x0, grad_tol_1, grad_tol_2)
-
-    option.Algorithm = 'cbds';
-    option.expand = 2;
-    option.shrink = 0.5;
-    if grad_tol_1 == 1e-30 && grad_tol_2 == 1e-30
-        option.use_estimated_gradient_stop = false;
-    else
-        option.grad_tol_1 = grad_tol_1; 
-        option.grad_tol_2 = grad_tol_2;
-        option.use_estimated_gradient_stop = true;
     end
     x = bds_development(fun, x0, option);
     

@@ -94,7 +94,7 @@ if isfield(options, 'dim')
     options = rmfield(options, 'dim');
 end
 feature_str = [num2str(options.mindim), '_', ...
-                num2str(options.maxdim), '_', char(options.feature_name), '_', char(options.p_type)];
+                num2str(options.maxdim), '_', char(options.feature_name), '_', char(options.ptype)];
 
 % Remove 'baseline_params' from param_names to decrease the length of the feature_str.
 param_names = param_names(~strcmp(param_names, 'baseline_params'));
@@ -156,11 +156,11 @@ save(fullfile(data_path, 'options.mat'), 'options');
 fileID = fopen(fullfile(data_path, 'options.txt'), 'w');
 fprintf(fileID, 'options.mindim = %d;\n', options.mindim);
 fprintf(fileID, 'options.maxdim = %d;\n', options.maxdim);
-fprintf(fileID, 'options.p_type = "%s";\n', options.p_type);
+fprintf(fileID, 'options.ptype = "%s";\n', options.ptype);
 fprintf(fileID, 'options.feature_name = "%s";\n', options.feature_name);
 fprintf(fileID, 'options.n_runs = %d;\n', options.n_runs);
 fprintf(fileID, 'options.max_tol_order = [%s];\n', num2str(options.max_tol_order));
-fprintf(fileID, 'options.draw_plots = %d;\n', options.draw_plots);
+fprintf(fileID, 'options.score_only = %d;\n', options.score_only);
 fclose(fileID);
 
 % Save tau_weights into a txt file.

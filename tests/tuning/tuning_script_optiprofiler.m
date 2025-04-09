@@ -29,8 +29,8 @@ function tuning_script_optiprofiler(parameters, options)
             end
     end
    
-    if ~isfield(options, 'p_type')
-        options.p_type = 'u';
+    if ~isfield(options, 'ptype')
+        options.ptype = 'u';
     end
     if sum(options.tau_weights(:)) ~= 1
         error('Sum of tau_weights must be 1');
@@ -38,8 +38,8 @@ function tuning_script_optiprofiler(parameters, options)
     if  (options.max_tol_order ~= size(options.tau_weights, 2))
         error('max_tol_order must be equal to the length of tau_weights');
     end
-    if ~isfield(options, 'draw_plots')
-        options.draw_plots = false;
+    if ~isfield(options, 'score_only')
+        options.score_only = false;
     end
 
     baseline_params_defaults = struct(...

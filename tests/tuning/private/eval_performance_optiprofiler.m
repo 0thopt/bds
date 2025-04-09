@@ -26,6 +26,7 @@ function [profile_scores] = eval_performance_optiprofiler(options)
         parameters.func_tol_ratio = options.func_tol_ratio;
         options = rmfield(options, 'func_tol_ratio');
     end
+    
     [~, profile_scores] = tuning_optiprofiler(parameters, options);
     
 end

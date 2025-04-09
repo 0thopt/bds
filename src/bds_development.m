@@ -433,15 +433,13 @@ function [xopt, fopt, exitflag, output] = bds_development(fun, x0, options)
         use_function_value_stop = false;
     end
     if use_function_value_stop
-        % The temporary variable fun_window_size is used to store the number of iterations that the algorithm
+        % The temporary variable func_window_size is used to store the number of iterations that the algorithm
         % should stop if the function value does not change significantly. The temporary variable func_tol
-        % is used to store the threshold of the change in the function value over the last fun_window_size iterations.
+        % is used to store the threshold of the change in the function value over the last func_window_size iterations.
         % Those two variables are only used to check whether the optimization process should stop due to
-        % insufficient change in the objective function values over the last fun_window_size iterations.
-        if isfield(options, "fun_window_size")
-            fun_window_size = options.fun_window_size;
-        else
-            fun_window_size = 10;
+        % insufficient change in the objective function values over the last func_window_size iterations.
+        if isfield(options, "func_window_size")
+            func_window_size = options.func_window_size;
         end
         if isfield(options, "func_tol")
             options.func_tol_1 = options.func_tol;
@@ -454,13 +452,9 @@ function [xopt, fopt, exitflag, output] = bds_development(fun, x0, options)
         end
         if isfield(options, "func_tol_1")
             func_tol_1 = options.func_tol_1;
-        else
-            func_tol_1 = 1e-6;
         end
         if isfield(options, "func_tol_2")
             func_tol_2 = options.func_tol_2;
-        else
-            func_tol_2 = 1e-10;
         end
     end
     % Set the boolean value of whether the algorithm should stop when the estimated gradient is sufficiently small.
@@ -473,8 +467,6 @@ function [xopt, fopt, exitflag, output] = bds_development(fun, x0, options)
     if use_estimated_gradient_stop
         if isfield(options, "grad_window_size")
             grad_window_size = options.grad_window_size;
-        else
-            grad_window_size = 3;
         end
         if isfield(options, "grad_tol")
             options.grad_tol_1 = options.grad_tol;
@@ -487,13 +479,9 @@ function [xopt, fopt, exitflag, output] = bds_development(fun, x0, options)
         end
         if isfield(options, "grad_tol_1")
             grad_tol_1 = options.grad_tol_1;
-        else
-            grad_tol_1 = 1e-6;
         end
         if isfield(options, "grad_tol_2")
             grad_tol_2 = options.grad_tol_2;
-        else
-            grad_tol_2 = 1e-10;
         end
     end
     
@@ -657,6 +645,7 @@ function [xopt, fopt, exitflag, output] = bds_development(fun, x0, options)
     % blocks must still be recorded.
     fopt_all = NaN(1, num_blocks);
     xopt_all = NaN(n, num_blocks);
+    
     for iter = 1:maxit
         % Use central difference to estimate the gradient of the function at xopt if the sufficient decrease
         % condition is not achieved in the previous iteration and the problem is not noisy.
@@ -712,14 +701,14 @@ function [xopt, fopt, exitflag, output] = bds_development(fun, x0, options)
         % Track the best function value observed so far. Although fopt could be used for this purpose,
         % we use min(fhist(1:nf)) for enhanced reliability, as it directly reflects the minimum among
         % all evaluated function values. Also track the corresponding point xopt.
-        fopt_hist(iter) = min(fhist(1:nf));
+        fopt_hist(iter) = fopt;
         xopt_hist(:, iter) = xopt;
 
         % Check if the optimization process should stop due to insufficient change 
-        % in the objective function values over the last fun_window_size iterations. If the change 
+        % in the objective function values over the last func_window_size iterations. If the change 
         % is below a defined threshold, terminate the optimization process.
-        if use_function_value_stop && iter > fun_window_size
-            func_change = max(fopt_hist(iter-fun_window_size:iter-1)) - min(fopt_hist(iter-fun_window_size:iter-1));
+        if use_function_value_stop && iter > func_window_size
+            func_change = max(fopt_hist(iter-func_window_size:iter-1)) - min(fopt_hist(iter-func_window_size:iter-1));
             if func_change < func_tol_1 * min(1, abs(fopt_hist(iter))) || ...
                     func_change < func_tol_2 * max(1, abs(fopt_hist(iter)))
                 exitflag = get_exitflag("INSUFFICIENT_OBJECTIVE_CHANGE");
