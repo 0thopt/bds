@@ -35,7 +35,7 @@ end
 if  (options.max_tol_order ~= size(options.tau_weights, 2))
     error('max_tol_order must be equal to the length of tau_weights');
 end
-options.score_only = true;
+options.score_only = false;
 
 options.feature_name = 'plain';
 fprintf('Feature:\t %s\n', options.feature_name);
