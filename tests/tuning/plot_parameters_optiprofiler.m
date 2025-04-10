@@ -123,7 +123,7 @@ mkdir(data_path);
 options.savepath = data_path;
 
 % Get performance for each parameter combination
-for ip = 1:numel(p1)
+parfor ip = 1:numel(p1)
     % Set solver options
     solver_options = struct();
     solver_options.(param1_name) = p1(ip);

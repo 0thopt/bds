@@ -662,38 +662,11 @@ for iter = 1:maxit
             unique_indices = unique_indices + 1; % Add 1 because sub_xhist starts from the 2nd column of xhist
 
             relative_positions = xhist_near_x0 - x0;
-            dist_to_x0 = vecnorm(relative_positions, 2, 1);
-            dist_to_x0 = dist_to_x0(:); % Convert to column vector
-            % Compute the reciprocal of dist_to_x0
-            reciprocal_distances = 1 ./ dist_to_x0;
-            % Create a diagonal matrix with reciprocal_distances as the diagonal elements
-            inverse_distance_matrix = diag(reciprocal_distances);
-
             function_values_near_x0 = fhist(unique_indices);
             function_values_near_x0 = function_values_near_x0(:); % Convert to column vector
-            % Construct a matrix where each row is [1, relative_positions(:, 1)']
-            augmented_positions = [ones(size(relative_positions, 2), 1), relative_positions'];
-            weighted_covariance_matrix = augmented_positions' * inverse_distance_matrix * augmented_positions;
-
-            % Compute svd of the weighted covariance matrix to get the least norm solution
-            [U, S, V] = svd(weighted_covariance_matrix, 'econ');
-            s = diag(S);              % singular value
-
-            % Set the tolerance for effective rank
-            tol = max(size(weighted_covariance_matrix)) * eps(max(s));  % default tolerance
-            r = sum(s > tol);                  % effective rank
-            
-            % Truncate the singular values
-            s_inv = zeros(size(s));
-            s_inv(1:r) = 1 ./ s(1:r);
-
-            % Compute the least norm solution
-            temp_grad_init = V(:, 1:r) * diag(s_inv(1:r)) * U(:, 1:r)' * (augmented_positions' * inverse_distance_matrix * function_values_near_x0);
-            grad_init = temp_grad_init(2:end);
-
-            % Verify the solution
-            residual = norm(weighted_covariance_matrix * temp_grad_init - (augmented_positions' * inverse_distance_matrix * function_values_near_x0));
-            disp(['residual norm: ', num2str(residual)]);
+            design_matrix = [ones(size(relative_positions, 2), 1), relative_positions'];
+            model_parameters = design_matrix \ function_values_near_x0;
+            grad_init = model_parameters(2:end);
 
         elseif iter > 2 && ~any(sufficient_decrease(:, iter-1))
             if verbose
