@@ -79,11 +79,10 @@ jobs:
               cd(fullfile(root_dir, 'tests', 'tuning'));
               parameters.func_window_size = [8 1e8];
               parameters.func_tol = [1e-15 1e-30];
-              parameters.func_tol_ratio = 1e-2;
+              parameters.func_tol_ratio = 1e-8;
               options = struct();
               options.dim = '${{ matrix.dim }}';
               options.feature_name = '${{ matrix.feature }}';
-              options.draw_plots = true;
               tuning_optiprofiler(parameters, options);
               cd(root_dir);
 
