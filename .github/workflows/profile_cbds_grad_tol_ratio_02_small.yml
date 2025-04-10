@@ -86,7 +86,7 @@ jobs:
               if ~isfield(options, 'n_runs')
                   options.n_runs = 1;
               end
-              options.p_type = 'u';
+              options.ptype = 'u';
               if ~isfield(options, 'max_tol_order')
                   options.max_tol_order = 10;
               end

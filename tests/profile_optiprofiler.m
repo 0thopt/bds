@@ -151,7 +151,7 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
     time_str = char(datetime('now', 'Format', 'yy_MM_dd_HH_mm'));
     options.silent = false;
     options.keep_pool = true;
-    options.p_type = 'u';
+    options.ptype = 'u';
     if isfield(options, 'dim')
         if strcmpi(options.dim, 'small')
             options.mindim = 2;

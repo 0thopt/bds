@@ -51,9 +51,9 @@ try
 
     % Get list of problems
     if isfield(parameters, "problem_type")
-        options_s2mpj.p_type = parameters.problem_type;
+        options_s2mpj.ptype = parameters.problem_type;
     else
-        options_s2mpj.p_type = "u";
+        options_s2mpj.ptype = "u";
     end
 
     if isfield(parameters, "problem_mindim")

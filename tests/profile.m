@@ -143,7 +143,7 @@ try
             "VESUVIOLS",...
             "VESUVIOULS",...
             "YATP1CLS"];
-        options_s2mpj.p_type = 'u';
+        options_s2mpj.ptype = 'u';
         options_s2mpj.mindim = parameters.problem_mindim;
         options_s2mpj.maxdim = parameters.problem_maxdim;
         problem_names_orig = s_select(options_s2mpj);
