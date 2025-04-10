@@ -104,9 +104,9 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
     if startsWith(options.feature_name, 'perturbed_x0')
         if sum(options.feature_name == '_') > 1
             str = split(options.feature_name, '_');
-            options.noise_level = str2double(str{end});
+            options.perturbation_level = str2double(str{end});
         else
-            options.noise_level = 1e-3;
+            options.perturbation_level = 1e-3;
         end
         options.feature_name = 'perturbed_x0';
     end
@@ -175,13 +175,13 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
                 options.benchmark_id = [options.benchmark_id, '_', options.feature_name, '_', int2str(int32(options.nan_rate * 100))];
             end
         case 'perturbed_x0'
-            if abs(options.noise_level - 1e-3) < eps
+            if abs(options.perturbation_level - 1e-3) < eps
                 options.benchmark_id = [options.benchmark_id, '_', options.feature_name];
-            elseif abs(options.noise_level - 1) < eps
+            elseif abs(options.perturbation_level - 1) < eps
                 options.benchmark_id = [options.benchmark_id, '_', options.feature_name, '_', '01'];
-            elseif abs(options.noise_level - 10) < eps
+            elseif abs(options.perturbation_level - 10) < eps
                 options.benchmark_id = [options.benchmark_id, '_', options.feature_name, '_', '10'];
-            elseif abs(options.noise_level - 100) < eps
+            elseif abs(options.perturbation_level - 100) < eps
                 options.benchmark_id = [options.benchmark_id, '_', options.feature_name, '_', '100'];
             end
     otherwise
