@@ -1,4 +1,4 @@
-name: Profile cbds and window size 14 and func tol 16x, big
+name: Profile cbds with window size 8 and func tol 12, 14, big
 
 on:
   # Trigger the workflow on # push or pull request
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Profile cbds and window size 14 and func tol 16x, big
+    name: Profile cbds with window size 8 and func tol 12, 14, big
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -19,7 +19,7 @@ jobs:
         matlab: [latest]
         dim: [big]
         with_optim_toolbox: [yes]
-        feature: [plain, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, linearly_transformed, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
+        feature: [plain, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, perturbed_x0_0.001, perturbed_x0_1, perturbed_x0_10, perturbed_x0_100, linearly_transformed, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
 
     steps:
       - name: Check out repository
@@ -29,16 +29,13 @@ jobs:
           ref: development
           fetch-depth: 0 # get all history for all branches and tags
 
-      - name: Check out specific commit
-        run: git checkout 65d15b191201f788ca409f5b0458f25f830e9b60
-
       - name: Checkout OptiProfiler
         uses: actions/checkout@v4
         with:
           repository: optiprofiler/optiprofiler
           path: optiprofiler
           submodules: recursive
-          ref: b0fd65e7f5a51dd1941f9ff80b90c34d26eede4c
+          ref: b112c51c924e157731db6609006ee124c49f0832
 
       - name: Install Texlive
         run: sudo apt-get update && sudo apt-get install texlive
@@ -80,9 +77,11 @@ jobs:
               % profile
               addpath(fullfile(root_dir, 'tests'));
               cd(fullfile(root_dir, 'tests', 'tuning'));
-              parameters.window_size = [14 1e8];
-              parameters.func_tol = [1e-16 1e-30];
+              parameters.func_window_size = [8 1e8];
+              parameters.func_tol = [1e-12 1e-30];
+              parameters.func_tol_ratio = 1e-2;
               options = struct();
+              options.n_runs = 2;
               options.dim = '${{ matrix.dim }}';
               options.feature_name = '${{ matrix.feature }}';
               options.draw_plots = true;
@@ -123,7 +122,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: profile_optiprofiler_cbds_window_size_14_func_tol_16x_${{ matrix.feature }}_${{ matrix.dim }}
+          name: profile_optiprofiler_cbds_window_size_08_func_tol_12_14_${{ matrix.dim }}_${{ matrix.feature }}
           path: ./tests/tuning/tuning_data/**
 
   merge_artifacts:
@@ -173,10 +172,10 @@ jobs:
           cd summary
           ls
           bash ../merge_pdf.sh
-          mv merged.pdf "summary_cbds_window_size_14_func_tol_16x_big.pdf"
+          mv merged.pdf "summary_cbds_window_size_08_func_tol_12_14_big.pdf"
           cd ..
           if [ -d "summary" ]; then
-            mv summary "summary_cbds_window_size_14_func_tol_16x_big"
+            mv summary "summary_cbds_window_size_08_func_tol_12_14_big"
           fi
 
       - name: Upload merged artifact
@@ -184,7 +183,7 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: merged_profiles_cbds_window_size_14_func_tol_16x_big
+          name: merged_profiles_cbds_window_size_08_func_tol_12_14_big
           path: tests/tuning/tuning_data/downloaded_artifacts/**
 
       - name: Upload summary files
@@ -192,5 +191,5 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: summary_files_cbds_window_size_14_func_tol_16x_big
-          path: tests/tuning/tuning_data/downloaded_artifacts/summary_cbds_window_size_14_func_tol_16x_big/**
+          name: summary_files_cbds_window_size_08_func_tol_12_14_big
+          path: tests/tuning/tuning_data/downloaded_artifacts/summary_cbds_window_size_08_func_tol_12_14_big/**
