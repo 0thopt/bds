@@ -175,14 +175,15 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
                 options.benchmark_id = [options.benchmark_id, '_', options.feature_name, '_', int2str(int32(options.nan_rate * 100))];
             end
         case 'perturbed_x0'
-            if abs(options.perturbation_level - 1e-3) < eps
-                options.benchmark_id = [options.benchmark_id, '_', options.feature_name];
-            elseif abs(options.perturbation_level - 1) < eps
-                options.benchmark_id = [options.benchmark_id, '_', options.feature_name, '_', '01'];
-            elseif abs(options.perturbation_level - 10) < eps
-                options.benchmark_id = [options.benchmark_id, '_', options.feature_name, '_', '10'];
-            elseif abs(options.perturbation_level - 100) < eps
-                options.benchmark_id = [options.benchmark_id, '_', options.feature_name, '_', '100'];
+            switch options.perturbation_level
+                case 1e-3
+                    options.benchmark_id = [options.benchmark_id, '_', options.feature_name];
+                case 1
+                    options.benchmark_id = [options.benchmark_id, '_', options.feature_name, '_01'];
+                case 10
+                    options.benchmark_id = [options.benchmark_id, '_', options.feature_name, '_10'];
+                case 100
+                    options.benchmark_id = [options.benchmark_id, '_', options.feature_name, '_100'];
             end
     otherwise
         options.benchmark_id = [options.benchmark_id, '_', options.feature_name];
