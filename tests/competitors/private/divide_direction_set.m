@@ -1,1 +1,1 @@
-/Users/lihaitian/Work/bds/src/private/divide_direction_set.m
+../../../src/private/divide_direction_set.m
