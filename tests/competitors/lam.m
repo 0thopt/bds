@@ -63,7 +63,9 @@ end
 
 % Set the value of expand factor. Since the expand factor in the paper A derivative-free algorithm for bound constrained optimization,
 % G. Liuzzi, and S. Lucidi, Computational Optimization and Applications, 2002 is set to 2, we set the default value of expand to 2.
-expand = 2;
+% expand = 2;
+% Test the case where expand = 1, which means that the step size is not expanded when linesearch is successful.
+expand = 1;
 
 % Set the value of shrink factor. Since the shrink factor in the paper A derivative-free algorithm for bound constrained optimization,
 % G. Liuzzi, and S. Lucidi, Computational Optimization and Applications, 2002 is set to 0.5, we set the default value of shrink to 0.5.
@@ -164,7 +166,7 @@ for iter = 1:maxit
         if suboutput.success
             % If the sufficient decrease condition is satisfied, then the step size is updated by
             % linesearch.
-            alpha_all(i_real) = suboutput.stepsize;
+            alpha_all(i_real) = max(alpha_bar, suboutput.stepsize);
         else
             % If the sufficient decrease condition is not satisfied, then the step size is updated by shrink.
             alpha_all(i_real) = shrink * alpha_all(i_real);
