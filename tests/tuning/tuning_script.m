@@ -1,8 +1,8 @@
 clear all
-parameters.func_window_size = [3 5 6 8 10 12 15];
+parameters.func_window_size = [3 4 5 6 8 10 12 14 15 16];
 % parameters.window_size = [3 5 8];
 % parameters.grad_window_size = [3 5 8 10 12 15];
-parameters.func_tol = 10.^([-15 -12 -10 -8 -5 -3]);
+parameters.func_tol = 10.^([-15 -12 -10 -8 -6 -5 -4 -3]);
 parameters.func_tol_ratio = 1e-3;
 % parameters.grad_tol = 10.^([-15 -12 -10 -8 -5 -3]);
 % parameters.grad_tol_ratio = 1e-3;
@@ -12,7 +12,7 @@ parameters.func_tol_ratio = 1e-3;
 % parameters.expand = 1.2:0.1:1.8;
 % parameters.shrink = 0.5:0.1:0.7;
 options.mindim = 1;
-options.maxdim = 1;
+options.maxdim = 5;
 if ~isfield(options, 'n_runs')
     options.n_runs = 1;
 end
