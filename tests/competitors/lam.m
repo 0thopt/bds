@@ -13,8 +13,13 @@ n = length(x0);
 num_blocks = n;
 options.num_blocks = n;
 
-% Check the inputs of the user when debug_flag is true.
-debug_flag = is_debugging();
+% Set the default value of debug_flag. If options do not contain debug_flag, then
+% debug_flag is set to false.
+if isfield(options, "debug_flag")
+    debug_flag = options.debug_flag;
+else
+    debug_flag = false;
+end
 if debug_flag
     verify_preconditions(fun, x0, options);
 end

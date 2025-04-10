@@ -108,7 +108,7 @@ jobs:
 
       - name: Change the summary file name
         run: |
-          cd ./tests/
+          cd ./tests/testdata/
           ls -R
           find . -type f -name 'summary.pdf' | while read -r file; do
             # Obtain the parent directory and name

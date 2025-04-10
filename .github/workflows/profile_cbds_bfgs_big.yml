@@ -91,7 +91,7 @@ jobs:
 
       - name: Change the summary file name
         run: |
-          cd ./tests/
+          cd ./tests/testdata/
           ls -R
           find . -type f -name 'summary.pdf' | while read -r file; do
             # Obtain the parent directory and name
@@ -123,7 +123,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: profile_optiprofiler_${{ matrix.solver }}_${{ matrix.competitor }}_${{ matrix.dim }}_${{ matrix.feature }}_${{ matrix.run_plain }}
-          path: ./tests/**
+          path: ./tests/testdata/
 
   merge_artifacts:
     name: Merge Artifacts
