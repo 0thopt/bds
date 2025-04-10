@@ -200,14 +200,6 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
     if ismember('shrink', param_fields)
         options.benchmark_id = append_param_to_id(options.benchmark_id, 'shrink', parameters.shrink(1));
     end
-    if ismember('func_window_size', param_fields)
-        if parameters.func_window_size(1) < 10
-            formatted_value = sprintf('%02d', parameters.func_window_size(1)); % Format as two digits
-        else
-            formatted_value = sprintf('%.0f', parameters.func_window_size(1)); % Keep as integer
-        end
-        options.benchmark_id = append_param_to_id(options.benchmark_id, 'func_window_size', formatted_value);
-    end
     if ismember('func_tol', param_fields)
         options.benchmark_id = append_param_to_id(options.benchmark_id, 'func_tol', parameters.func_tol(1));
     end
@@ -224,6 +216,14 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
             formatted_value = sprintf('%.0f', parameters.func_window_size(1)); % Keep as integer
         end
         options.benchmark_id = append_param_to_id(options.benchmark_id, 'func_window_size', formatted_value);
+    end
+    if ismember('grad_window_size', param_fields)
+        if parameters.grad_window_size(1) < 10
+            formatted_value = sprintf('%02d', parameters.grad_window_size(1)); % Format as two digits
+        else
+            formatted_value = sprintf('%.0f', parameters.grad_window_size(1)); % Keep as integer
+        end
+        options.benchmark_id = append_param_to_id(options.benchmark_id, 'grad_window_size', formatted_value);
     end
     if ismember('grad_tol_ratio', param_fields)
         options.benchmark_id = append_param_to_id(options.benchmark_id, 'grad_tol_ratio', parameters.grad_tol_ratio(1));
@@ -305,7 +305,7 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
         end
             options = rmfield(options, 'noise_level');
     end
-    
+    keyboard
     [solver_scores, profile_scores] = benchmark(solvers, options);
 end
 

@@ -1,4 +1,4 @@
-function tuning_plot(perfs, p1, p2, param1_name, param2_name, mindim, maxdim, feature_name, data_path, feature_str, log_color)
+function tuning_plot(perfs, p1, p2, param1_name, param2_name, data_path, feature_str, log_color)
 
 if nargin < 11
     log_color = false;

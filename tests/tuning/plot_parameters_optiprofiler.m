@@ -123,7 +123,7 @@ mkdir(data_path);
 options.savepath = data_path;
 
 % Get performance for each parameter combination
-parfor ip = 1:numel(p1)
+for ip = 1:numel(p1)
     % Set solver options
     solver_options = struct();
     solver_options.(param1_name) = p1(ip);
@@ -208,7 +208,8 @@ end
 fclose(fileID);
 
 % Plot the performance data
-tuning_plot(perfs, p1, p2, param1_name, param2_name, options.mindim, options.maxdim, options.feature_name, data_path, feature_str);
+tuning_plot(perfs, p1, p2, param1_name, param2_name, data_path, feature_str)
+
 
 end
 
