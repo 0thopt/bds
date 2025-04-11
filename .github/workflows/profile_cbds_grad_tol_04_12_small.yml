@@ -85,7 +85,6 @@ jobs:
               options = struct();
               options.dim = '${{ matrix.dim }}';
               options.feature_name = '${{ matrix.feature }}';
-              options.draw_plots = true;
               tuning_optiprofiler(parameters, options);
               cd(root_dir);
 
