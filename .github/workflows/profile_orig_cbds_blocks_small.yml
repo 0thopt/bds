@@ -162,6 +162,8 @@ jobs:
 
           ARTIFACT_NAME=$(ls | grep "profile_optiprofiler" | head -n 1)
           BASE_INFO=$(echo $ARTIFACT_NAME | sed -n 's/.*optiprofiler_\([^_]*_[^_]*_\(small\|big\)\).*/\1/p')
+          # Replace all '-' with '_' in BASE_INFO
+          BASE_INFO=$(echo $BASE_INFO | sed 's/-/_/g')
           echo "Base info extracted: ${BASE_INFO}"
           echo "BASE_INFO=${BASE_INFO}" >> $GITHUB_ENV
 
