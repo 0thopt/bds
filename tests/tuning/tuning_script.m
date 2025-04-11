@@ -35,13 +35,13 @@ if  (options.max_tol_order ~= size(options.tau_weights, 2))
     error('max_tol_order must be equal to the length of tau_weights');
 end
 
-options.feature_name = 'plain';
-fprintf('Feature:\t %s\n', options.feature_name);
-tuning_script_optiprofiler(parameters, options);
+% options.feature_name = 'plain';
+% fprintf('Feature:\t %s\n', options.feature_name);
+% tuning_script_optiprofiler(parameters, options);
 
-options.feature_name = 'linearly_transformed';
-fprintf('Feature:\t %s\n', options.feature_name);
-tuning_script_optiprofiler(parameters, options);
+% options.feature_name = 'linearly_transformed';
+% fprintf('Feature:\t %s\n', options.feature_name);
+% tuning_script_optiprofiler(parameters, options);
 
 options.tau_weights(1, 1:options.max_tol_order, 2, 1) = [0.9/(options.max_tol_order-4)*ones(1, options.max_tol_order-4), 0.025, 0.025, 0.025, 0.025]; 
 if sum(options.tau_weights(:)) ~= 1
