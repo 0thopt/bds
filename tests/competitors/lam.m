@@ -68,13 +68,28 @@ end
 
 % Set the value of expand factor. Since the expand factor in the paper A derivative-free algorithm for bound constrained optimization,
 % G. Liuzzi, and S. Lucidi, Computational Optimization and Applications, 2002 is set to 2, we set the default value of expand to 2.
-expand = 2;
+if isfield(options, "expand")
+    expand = options.expand;
+else
+    expand = 2;
+end
 % % Test the case where expand = 1, which means that the step size is not expanded when linesearch is successful.
 % expand = 1;
 
 % Set the value of shrink factor. Since the shrink factor in the paper A derivative-free algorithm for bound constrained optimization,
 % G. Liuzzi, and S. Lucidi, Computational Optimization and Applications, 2002 is set to 0.5, we set the default value of shrink to 0.5.
-shrink = 0.5;
+if isfield(options, "shrink")
+    shrink = options.shrink;
+else
+    shrink = 0.5;
+end
+
+if isfield(options, 'Algorithm')
+    % Set the algorithm type. The default value is 'lam'.
+    Algorithm = options.Algorithm;
+else
+    Algorithm = 'lam1';
+end
 
 % Set the boolean value of WITH_CYCLING_MEMORY. 
 if isfield(options, "with_cycling_memory")
@@ -112,6 +127,8 @@ if isfield(options, "alpha_init")
 else
     alpha_all = ones(num_blocks, 1);
 end
+success_all = false(num_blocks, 1);
+LS_stepsize = zeros(num_blocks, 1);
 
 % Initialize the history of function values.
 fhist = NaN(1, MaxFunctionEvaluations);
@@ -161,21 +178,15 @@ for iter = 1:maxit
         [xval, fval, sub_exitflag, suboutput] = linesearch(fun, xval,...
             fval, D(:, direction_indices), direction_indices,...
             alpha_bar, suboptions);
+
+        success_all(i_real) = suboutput.success;
+        LS_stepsize(i_real) = suboutput.stepsize;
         
         % Store the history of the evaluations by inner_direct_search, 
         % and accumulate the number of function evaluations.
         fhist((nf+1):(nf+suboutput.nf)) = suboutput.fhist;
         xhist(:, (nf+1):(nf+suboutput.nf)) = suboutput.xhist;
         nf = nf+suboutput.nf;
-
-        if suboutput.success
-            % If the sufficient decrease condition is satisfied, then the step size is updated by
-            % linesearch.
-            alpha_all(i_real) = max(alpha_bar, suboutput.stepsize);
-        else
-            % If the sufficient decrease condition is not satisfied, then the step size is updated by shrink.
-            alpha_all(i_real) = shrink * alpha_all(i_real);
-        end
 
         % If suboutput.terminate is true, then inner_direct_search returns 
         % boolean value of terminate because either the maximum number of function
@@ -193,15 +204,38 @@ for iter = 1:maxit
         
     end
 
+    % Check whether one of SMALL_ALPHA, MAXFUN_REACHED, and FTARGET_REACHED is reached.
+    if terminate
+        break;
+    end
+
+    switch Algorithm
+        case 'lam'
+            alpha_all = (any(success_all) * LS_stepsize) + (~any(success_all) * shrink .* alpha_all);
+        case 'lam1'
+            alpha_all = success_all .* LS_stepsize + shrink * (~success_all) .* alpha_all;
+        otherwise
+            error("Unknown algorithm");
+    end
+    % % if suboutput.success
+    % %     % If the sufficient decrease condition is satisfied, then the step size is updated by
+    % %     % linesearch.
+    % %     alpha_all(i_real) = suboutput.stepsize;
+    % % else
+    % %     % If the sufficient decrease condition is not satisfied, then the step size is updated by shrink.
+    % %     alpha_all(i_real) = shrink * alpha_all(i_real);
+    % % end
+    % % success(i) indicates whether block i is successful, i = 1, ..., num_blocks. 
+    % % LS_stepsize(i) is the step size of block i after linesearch.
+    % % LAM1
+    % alpha_all =  (success) * LS_stepsize + (~success) * shrink * alpha_all;
+    % % LAM
+    % alpha_all = (any(success)) * LS_stepsize + (~any(success)) * shrink * alpha_all;
+
     % Terminate the computations if the largest component of step size is below a
     % given StepTolerance.
     if max(alpha_all) < alpha_tol
         exitflag = get_exitflag("SMALL_ALPHA");
-        break
-    end
-    
-    % Check whether one of SMALL_ALPHA, MAXFUN_REACHED, and FTARGET_REACHED is reached.
-    if terminate
         break;
     end
     

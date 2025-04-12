@@ -61,7 +61,7 @@ for j = 1 : num_directions
     end
     
     % Check whether the sufficient decrease condition is achieved.
-    sufficient_decrease = (fnew + reduction_factor * alpha^2/2 < fbase);
+    sufficient_decrease = (fnew + reduction_factor * alpha^2 < fbase);
     
     % if sufficient decrease
     if sufficient_decrease
@@ -104,6 +104,10 @@ for j = 1 : num_directions
         if sufficient_decrease
             fval = fnew;
             xval = xnew;
+        else
+            % If the sufficient decrease condition is not satisfied, then
+            % the alpha indicates to the last successful step size.
+            alpha = alpha/expand;
         end
     end
      

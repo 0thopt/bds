@@ -82,7 +82,7 @@ for j = 1 : num_directions
     sufficient_decrease = (fnew + reduction_factor(3) * forcing_function(alpha)/2 < fbase);
     if verbose
         if sufficient_decrease
-            fprintf("%g decrease is achieved------------------.\n", fbase - fnew);
+            fprintf("%g decrease is achieved.\n", fbase - fnew);
         else
             fprintf("Sufficient decrease is not achieved.\n");
         end
