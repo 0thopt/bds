@@ -39,6 +39,15 @@ FunctionEvaluations_exhausted = options.FunctionEvaluations_exhausted;
 % The value of verbose.
 verbose = options.verbose;
 
+% The type of the Algorithm.
+Algorithm = options.Algorithm;
+
+% Whether to output the history of x.
+output_xhist = options.output_xhist;
+
+% Initialize the success flag.
+success = false;
+
 % If terminate is true and the exitflag is NaN, it means that the algorithm terminates
 % not because of the maximum number of function evaluations or the target function value,
 % which will be a bug.
@@ -47,8 +56,8 @@ exitflag = NaN;
 % Initialize some parameters before entering the loop.
 n = length(xbase);
 num_directions = length(direction_indices);
-fhist = NaN(1, num_directions);
-xhist = NaN(n, num_directions);
+fhist = NaN(1, MaxFunctionEvaluations);
+xhist = NaN(n, MaxFunctionEvaluations);
 nf = 0; 
 fopt = fbase;
 xopt = xbase;
@@ -77,6 +86,10 @@ for j = 1 : num_directions
         xopt = xnew;
         fopt = fnew;
     end
+
+    if nf >= MaxFunctionEvaluations || fnew_real <= ftarget
+        break;
+    end
     
     % Check whether the sufficient decrease condition is achieved.
     sufficient_decrease = (fnew + reduction_factor(3) * forcing_function(alpha)/2 < fbase);
@@ -88,16 +101,35 @@ for j = 1 : num_directions
         end
     end
 
+    success = sufficient_decrease;
+
+    if sufficient_decrease && (strcmpi(Algorithm, "lam") | strcmpi(Algorithm, "lam1"))
+        [xnew, fnew, exitflag, ls_output] = LS(fun, xbase, fbase, D(:, j), alpha, nf, options);
+        % Record the points visited by LS if the output_xhist is true.
+        if output_xhist
+            xhist(:, (nf+1):(nf+ls_output.nf)) = ls_output.xhist;
+        end
+        % Record the function values calculated by inner_direct_search,
+        fhist((nf+1):(nf+ls_output.nf)) = ls_output.fhist;
+        % Update the number of function evaluations.
+        nf = nf + ls_output.nf;
+        alpha = ls_output.alpha;
+        % Update the best point and the best function value.
+        if fnew < fopt
+            xopt = xnew;
+            fopt = fnew;
+        end
+        if nf >= MaxFunctionEvaluations || fnew_real <= ftarget
+            break;
+        end
+    end
+    
     % In the opportunistic case, if the current iteration achieves sufficient decrease,
     % stop the computations after cycling the indices of the polling directions. The reason  
     % that we cycle indices here is because inner_direct_search is called in a loop 
     % in outer_direct_search. 
-    if sufficient_decrease && ~strcmpi(polling_inner, "complete")
+    if success && ~strcmpi(polling_inner, "complete")
         direction_indices = cycling(direction_indices, j, cycling_strategy, with_cycling_memory);
-        break;
-    end
-
-    if nf >= MaxFunctionEvaluations || fnew <= ftarget
         break;
     end
 
@@ -121,7 +153,9 @@ output.xhist = xhist(:, 1:nf);
 output.nf = nf;
 output.direction_indices = direction_indices;
 output.terminate = terminate;
-if sufficient_decrease
+output.alpha = alpha;
+output.success = success;
+if success
     output.sufficient_decrease = true;
 else
     output.sufficient_decrease = false;

@@ -34,20 +34,28 @@ end
 
 try
 
-    % Compile the version of norma.
-    path_norma = locate_norma();
-    path_verify_bds = fileparts(mfilename('fullpath'));
-    cd(path_norma{1});
-    setup
-    cd(path_verify_bds);
+    if ~isfield(parameters, "solvers")
+        solvers = {"bds", "bds_norma"};
+    else
+        solvers = parameters.solvers;
+        parameters = rmfield(parameters, "solvers");
+    end
+    
+    if strcmpi(solvers{1}, "bds") && strcmpi(solvers{2}, "bds_norma")
+        % Compile the version of norma.
+        path_norma = locate_norma();
+        path_verify_bds = fileparts(mfilename('fullpath'));
+        cd(path_norma{1});
+        setup
+        cd(path_verify_bds);
 
-    % Compile the version of modern repository.
-    path_root = fileparts(path_verify_bds);
-    cd(path_root);
-    setup
-    cd(path_verify_bds);
+        % Compile the version of modern repository.
+        path_root = fileparts(path_verify_bds);
+        cd(path_root);
+        setup
+        cd(path_verify_bds);
+    end
 
-    solvers = {"bds", "bds_norma"};
 
     % Get list of problems
     if isfield(parameters, "problem_type")

@@ -38,7 +38,7 @@ switch constant_name
     case {"shrink_big_noisy"}
         constant_value = 0.85;
     case {"reduction_factor"}
-        constant_value = [0, eps, eps];
+        constant_value = [1e-6, 1e-6, 1e-6];
     case {"forcing_function"}
         constant_value = @(alpha) alpha^2;
     case {"alpha_init"}

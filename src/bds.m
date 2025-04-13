@@ -11,16 +11,18 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %   XOPT = BDS(FUN, X0, OPTIONS) performs the computations with the options in
 %   OPTIONS. OPTIONS should be a structure with the following fields.
 %
-%   Algorithm                   Algorithm to use. It can be "cbds" (cyclic 
-%                               blockwise direct search) "pbds" (randomly 
-%                               permuted blockwise direct search), "rbds" 
+%   Algorithm                   Algorithm to use. It can be "cbds" (cyclic
+%                               blockwise direct search) "pbds" (randomly
+%                               permuted blockwise direct search), "rbds"
 %                               (randomized blockwise direct search), "ds"
-%                               (the classical direct search), "pads" (parallel 
+%                               (the classical direct search), "pads" (parallel
 %                               blockwise direct search). "scbds" (symmetric
-%                               blockwise direct search). Default: "cbds".
-%   Scheme                      Scheme to use. It can be "cyclic", "random", "parallel",
+%                               blockwise direct search). "lam" (Linesearch Algorithm 
+%                               Model). "lam1" (Linesearch Algorithm Model).
+%                               "fm" (Fermi's Method). Default: "cbds".
+%   Scheme                      Scheme to use. It can be "cyclic" or "parallel",
 %                               Default: "cyclic".
-%   num_blocks                  Number of blocks. A positive integer. 
+%   num_blocks                  Number of blocks. A positive integer.
 %                               Default: ceil(num_directions/2), where num_directions
 %                               is the number of directions used to define the polling
 %                               directions.
@@ -46,9 +48,6 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               less than 1. It depends on the dimension of the
 %                               problem and whether the problem is noisy or not
 %                               and the Algorithm. Default: 0.5.
-%   alpha_threshold             The threshold of the step size. When the step
-%                               size shrinks, the step size will be updated to
-%                               be the maximum of alpha_threshold and shrink*alpha.
 %                               It should be strictly less than StepTolerance.
 %                               A positive number. Default: 1e-3*StepTolerance.
 %   forcing_function            The forcing function used for deciding whether
@@ -88,20 +87,13 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               k blocks are randomly selected to visit. A positive
 %                               integer less than or equal to num_blocks.
 %                               Default: num_blocks.
-%   replacement_delay           Suppose that replacement_delay is r. If replacement_delay > 0 
-%                               and block i is selected at iteration k, then it will not 
-%                               be selected at iterations k+1, ..., k+r. The value of 
-%                               replacement_delay should be an nonnegative integer less than or 
-%                               equal to floor(num_blocks/batch_size)-1.                               
+%   replacement_delay           Suppose that replacement_delay is r. If replacement_delay > 0
+%                               and block i is selected at iteration k, then it will not
+%                               be selected at iterations k+1, ..., k+r. The value of
+%                               replacement_delay should be an nonnegative integer less than or
+%                               equal to floor(num_blocks/batch_size)-1.
 %                               Default: floor(num_blocks/batch_size)-1.
 %   seed                        The seed for random number generator. Default: "shuffle".
-%   use_estimated_gradient_stop Whether to use the estimated gradient to stop
-%                               the algorithm. If it is true and the problem is
-%                               not noisy and each block will be visited once in
-%                               each iteration, then the algorithm will estimate
-%                               the gradient of the function at the best point
-%                               encountered so far when the sufficient decrease
-%                               condition is not achieved in the previous iteration.
 %                               It is an optional termination criterion.
 %                               Default: false.
 %   output_xhist                Whether to output the history of points visited.
@@ -170,10 +162,59 @@ D = get_direction_set(n, options);
 % Get the number of blocks.
 num_directions = size(D, 2);
 
+% Set the default Algorithm of BDS, which is "cbds".
+Algorithm_list = ["ds", "cbds", "pbds", "rbds", "pads", "lam", "lam1", "fm"];
+lam_list = ["lam", "lam1", "fm"];
+if isfield(options, "Algorithm") && ~ismember(lower(options.Algorithm), Algorithm_list)
+    error("The Algorithm input is invalid");
+end
+if isfield(options, "Algorithm")
+    options.Algorithm = lower(options.Algorithm);
+    switch lower(options.Algorithm)
+        case "ds"
+            options.num_blocks = 1;
+            options.batch_size = 1;
+        case "cbds"
+            options.num_blocks = n;
+            options.batch_size = n;
+            options.scheme = "cyclic";
+        case "pbds"
+            options.num_blocks = n;
+            options.batch_size = n;
+        case "rbds"
+            options.num_blocks = n;
+            options.batch_size = 1;
+            options.replacement_delay = n - 1;
+        case "pads"
+            options.num_blocks = n;
+            options.batch_size = n;
+            options.scheme = "parallel";
+        case "lam"
+            options.num_blocks = n;
+            options.batch_size = n;
+            options.scheme = "cyclic";
+        case "lam1"
+            options.num_blocks = n;
+            options.batch_size = n;
+            options.scheme = "cyclic";
+        case "fm"
+            options.num_blocks = n;
+            options.batch_size = n;
+            options.scheme = "cyclic";
+        otherwise
+            error("The Algorithm input is invalid");
+    end
+end
+
 % Set the default value of scheme.
 scheme_list = ["cyclic", "random", "parallel"];
 if isfield(options, "scheme") && ~ismember(lower(options.scheme), scheme_list)
     error("The scheme should be one of the following: cyclic, random, parallel.\n");
+end
+if isfield(options, "scheme")
+    scheme = lower(options.scheme);
+else
+    scheme = "cyclic";
 end
 
 % Set the default value of num_blocks and batch_size.
@@ -209,46 +250,6 @@ if batch_size > num_blocks
     warning("The number of batch_size should be less than or equal to the number of blocks.");
     fprintf("\n!!! THE NUMBER OF BATCH_SIZE IS SET TO BE THE NUMBER OF BLOCKS !!!\n");
     batch_size = num_blocks;
-end
-
-% Set the default value of scheme if it is not provided.
-if ~isfield(options, "scheme")
-    scheme = get_default_constant("scheme");
-else
-    scheme = lower(options.scheme);
-end
-
-% Set the default Algorithm of BDS, which is "cbds".
-Algorithm_list = ["ds", "cbds", "pbds", "rbds", "pads"];
-if isfield(options, "Algorithm") && ~ismember(lower(options.Algorithm), Algorithm_list)
-    error("The Algorithm input is invalid");
-end
-if isfield(options, "Algorithm")
-    options.Algorithm = lower(options.Algorithm);
-    switch lower(options.Algorithm)
-        case "ds"
-            num_blocks = 1;
-            batch_size = 1;
-        case "cbds"
-            num_blocks = n;
-            batch_size = n;
-            scheme = "cyclic";
-        case "pbds"
-            num_blocks = n;
-            batch_size = n;
-            scheme = "random";
-        case "rbds"
-            num_blocks = n;
-            batch_size = 1;
-            options.replacement_delay = floor(num_blocks/batch_size)-1;
-            scheme = "random";
-        case "pads"
-            num_blocks = n;
-            batch_size = n;
-            scheme = "parallel";
-        otherwise
-            error("The Algorithm input is invalid");
-    end
 end
 
 % Determine the indices of directions in each block.
@@ -410,21 +411,6 @@ else
     alpha_tol = get_default_constant("StepTolerance");
 end
 
-
-if isfield(options, "grad_tol")
-    grad_tol = options.grad_tol;
-else
-    grad_tol = get_default_constant("grad_tol");
-end
-
-% Set the value of alpha_threshold. If the step size is smaller than alpha_threshold, then the step size
-% will be not allowed to shrink below alpha_threshold.
-if isfield(options, "alpha_threshold")
-    alpha_threshold = options.alpha_threshold;
-else
-    alpha_threshold = get_default_constant("alpha_threshold_ratio")*alpha_tol;
-end
-
 % Set the target of the objective function.
 if isfield(options, "ftarget")
     ftarget = options.ftarget;
@@ -458,11 +444,11 @@ if isfield(options, "alpha_init")
         alpha_all = options.alpha_init*ones(num_blocks, 1);
     elseif length(options.alpha_init) == num_blocks
         alpha_all = options.alpha_init;
-    % elseif strcmpi(options.alpha_init,"auto")
-    %     % x0_coordinates is the coordinates of x0 with respect to the directions in
-    %     % D(:, 1 : 2 : 2*n-1), where D(:, 1 : 2 : 2*n-1) is a basis of R^n.
-    %     x0_coordinates = D(:, 1 : 2 : 2*n-1) \ x0;
-    %     alpha_all = 0.5 * max(1, abs(x0_coordinates));
+        % elseif strcmpi(options.alpha_init,"auto")
+        %     % x0_coordinates is the coordinates of x0 with respect to the directions in
+        %     % D(:, 1 : 2 : 2*n-1), where D(:, 1 : 2 : 2*n-1) is a basis of R^n.
+        %     x0_coordinates = D(:, 1 : 2 : 2*n-1) \ x0;
+        %     alpha_all = 0.5 * max(1, abs(x0_coordinates));
     end
 else
     alpha_all = ones(num_blocks, 1);
@@ -502,12 +488,6 @@ else
     output_sufficient_decrease = get_default_constant("output_sufficient_decrease");
 end
 
-if isfield(options, "use_estimated_gradient_stop")
-    use_estimated_gradient_stop = options.use_estimated_gradient_stop;
-else
-    use_estimated_gradient_stop = false;
-end
-
 % Initialize the history of sufficient decrease value and the boolean value of whether the sufficient decrease
 % is achieved or not.
 try
@@ -520,16 +500,6 @@ try
 catch
     warning("sufficient_decrease will be not included in the output due to the limit of memory.");
 end
-
-% Initialize the history of sufficient decrease value and the boolean value of whether the sufficient decrease
-% is achieved or not when the problem is not noisy and each block will be visited once in each iteration,
-% i.e., the Algorithm is "cbds" or "pbds" or "rbds" and batch_size is equal to num_blocks.
-% The use of sufficient_decrease_value and sufficient_decrease is to estimate the gradient of the function
-% at the best point encountered so far when the sufficient decrease condition is not achieved in the previous
-% iteration. It is an optional termination criterion unless use_estimated_gradient_stop is true.
-is_estimated_gradient_stop = use_estimated_gradient_stop && ~is_noisy && ...
-    (((strcmpi(options.Algorithm, "cbds") || strcmpi(options.Algorithm, "pbds")) && num_blocks == n) ...
-    || (strcmpi(options.Algorithm, "rbds") && batch_size == n));
 
 % Decide whether to print during the computation.
 if isfield(options, "verbose")
@@ -591,42 +561,16 @@ end
 all_block_indices = (1:num_blocks);
 num_visited_blocks = 0;
 grad_hist = [];
-% fopt_all(i) stores the best function value found in the i-th block after one iteration, 
-% while xopt_all(:, i) holds the corresponding x. If a block is not visited during the iteration, 
-% fopt_all(i) is set to NaN. Both fopt_all and xopt_all have a length of num_blocks, not batch_size, 
-% as not all blocks might not be visited in each iteration, but the best function value across all 
+% fopt_all(i) stores the best function value found in the i-th block after one iteration,
+% while xopt_all(:, i) holds the corresponding x. If a block is not visited during the iteration,
+% fopt_all(i) is set to NaN. Both fopt_all and xopt_all have a length of num_blocks, not batch_size,
+% as not all blocks might not be visited in each iteration, but the best function value across all
 % blocks must still be recorded.
 fopt_all = NaN(1, num_blocks);
 xopt_all = NaN(n, num_blocks);
 
 for iter = 1:maxit
 
-    % Use central difference to estimate the gradient of the function at xopt if the sufficient decrease
-    % condition is not achieved in the previous iteration and the problem is not noisy.
-    if is_estimated_gradient_stop && iter > 1 && ~any(sufficient_decrease(:, iter-1))
-        if verbose
-            fprintf("The Algorithm is %s and failed to achieve sufficient decrease " ...
-                + "in the previous iteration.\n", options.Algorithm);
-        end
-        g = NaN(n, 1);
-        % The following loop is to estimate the gradient at xopt using central difference, with the
-        % function values stored in the previous iteration.
-        for i = 1:n
-            i_real = block_indices(i);
-            g(i_real) = (fhist(nf - 2*(i_real - 1) - 1) - fhist(nf - 2*(i_real - 1))) / (2*alpha_hist(i_real, iter-1));
-        end
-        grad_hist = [grad_hist norm(g)];
-        if min(grad_hist) < grad_tol || (length(grad_hist) > 1 && ...
-                (grad_hist(1) - grad_hist(end)) / grad_hist(1) > (1 - 1e-6))
-            if min(grad_hist) < grad_tol
-                exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
-            else
-                exitflag = get_exitflag("ESTIMATED_GRADIENT_FULLY_REDUCED");
-            end
-            break;
-        end
-    end
-    
     % Define block_indices, a vector that specifies both the indices of the blocks
     % and the order in which they will be visited during the current iteration.
     % The length of block_indices is equal to batch_size.
@@ -638,18 +582,19 @@ for iter = 1:maxit
     % Select batch_size blocks randomly from the available blocks. The selected blocks
     % will be visited in this iteration.
     block_indices = available_block_indices(random_stream.randperm(length(available_block_indices), batch_size));
-    
+
     % Choose the block visiting scheme based on options.scheme.
     switch scheme
         case "cyclic"
             block_indices = sort(block_indices);
-        case "random"
-            % block_indices = block_indices(random_stream.randperm(length(block_indices)));
         case "parallel"
             block_indices = all_block_indices;
         otherwise
             error('Invalid scheme input. The scheme should be one of the following: cyclic, random, parallel.\n');
     end
+
+    success_all = false(num_blocks, 1);
+    LS_stepsize = zeros(num_blocks, 1);
 
     for i = 1:length(block_indices)
 
@@ -666,10 +611,17 @@ for iter = 1:maxit
         suboptions.cycling_inner = cycling_inner;
         suboptions.with_cycling_memory = with_cycling_memory;
         suboptions.reduction_factor = reduction_factor;
+        suboptions.expand = expand;
         suboptions.forcing_function = forcing_function;
         suboptions.ftarget = ftarget;
         suboptions.polling_inner = options.polling_inner;
         suboptions.verbose = verbose;
+        suboptions.output_xhist = output_xhist;
+        if isfield(options, "Algorithm")
+            suboptions.Algorithm = options.Algorithm;
+        else
+            suboptions.Algorithm = "cbds";
+        end
 
         % Perform the direct search within the i_real-th block.
         [sub_xopt, sub_fopt, sub_exitflag, sub_output] = inner_direct_search(fun, xbase,...
@@ -680,6 +632,7 @@ for iter = 1:maxit
         % is achieved or not if is_estimated_gradient_stop is true.
         decrease_value(i_real, iter) = sub_output.decrease_value;
         sufficient_decrease(i_real, iter) = sub_output.sufficient_decrease;
+        success_all(i_real) = sub_output.success;
 
         if verbose
             fprintf("The number of the block visited is: %d\n", i_real);
@@ -704,20 +657,14 @@ for iter = 1:maxit
         nf = nf+sub_output.nf;
 
         % Update the step size alpha_all according to the reduction achieved.
-        if sub_fopt + reduction_factor(3) * forcing_function(alpha_all(i_real)) < fbase
+        if (sub_fopt + reduction_factor(3) * forcing_function(alpha_all(i_real)) < fbase) ...
+                && ~(isfield(options, "Algorithm") && strcmpi(options.Algorithm, "lam"))
             alpha_all(i_real) = expand * alpha_all(i_real);
-        elseif sub_fopt + reduction_factor(2) * forcing_function(alpha_all(i_real)) >= fbase
-            % if isfield(options, "Algorithm") && ~strcmpi(options.Algorithm, "ds")
-            %     if shrink * alpha_all(i_real) < alpha_threshold
-            %         fprintf("The step size of the block %d is smaller than alpha_threshold.++++++++\n", i_real);
-            %     end
-            % end
-            % The following strategy is used to avoid the case that the step size of some block is too small such
-            % that it can not be updated. It might work on some anisotropic functions, but with no theoretical guarantee.
-            alpha_all(i_real) = max(shrink * alpha_all(i_real), alpha_threshold);
-            %alpha_all(i_real) = shrink * alpha_all(i_real);
+        elseif (sub_fopt + reduction_factor(2) * forcing_function(alpha_all(i_real)) >= fbase) ...
+                && ~(isfield(options, "Algorithm") && strcmpi(options.Algorithm, "lam"))
+            alpha_all(i_real) = shrink * alpha_all(i_real);
         end
-        
+
         % Record the best function value and point encountered in the i_real-th block.
         fopt_all(i_real) = sub_fopt;
         xopt_all(:, i_real) = sub_xopt;
@@ -756,6 +703,10 @@ for iter = 1:maxit
         end
     end
 
+    if isfield(options, "Algorithm") && strcmpi(options.Algorithm, "lam")
+        alpha_all = (any(success_all) * LS_stepsize) + (~any(success_all) * shrink .* alpha_all);
+    end
+
     % Record the step size for every iteration if output_alpha_hist is true.
     % Why iter+1? Because we record the step size for the next iteration.
     alpha_hist(:, iter+1) = alpha_all;
@@ -781,7 +732,7 @@ for iter = 1:maxit
     % Make sure that fopt is always the minimum of fhist after the moment we update fopt.
     % The determination between fopt_all and fopt is to avoid the case that fopt_all is
     % bigger than fopt due to the update of xbase and fbase.
-    % NOTE: If the function values are complex, the min function will return the value with the smallest 
+    % NOTE: If the function values are complex, the min function will return the value with the smallest
     % norm (magnitude).
     [~, index] = min(fopt_all, [], "omitnan");
     if fopt_all(index) < fopt

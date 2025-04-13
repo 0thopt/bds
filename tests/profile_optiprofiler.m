@@ -304,6 +304,8 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @newuoa_test;
             case 'lam'
                 solvers{i} = @lam_test;
+            case 'lam1'
+                solvers{i} = @lam1_test;
             case 'fmds'
                 solvers{i} = @fmds_test;
             case 'nomad'
@@ -1121,13 +1123,23 @@ end
 
 function x = lam_test(fun, x0)
 
-    x = lam(fun, x0);
+    options.Algorithm = 'lam';
+    x = lam(fun, x0, options);
+    
+end
+
+function x = lam1_test(fun, x0)
+
+    options.Algorithm = 'lam1';
+    x = lam(fun, x0, options);
     
 end
 
 function x = fmds_test(fun, x0)
 
-    x = fmds(fun, x0);
+    options.expand = 1;
+    options.stepsize_factor = 0;
+    x = lam(fun, x0, options);
     
 end
 

@@ -56,7 +56,11 @@ maxit = MaxFunctionEvaluations;
 
 % Set the reduction factor. We adopt the reduction factor in the paper Worst case complexity bounds for linesearch-type 
 % derivative-free algorithms, 2024.
-reduction_factor = 1e-6;
+if isfield(options, "reduction_factor")
+    reduction_factor = options.reduction_factor;
+else
+    reduction_factor = 1e-6;
+end
 
 % Set the value of StepTolerance. The algorithm will terminate if the stepsize is less than 
 % the StepTolerance.
