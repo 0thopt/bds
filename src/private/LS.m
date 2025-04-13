@@ -32,7 +32,7 @@ sufficient_decrease = true;
 while sufficient_decrease
 
     alpha = alpha * expand;
-    xnew = xbase + alpha * d
+    xnew = xbase + alpha * d;
     fnew = eval_fun(fun, xnew);
     nf = nf + 1;
     fhist(nf) = fnew;
@@ -78,6 +78,7 @@ output.fhist = fhist(1:nf);
 output.xhist = xhist(:, 1:nf);
 output.nf = nf;
 output.alpha = alpha;
+output.sufficient_decrease = sufficient_decrease;
 end
 
 

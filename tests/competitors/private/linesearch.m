@@ -41,7 +41,7 @@ for j = 1 : num_directions
         exitflag = get_exitflag("MAXFUN_REACHED");
         break;
     end
-    
+
     % Evaluate the objective function for the current polling direction.
     xnew = xbase+alpha*D(:, j);
     fnew = eval_fun(fun, xnew);
@@ -73,10 +73,10 @@ for j = 1 : num_directions
 
     while sufficient_decrease
 
-        alpha = alpha*expand;
         % Important modification!!!!!!
         xbase = xnew;
         fbase = fnew;
+        alpha = alpha*expand;
         xnew = xbase+alpha*D(:, j);
         fnew = eval_fun(fun, xnew);
         nf = nf+1;
@@ -124,6 +124,9 @@ end
 output.fhist = fhist(1:nf);
 output.xhist = xhist(:, 1:nf);
 output.nf = nf;
+% if options.iter == 9 && options.i_real == 3
+%     keyboard
+% end
 output.success = success;
 output.direction_indices = direction_indices;
 output.terminate = terminate;

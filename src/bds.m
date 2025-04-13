@@ -162,42 +162,42 @@ D = get_direction_set(n, options);
 % Get the number of blocks.
 num_directions = size(D, 2);
 
-% Set the default Algorithm of BDS, which is "cbds".
-Algorithm_list = ["ds", "cbds", "pbds", "rbds", "pads", "lam", "lam1", "fm"];
-lam_list = ["lam", "lam1", "fm"];
-if isfield(options, "Algorithm") && ~ismember(lower(options.Algorithm), Algorithm_list)
+% Set the default Algorithm of BDS, which is 'cbds'.
+Algorithm_list = ['ds', 'cbds', 'pbds', 'rbds', 'pads', 'lam', 'lam1', 'fm'];
+lam_list = ['lam', 'lam1', 'fm'];
+if isfield(options, "Algorithm") && ~any(ismember(lower(options.Algorithm), Algorithm_list))
     error("The Algorithm input is invalid");
 end
 if isfield(options, "Algorithm")
     options.Algorithm = lower(options.Algorithm);
     switch lower(options.Algorithm)
-        case "ds"
+        case 'ds'
             options.num_blocks = 1;
             options.batch_size = 1;
-        case "cbds"
+        case 'cbds'
             options.num_blocks = n;
             options.batch_size = n;
             options.scheme = "cyclic";
-        case "pbds"
+        case 'pbds'
             options.num_blocks = n;
             options.batch_size = n;
-        case "rbds"
+        case 'rbds'
             options.num_blocks = n;
             options.batch_size = 1;
             options.replacement_delay = n - 1;
-        case "pads"
+        case 'pads'
             options.num_blocks = n;
             options.batch_size = n;
             options.scheme = "parallel";
-        case "lam"
+        case 'lam'
             options.num_blocks = n;
             options.batch_size = n;
             options.scheme = "cyclic";
-        case "lam1"
+        case 'lam1'
             options.num_blocks = n;
             options.batch_size = n;
             options.scheme = "cyclic";
-        case "fm"
+        case 'fm'
             options.num_blocks = n;
             options.batch_size = n;
             options.scheme = "cyclic";
@@ -617,22 +617,34 @@ for iter = 1:maxit
         suboptions.polling_inner = options.polling_inner;
         suboptions.verbose = verbose;
         suboptions.output_xhist = output_xhist;
+        % Temprorarily set the iter and i_real for debug.
+        suboptions.iter = iter;
+        suboptions.i_real = i_real;
         if isfield(options, "Algorithm")
             suboptions.Algorithm = options.Algorithm;
         else
             suboptions.Algorithm = "cbds";
         end
 
+        % if iter == 10 && i_real == 3
+        %     keyboard
+        % end
+
         % Perform the direct search within the i_real-th block.
         [sub_xopt, sub_fopt, sub_exitflag, sub_output] = inner_direct_search(fun, xbase,...
             fbase, D(:, direction_indices), direction_indices,...
             alpha_all(i_real), suboptions);
+
+        % if iter == 9 && i_real == 3
+        %     keyboard
+        % end
 
         % Record the sufficient decrease value and the boolean value of whether the sufficient decrease
         % is achieved or not if is_estimated_gradient_stop is true.
         decrease_value(i_real, iter) = sub_output.decrease_value;
         sufficient_decrease(i_real, iter) = sub_output.sufficient_decrease;
         success_all(i_real) = sub_output.success;
+        LS_stepsize(i_real) = sub_output.alpha;
 
         if verbose
             fprintf("The number of the block visited is: %d\n", i_real);
@@ -656,14 +668,25 @@ for iter = 1:maxit
         % Update the number of function evaluations.
         nf = nf+sub_output.nf;
 
+        % if iter == 9 && i_real == 3
+        %     keyboard
+        % end
+
         % Update the step size alpha_all according to the reduction achieved.
-        if (sub_fopt + reduction_factor(3) * forcing_function(alpha_all(i_real)) < fbase) ...
-                && ~(isfield(options, "Algorithm") && strcmpi(options.Algorithm, "lam"))
-            alpha_all(i_real) = expand * alpha_all(i_real);
+        if (sub_fopt + reduction_factor(3) * forcing_function(alpha_all(i_real)) < fbase) 
+                if isfield(options, 'Algorithm') && any(ismember(options.Algorithm, lam_list))
+                    alpha_all(i_real) = sub_output.alpha;
+                else
+                    alpha_all(i_real) = expand * alpha_all(i_real);
+                end
         elseif (sub_fopt + reduction_factor(2) * forcing_function(alpha_all(i_real)) >= fbase) ...
                 && ~(isfield(options, "Algorithm") && strcmpi(options.Algorithm, "lam"))
             alpha_all(i_real) = shrink * alpha_all(i_real);
         end
+
+        % if iter == 9 && i_real == 3
+        %     keyboard
+        % end
 
         % Record the best function value and point encountered in the i_real-th block.
         fopt_all(i_real) = sub_fopt;
@@ -703,10 +726,14 @@ for iter = 1:maxit
         end
     end
 
+    % if iter == 9
+    %     keyboard
+    % end
+
     if isfield(options, "Algorithm") && strcmpi(options.Algorithm, "lam")
         alpha_all = (any(success_all) * LS_stepsize) + (~any(success_all) * shrink .* alpha_all);
     end
-
+    
     % Record the step size for every iteration if output_alpha_hist is true.
     % Why iter+1? Because we record the step size for the next iteration.
     alpha_hist(:, iter+1) = alpha_all;

@@ -63,7 +63,7 @@ fopt = fbase;
 xopt = xbase;
 
 for j = 1 : num_directions
-    
+
     % Evaluate the objective function for the current polling direction.
     xnew = xbase+alpha*D(:, j);
     % fnew_real is the real function value at xnew, which is the value returned by fun 
@@ -104,7 +104,7 @@ for j = 1 : num_directions
     success = sufficient_decrease;
 
     if sufficient_decrease && (strcmpi(Algorithm, "lam") | strcmpi(Algorithm, "lam1"))
-        [xnew, fnew, exitflag, ls_output] = LS(fun, xbase, fbase, D(:, j), alpha, nf, options);
+        [xnew, fnew, exitflag, ls_output] = LS(fun, xnew, fnew, D(:, j), alpha, nf, options);
         % Record the points visited by LS if the output_xhist is true.
         if output_xhist
             xhist(:, (nf+1):(nf+ls_output.nf)) = ls_output.xhist;
@@ -114,6 +114,7 @@ for j = 1 : num_directions
         % Update the number of function evaluations.
         nf = nf + ls_output.nf;
         alpha = ls_output.alpha;
+        sufficient_decrease = ls_output.sufficient_decrease;
         % Update the best point and the best function value.
         if fnew < fopt
             xopt = xnew;
@@ -150,16 +151,22 @@ end
 % Truncate FHIST and XHIST into a vector of length nf.
 output.fhist = fhist(1:nf);
 output.xhist = xhist(:, 1:nf);
+% if options.iter == 9 && options.i_real == 3
+%     keyboard
+% end
 output.nf = nf;
 output.direction_indices = direction_indices;
 output.terminate = terminate;
 output.alpha = alpha;
 output.success = success;
-if success
-    output.sufficient_decrease = true;
-else
-    output.sufficient_decrease = false;
-end
+% LS fails does not mean that BDS fails in this block. It is conflicted with the
+% way of BDS to check the success of the algorithm.
+% if success
+%     output.sufficient_decrease = true;
+% else
+%     output.sufficient_decrease = false;
+% end
+output.sufficient_decrease = sufficient_decrease;
 output.decrease_value = fbase - min(fhist(1:nf));
 end
 

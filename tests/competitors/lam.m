@@ -53,6 +53,7 @@ end
 % In theory, setting the maximum of function evaluations is not needed. But we do it to avoid infinite 
 % cycling if there is a bug.
 maxit = MaxFunctionEvaluations;
+alpha_hist = NaN(num_blocks, maxit);
 
 % Set the reduction factor. We adopt the reduction factor in the paper Worst case complexity bounds for linesearch-type 
 % derivative-free algorithms, 2024.
@@ -107,7 +108,8 @@ end
 if isfield(options, "stepsize_factor")
     stepsize_factor = options.stepsize_factor;
 else
-    stepsize_factor = 1e-10;
+    stepsize_factor = 0;
+    % stepsize_factor = 0;
 end
 
 % Set the type of linesearch.
@@ -131,6 +133,7 @@ if isfield(options, "alpha_init")
 else
     alpha_all = ones(num_blocks, 1);
 end
+alpha_hist(:, 1) = alpha_all(:);
 success_all = false(num_blocks, 1);
 LS_stepsize = zeros(num_blocks, 1);
 
@@ -178,20 +181,26 @@ for iter = 1:maxit
         suboptions.expand = expand;
         suboptions.ftarget = ftarget;
         suboptions.linesearch_type = linesearch_type;
-        
+        suboptions.iter = iter;
+        suboptions.i_real = i_real;
+
+        % if iter == 10
+        %     keyboard
+        % end
+
         [xval, fval, sub_exitflag, suboutput] = linesearch(fun, xval,...
             fval, D(:, direction_indices), direction_indices,...
             alpha_bar, suboptions);
 
         success_all(i_real) = suboutput.success;
         LS_stepsize(i_real) = suboutput.stepsize;
-        
+
         % Store the history of the evaluations by inner_direct_search, 
         % and accumulate the number of function evaluations.
         fhist((nf+1):(nf+suboutput.nf)) = suboutput.fhist;
         xhist(:, (nf+1):(nf+suboutput.nf)) = suboutput.xhist;
         nf = nf+suboutput.nf;
-
+ 
         % If suboutput.terminate is true, then inner_direct_search returns 
         % boolean value of terminate because either the maximum number of function
         % evaluations or the target of the objective function value is reached. 
@@ -208,6 +217,10 @@ for iter = 1:maxit
         
     end
 
+    % if iter == 10
+    %     keyboard
+    % end
+
     % Check whether one of SMALL_ALPHA, MAXFUN_REACHED, and FTARGET_REACHED is reached.
     if terminate
         break;
@@ -221,20 +234,9 @@ for iter = 1:maxit
         otherwise
             error("Unknown algorithm");
     end
-    % % if suboutput.success
-    % %     % If the sufficient decrease condition is satisfied, then the step size is updated by
-    % %     % linesearch.
-    % %     alpha_all(i_real) = suboutput.stepsize;
-    % % else
-    % %     % If the sufficient decrease condition is not satisfied, then the step size is updated by shrink.
-    % %     alpha_all(i_real) = shrink * alpha_all(i_real);
-    % % end
-    % % success(i) indicates whether block i is successful, i = 1, ..., num_blocks. 
-    % % LS_stepsize(i) is the step size of block i after linesearch.
-    % % LAM1
-    % alpha_all =  (success) * LS_stepsize + (~success) * shrink * alpha_all;
-    % % LAM
-    % alpha_all = (any(success)) * LS_stepsize + (~any(success)) * shrink * alpha_all;
+
+    % Why iter+1? Because we record the step size for the next iteration.
+    alpha_hist(:, iter+1) = alpha_all;
 
     % Terminate the computations if the largest component of step size is below a
     % given StepTolerance.
@@ -254,6 +256,7 @@ end
 output.funcCount = nf;
 output.fhist = fhist(1:nf);
 output.xhist = xhist(:, 1:nf);
+output.alpha_hist = alpha_hist(:, 1:iter);
 
 switch exitflag
     case {get_exitflag("SMALL_ALPHA")}
