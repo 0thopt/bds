@@ -74,6 +74,8 @@ for j = 1 : num_directions
     while sufficient_decrease
 
         alpha = alpha*expand;
+        xbase = xnew;
+        fbase = fnew;
         xnew = xbase+alpha*D(:, j);
         fnew = eval_fun(fun, xnew);
         nf = nf+1;
