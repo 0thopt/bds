@@ -557,7 +557,7 @@ terminate = false;
 % TODO: when the exitflag is conflicted, what is the priority?
 % Stop the loop if no more function evaluations can be performed. 
 % Note that this should be checked before evaluating the objective function.
-if nf >= options.MaxFunctionEvaluations
+if nf >= MaxFunctionEvaluations
     information = "MAXFUN_REACHED";
     exitflag = get_exitflag(information);
 

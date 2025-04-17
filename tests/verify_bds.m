@@ -178,9 +178,9 @@ try
             p = s2mpj_wrapper(problem_info);
             for i_run = n_runs:n_runs+num_random-1
                 fprintf("%d(%d). %s\n", i_problem, i_run, p.name);
-                if i_run == 1 && i_problem == 118
-                    keyboard
-                end
+                % if i_run == 1 && i_problem == 118
+                %     keyboard
+                % end
                 parameters.i_problem = i_problem;
                 iseqiv(solvers, p, i_run, single_test, prec, parameters);
             end

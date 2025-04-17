@@ -36,8 +36,8 @@ profile_optiprofiler(options);
 % options.feature_name = 'rotation_noisy_1e-2';
 % profile_optiprofiler(options);
 
-options.feature_name = 'rotation_noisy_1e-3';
-profile_optiprofiler(options);
+% options.feature_name = 'rotation_noisy_1e-3';
+% profile_optiprofiler(options);
 
 % options.feature_name = 'rotation_noisy_1e-4';
 % profile_optiprofiler(options);

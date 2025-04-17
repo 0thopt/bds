@@ -118,11 +118,11 @@ if ~endsWith(solvers{2}, '_norma')
 end
 
 %tic;
-if ir == 1 && options.i_problem == 118
-    keyboard
-    test_options.output_xhist = true;
-    test_options.output_alpha_hist = true;
-end
+% if ir == 1 && options.i_problem == 118
+%     keyboard
+%     test_options.output_xhist = true;
+%     test_options.output_alpha_hist = true;
+% end
 
 [x1, fx1, exitflag1, output1] = solver1(p.objective, p.x0, test_options);
 %T = toc; fprintf('\nRunning time for %s:\t %f\n', solvers{1}, T);
