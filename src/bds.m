@@ -289,7 +289,9 @@ end
 % If options contain expand or shrink, then expand or shrink is set to the corresponding value.
 if ~isfield(options, "expand")
     % n == 1 is treated as a special case, and we can treat the Algorithm as "ds".
-    if (isfield(options, "Algorithm") && strcmpi(options.Algorithm, "ds")) || n == 1 || (num_blocks == 1 && batch_size == 1)
+    % n == 1 should not be a special case!
+    % (num_blocks == 1 && batch_size == 1) should not be a special case!
+    if (isfield(options, "Algorithm") && strcmpi(options.Algorithm, "ds"))
         if numel(x0) <= 5
             expand = get_default_constant("ds_expand_small");
         else
@@ -301,13 +303,17 @@ if ~isfield(options, "expand")
             end
         end
     else
-        if numel(x0) <= 5
-            expand = get_default_constant("expand_small");
+        if isfield(options, "Algorithm") && any(ismember(lower(options.Algorithm), lam_list))
+            expand = get_default_constant("lam_expand");
         else
-            if is_noisy
-                expand = get_default_constant("expand_big_noisy");
+            if numel(x0) <= 5
+                expand = get_default_constant("expand_small");
             else
-                expand = get_default_constant("expand_big");
+                if is_noisy
+                    expand = get_default_constant("expand_big_noisy");
+                else
+                    expand = get_default_constant("expand_big");
+                end
             end
         end
     end
@@ -316,7 +322,7 @@ else
 end
 
 if ~isfield(options, "shrink")
-    if (isfield(options, "Algorithm") && strcmpi(options.Algorithm, "ds")) || n == 1 || (num_blocks == 1 && batch_size == 1)
+    if (isfield(options, "Algorithm") && strcmpi(options.Algorithm, "ds"))
         if numel(x0) <= 5
             shrink = get_default_constant("ds_shrink_small");
         else
@@ -327,13 +333,17 @@ if ~isfield(options, "shrink")
             end
         end
     else
-        if numel(x0) <= 5
-            shrink = get_default_constant("shrink_small");
+        if isfield(options, "Algorithm") && any(ismember(lower(options.Algorithm), lam_list))
+            shrink = get_default_constant("lam_shrink");
         else
-            if is_noisy
-                shrink = get_default_constant("shrink_big_noisy");
+            if numel(x0) <= 5
+                shrink = get_default_constant("shrink_small");
             else
-                shrink = get_default_constant("shrink_big");
+                if is_noisy
+                    shrink = get_default_constant("shrink_big_noisy");
+                else
+                    shrink = get_default_constant("shrink_big");
+                end
             end
         end
     end
@@ -543,8 +553,19 @@ if output_xhist
 end
 % When we record fhist, we should use the real function value at xbase, which is fbase_real.
 fhist(nf) = fbase_real;
-
 terminate = false;
+% TODO: when the exitflag is conflicted, what is the priority?
+% Stop the loop if no more function evaluations can be performed. 
+% Note that this should be checked before evaluating the objective function.
+if nf >= options.MaxFunctionEvaluations
+    information = "MAXFUN_REACHED";
+    exitflag = get_exitflag(information);
+
+    % MaxFunctionEvaluations has been reached at the very first function evaluation.
+    % In this case, no further computation should be entertained, and hence,
+    % no iteration should be run.
+    maxit = 0;
+end
 % Check whether FTARGET is reached by fopt. If it is true, then terminate.
 if fopt <= ftarget
     information = "FTARGET_REACHED";
@@ -555,6 +576,7 @@ if fopt <= ftarget
     % no iteration should be run.
     maxit = 0;
 end
+
 
 % Initialize the block_indices, which is a vector containing the indices of blocks that we
 % are going to visit iterately. Initialize the number of blocks visited also.
@@ -625,8 +647,7 @@ for iter = 1:maxit
         else
             suboptions.Algorithm = "cbds";
         end
-
-        % if iter == 10 && i_real == 3
+        % if iter == 2
         %     keyboard
         % end
 
@@ -635,7 +656,7 @@ for iter = 1:maxit
             fbase, D(:, direction_indices), direction_indices,...
             alpha_all(i_real), suboptions);
 
-        % if iter == 9 && i_real == 3
+        % if iter == 2
         %     keyboard
         % end
 
@@ -668,7 +689,7 @@ for iter = 1:maxit
         % Update the number of function evaluations.
         nf = nf+sub_output.nf;
 
-        % if iter == 9 && i_real == 3
+        % if iter == 1 && i_real == 2
         %     keyboard
         % end
 
@@ -684,7 +705,7 @@ for iter = 1:maxit
             alpha_all(i_real) = shrink * alpha_all(i_real);
         end
 
-        % if iter == 9 && i_real == 3
+        % if iter == 1 && i_real == 2
         %     keyboard
         % end
 
@@ -695,14 +716,25 @@ for iter = 1:maxit
         % If the scheme is not "parallel", then we will update xbase and fbase after finishing the
         % direct search in the i_real-th block. For "parallel", we will update xbase and fbase after
         % one iteration of the outer loop.
-        if ~strcmpi(scheme, "parallel")
-            % Update xbase and fbase. xbase serves as the "base point" for the computation in the next block,
-            % meaning that reduction will be calculated with respect to xbase, as shown above.
-            % Note that their update requires a sufficient decrease if reduction_factor(1) > 0.
-            if (reduction_factor(1) <= 0 && sub_fopt < fbase) ...
-                    || sub_fopt + reduction_factor(1) * forcing_function(alpha_all(i_real)) < fbase
-                xbase = sub_xopt;
-                fbase = sub_fopt;
+        if ~strcmpi(scheme, "parallel") 
+            if  ~(isfield(options, 'Algorithm') && any(ismember(options.Algorithm, lam_list)))
+                % Update xbase and fbase. xbase serves as the "base point" for the computation in the next block,
+                % meaning that reduction will be calculated with respect to xbase, as shown above.
+                % Note that their update requires a sufficient decrease if reduction_factor(1) > 0.
+                if (reduction_factor(1) <= 0 && sub_fopt < fbase) ...
+                        || sub_fopt + reduction_factor(1) * forcing_function(alpha_all(i_real)) < fbase
+                    xbase = sub_xopt;
+                    fbase = sub_fopt;
+                end
+            else
+                if sub_fopt < fbase
+                    xbase = sub_xopt;
+                    fbase = sub_fopt;
+                end
+                if sub_fopt < fopt
+                    fopt = sub_fopt;
+                    xopt = sub_xopt;
+                end
             end
         end
 
@@ -761,10 +793,12 @@ for iter = 1:maxit
     % bigger than fopt due to the update of xbase and fbase.
     % NOTE: If the function values are complex, the min function will return the value with the smallest
     % norm (magnitude).
-    [~, index] = min(fopt_all, [], "omitnan");
-    if fopt_all(index) < fopt
-        fopt = fopt_all(index);
-        xopt = xopt_all(:, index);
+    if ~(isfield(options, 'Algorithm') && any(ismember(options.Algorithm, lam_list)))
+        [~, index] = min(fopt_all, [], "omitnan");
+        if fopt_all(index) < fopt
+            fopt = fopt_all(index);
+            xopt = xopt_all(:, index);
+        end
     end
 
     % Terminate the computations if terminate is true.

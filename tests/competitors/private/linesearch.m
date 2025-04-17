@@ -2,7 +2,13 @@ function [xval, fval, exitflag, output] = linesearch(fun, ...
     xval, fval, D, direction_indices, alpha, options)
 
 % Set the value of reduction_factor.
-reduction_factor = options.reduction_factor;
+if isscalar(options.reduction_factor)
+    reduction_factor = options.reduction_factor;
+elseif length(options.reduction_factor) == 3
+    reduction_factor = options.reduction_factor(3);
+else
+    error("The length of reduction_factor should be 1 or 3.");
+end
 
 % Set the value of expanding factor.
 expand = options.expand;
@@ -44,11 +50,19 @@ for j = 1 : num_directions
 
     % Evaluate the objective function for the current polling direction.
     xnew = xbase+alpha*D(:, j);
-    fnew = eval_fun(fun, xnew);
+    [fnew, fnew_real] = eval_fun(fun, xnew);
     nf = nf+1;
-    fhist(nf) = fnew;
+    % When we record the function value, we use the real function value.
+    % Here, we should use fnew_real instead of fnew.
+    fhist(nf) = fnew_real;
     xhist(:, nf) = xnew;
     
+    % Update the best point and the best function value.
+    if fnew < fval
+        xval = xnew;
+        fval = fnew;
+    end
+
     % Stop the computations once the target value of the objective function
     % is achieved.
     if fnew <= ftarget
@@ -59,18 +73,26 @@ for j = 1 : num_directions
         exitflag = get_exitflag(information);
         break;
     end
+
+    % Stop the loop if no more function evaluations can be performed. 
+    % Note that this should be checked before evaluating the objective function.
+    if nf >= options.MaxFunctionEvaluations
+        terminate = true;
+        exitflag = get_exitflag("MAXFUN_REACHED");
+        break;
+    end
     
     % Check whether the sufficient decrease condition is achieved.
     sufficient_decrease = (fnew + reduction_factor * alpha^2 < fbase);
     
     % if sufficient decrease
-    if sufficient_decrease
+    if fnew < fval
         fval = fnew;
         xval = xnew;
     end
 
     success = sufficient_decrease;
-
+    % keyboard
     while sufficient_decrease
 
         % Important modification!!!!!!
@@ -82,6 +104,12 @@ for j = 1 : num_directions
         nf = nf+1;
         fhist(nf) = fnew;
         xhist(:, nf) = xnew;
+
+        % Update the best point and the best function value.
+        if fnew < fval
+            xval = xnew;
+            fval = fnew;
+        end
 
         % Stop the computations once the target value of the objective function
         % is achieved.

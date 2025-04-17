@@ -37,6 +37,10 @@ switch constant_name
         constant_value = 1.25;
     case {"shrink_big_noisy"}
         constant_value = 0.85;
+    case {"lam_expand"}
+        constant_value = 2;
+    case {"lam_shrink"}
+        constant_value = 0.5;
     case {"reduction_factor"}
         constant_value = [1e-6, 1e-6, 1e-6];
     case {"forcing_function"}

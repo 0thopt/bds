@@ -64,6 +64,13 @@ xopt = xbase;
 
 for j = 1 : num_directions
 
+    % % Stop the loop if no more function evaluations can be performed. 
+    % % Note that this should be checked before evaluating the objective function.
+    % if nf >= options.MaxFunctionEvaluations
+    %     exitflag = get_exitflag("MAXFUN_REACHED");
+    %     break;
+    % end
+
     % Evaluate the objective function for the current polling direction.
     xnew = xbase+alpha*D(:, j);
     % fnew_real is the real function value at xnew, which is the value returned by fun 
@@ -86,13 +93,10 @@ for j = 1 : num_directions
         xopt = xnew;
         fopt = fnew;
     end
-
-    if nf >= MaxFunctionEvaluations || fnew_real <= ftarget
-        break;
-    end
     
-    % Check whether the sufficient decrease condition is achieved.
-    sufficient_decrease = (fnew + reduction_factor(3) * forcing_function(alpha)/2 < fbase);
+    % Check whether the sufficient decrease condition is achieved. To keep the same setting of forcing
+    % function in LAM, we use forcing function x^2 instead of x^2 / 2.
+    sufficient_decrease = (fnew + reduction_factor(3) * forcing_function(alpha) < fbase);
     if verbose
         if sufficient_decrease
             fprintf("%g decrease is achieved.\n", fbase - fnew);
@@ -101,8 +105,12 @@ for j = 1 : num_directions
         end
     end
 
-    success = sufficient_decrease;
+    if nf >= MaxFunctionEvaluations || fnew_real <= ftarget
+        break;
+    end
 
+    success = sufficient_decrease;
+    % keyboard
     if sufficient_decrease && (strcmpi(Algorithm, "lam") | strcmpi(Algorithm, "lam1"))
         [xnew, fnew, exitflag, ls_output] = LS(fun, xnew, fnew, D(:, j), alpha, nf, options);
         % Record the points visited by LS if the output_xhist is true.

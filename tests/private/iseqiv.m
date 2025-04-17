@@ -80,7 +80,11 @@ if 10 <= ir && ir <= 12
     test_options.StepTolerance = 1e-3*(1 + 0.5*(2*rand-1));
 end
 if 13 <= ir && ir <= 15
-    test_options.reduction_factor = sort(rand(1, 3));
+    if ismember(solvers{1}, {'lam'}) || ismember(solvers{2}, {'lam'})
+        test_options.reduction_factor = rand(1) * ones(1, 3); 
+    else
+        test_options.reduction_factor = sort(rand(1, 3));
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if 1 <= ir && ir <= 20
@@ -112,16 +116,21 @@ if ~endsWith(solvers{2}, '_norma')
         p.objective = @(x) p.objective(x');
     end
 end
+
 %tic;
+if ir == 1 && options.i_problem == 118
+    keyboard
+    test_options.output_xhist = true;
+    test_options.output_alpha_hist = true;
+end
+
 [x1, fx1, exitflag1, output1] = solver1(p.objective, p.x0, test_options);
 %T = toc; fprintf('\nRunning time for %s:\t %f\n', solvers{1}, T);
 %tic;
 [x2, fx2, exitflag2, output2] = solver2(p.objective, p.x0, test_options);
 %T = toc; fprintf('\nRunning time for %s:\t %f\n', solvers{2}, T);
-
 % Restore the random number generator state
 rng(orig_rng_state);
-
 
 equiv = iseq(x1(:), fx1, exitflag1, output1, x2(:), fx2, exitflag2, output2, prec);
 
@@ -164,7 +173,7 @@ function eq = iseq(x, f, exitflag, output, xx, ff, ee, oo, prec)
     if (norm(xx-x)/(1+norm(x)) > prec || abs(ff-f)/(1+abs(f)) > prec)
         eq = false;
     end
-    
+    % keyboard    
     if isfield(output, 'fhist')
         output.fhist = output.fhist(:);
     else

@@ -53,7 +53,21 @@ end
 % In theory, setting the maximum of function evaluations is not needed. But we do it to avoid infinite 
 % cycling if there is a bug.
 maxit = MaxFunctionEvaluations;
+if isfield(options, "output_alpha_hist")
+    output_alpha_hist = options.output_alpha_hist;
+else
+    output_alpha_hist = false;
+end
 alpha_hist = NaN(num_blocks, maxit);
+
+if isfield(options, "output_block_hist")
+    output_block_hist = options.output_block_hist;
+else
+    output_block_hist = false;
+end
+% Initialize the history of blocks visited.
+block_hist = NaN(1, MaxFunctionEvaluations);
+num_visited_blocks = 0;
 
 % Set the reduction factor. We adopt the reduction factor in the paper Worst case complexity bounds for linesearch-type 
 % derivative-free algorithms, 2024.
@@ -135,19 +149,24 @@ else
 end
 alpha_hist(:, 1) = alpha_all(:);
 success_all = false(num_blocks, 1);
-LS_stepsize = zeros(num_blocks, 1);
+LS_stepsize = ones(num_blocks, 1);
 
 % Initialize the history of function values.
 fhist = NaN(1, MaxFunctionEvaluations);
 
 % Initialize the history of points visited.
+if isfield(options, "output_xhist")
+    output_xhist = options.output_xhist;
+else
+    output_xhist = false;
+end
 xhist = NaN(n, MaxFunctionEvaluations); 
 
 xval = x0; 
-fval = eval_fun(fun, xval);
+[fval, fval_real] = eval_fun(fun, xval);
 % Set the number of function evaluations.
 nf = 1; 
-fhist(nf) = fval;
+fhist(nf) = fval_real;
 xhist(:, nf) = xval;
 
 % Check whether FTARGET is reached by FVAL. If it is true, then terminate.
@@ -184,22 +203,30 @@ for iter = 1:maxit
         suboptions.iter = iter;
         suboptions.i_real = i_real;
 
-        % if iter == 10
+        % if iter == 2 && i_real == 2
         %     keyboard
         % end
-
+        
         [xval, fval, sub_exitflag, suboutput] = linesearch(fun, xval,...
             fval, D(:, direction_indices), direction_indices,...
             alpha_bar, suboptions);
+        
+        % if iter == 2 && i_real == 2
+        %     keyboard
+        % end
 
         success_all(i_real) = suboutput.success;
         LS_stepsize(i_real) = suboutput.stepsize;
-
+        
         % Store the history of the evaluations by inner_direct_search, 
         % and accumulate the number of function evaluations.
         fhist((nf+1):(nf+suboutput.nf)) = suboutput.fhist;
         xhist(:, (nf+1):(nf+suboutput.nf)) = suboutput.xhist;
         nf = nf+suboutput.nf;
+
+        % Record the index of the block visited.
+        num_visited_blocks = num_visited_blocks + 1;
+        block_hist(num_visited_blocks) = i_real;
  
         % If suboutput.terminate is true, then inner_direct_search returns 
         % boolean value of terminate because either the maximum number of function
@@ -214,6 +241,29 @@ for iter = 1:maxit
         % Retrieve the order of the polling directions and check whether a
         % sufficient decrease has been achieved in inner_direct_search.
         direction_set_indices{i_real} = suboutput.direction_indices;
+
+        if strcmpi(Algorithm, 'lam1')
+            if success_all(i_real)
+                % If the linesearch is successful, then we will use the step size
+                % returned by linesearch.
+                alpha_all(i_real) = LS_stepsize(i_real);
+            else
+                % if alpha_bar ~= alpha_all(i_real) || alpha_bar ~= LS_stepsize(i_real)
+                %     keyboard
+                % end
+                % If the linesearch is not successful, then we shrink the step size.
+                alpha_all(i_real) = shrink * alpha_bar;
+            end
+        end
+        % if iter == 1 && i_real == 2
+        %     keyboard
+        % end
+        % Terminate the computations if the largest step size is below StepTolerance.
+        if max(alpha_all) < alpha_tol
+            terminate = true;
+            exitflag = get_exitflag("SMALL_ALPHA");
+            break;
+        end
         
     end
 
@@ -226,13 +276,11 @@ for iter = 1:maxit
         break;
     end
 
-    switch Algorithm
-        case 'lam'
-            alpha_all = (any(success_all) * LS_stepsize) + (~any(success_all) * shrink .* alpha_all);
-        case 'lam1'
-            alpha_all = success_all .* LS_stepsize + shrink * (~success_all) .* alpha_all;
-        otherwise
-            error("Unknown algorithm");
+
+    % case 'lam1'
+    %     alpha_all = success_all .* LS_stepsize + shrink * (~success_all) .* alpha_all;
+    if strcmpi(Algorithm, 'lam')
+        alpha_all = (any(success_all) * LS_stepsize) + (~any(success_all) * shrink .* alpha_all);
     end
 
     % Why iter+1? Because we record the step size for the next iteration.
@@ -255,8 +303,15 @@ end
 % Truncate HISTORY into an nf length vector.
 output.funcCount = nf;
 output.fhist = fhist(1:nf);
-output.xhist = xhist(:, 1:nf);
-output.alpha_hist = alpha_hist(:, 1:iter);
+if output_xhist
+    output.xhist = xhist(:, 1:nf);
+end
+if output_alpha_hist
+    output.alpha_hist = alpha_hist(:, 1:iter);
+end
+if output_block_hist
+    output.blocks_hist = block_hist(1:num_visited_blocks);
+end
 
 switch exitflag
     case {get_exitflag("SMALL_ALPHA")}

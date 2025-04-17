@@ -56,7 +56,7 @@ while sufficient_decrease
 
     % Stop the loop if no more function evaluations can be performed. 
     % Note that this should be checked before evaluating the objective function.
-    if nf >= options.MaxFunctionEvaluations
+    if nf >= MaxFunctionEvaluations
         exitflag = get_exitflag("MAXFUN_REACHED");
         break;
     end
