@@ -122,7 +122,7 @@ end
 if isfield(options, "stepsize_factor")
     stepsize_factor = options.stepsize_factor;
 else
-    stepsize_factor = 0;
+    stepsize_factor = 1e-10;
     % stepsize_factor = 0;
 end
 
