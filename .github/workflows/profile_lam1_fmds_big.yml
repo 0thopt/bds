@@ -1,16 +1,16 @@
-name: Profile lam and fmds using optiprofiler, big
+name: Profile lam1 and fmds using optiprofiler, big
 
 on:
   # Trigger the workflow on # push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
-  # schedule:
-  # - cron: '0 12 */1 * *'
+  schedule:
+  - cron: '0 12 */1 * *'
   workflow_dispatch:
 
 jobs:
   test:
-    name: Profile lam and fmds, big
+    name: Profile lam1 and fmds, big
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -19,7 +19,7 @@ jobs:
         matlab: [latest]
         dim: [big]
         with_optim_toolbox: [yes]
-        solver: [lam]
+        solver: [lam1]
         competitor: [fmds]
         run_plain: [false]
         summarize_log_ratio_profiles: [false]
