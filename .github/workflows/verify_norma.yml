@@ -21,7 +21,7 @@ jobs:
         os: [ubuntu-latest]
         matlab: [latest]
         with_optim_toolbox: [yes]
-        Algorithm: [cbds, ds, rbds, pads]
+        Algorithm: [lam1]
         parallel: [true, false]
 
     steps:
