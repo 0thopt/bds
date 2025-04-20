@@ -1,1 +1,1 @@
-/Users/lihaitian/Work/bds/src/private/LS.m
+../../../src/private/LS.m
