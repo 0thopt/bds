@@ -11,7 +11,7 @@ else
 end
 
 % Set the value of expanding factor.
-expand = options.expand;
+% expand = options.expand;
 
 % Set the value of cycling_strategy, which represents the cycling strategy inside each block.
 cycling_strategy = 1;
@@ -22,6 +22,12 @@ with_cycling_memory = options.with_cycling_memory;
 % Set ftarget of objective function.
 ftarget = options.ftarget;
 
+% Set the value of Algorithm.
+Algorithm = options.Algorithm;
+
+% Set the number of function evaluations allocated to this function.
+MaxFunctionEvaluations = options.MaxFunctionEvaluations;
+
 % Explain why NaN is good. It is possible that this function returns
 % with exitflag=NaN and this is NOT a bug. This is because other situations
 % are corresponding to other normal values. Easy to see whether there is
@@ -31,8 +37,8 @@ exitflag = NaN;
 % Initialize some parameters before entering the loop.
 n = length(xval);
 num_directions = length(direction_indices);
-fhist = NaN(1, options.MaxFunctionEvaluations);
-xhist = NaN(n, options.MaxFunctionEvaluations);
+fhist = NaN(1, MaxFunctionEvaluations);
+xhist = NaN(n, MaxFunctionEvaluations);
 success = false;
 nf = 0; 
 fbase = fval;
@@ -42,7 +48,7 @@ terminate = false;
 for j = 1 : num_directions
     % Stop the loop if no more function evaluations can be performed. 
     % Note that this should be checked before evaluating the objective function.
-    if nf >= options.MaxFunctionEvaluations
+    if nf >= MaxFunctionEvaluations
         terminate = true;
         exitflag = get_exitflag("MAXFUN_REACHED");
         break;
@@ -76,7 +82,7 @@ for j = 1 : num_directions
 
     % Stop the loop if no more function evaluations can be performed. 
     % Note that this should be checked before evaluating the objective function.
-    if nf >= options.MaxFunctionEvaluations
+    if nf >= MaxFunctionEvaluations
         terminate = true;
         exitflag = get_exitflag("MAXFUN_REACHED");
         break;
@@ -93,52 +99,70 @@ for j = 1 : num_directions
 
     success = sufficient_decrease;
     % keyboard
-    while sufficient_decrease
+    % while sufficient_decrease
 
-        % Important modification!!!!!!
-        xbase = xnew;
-        fbase = fnew;
-        alpha = alpha*expand;
-        xnew = xbase+alpha*D(:, j);
-        fnew = eval_fun(fun, xnew);
-        nf = nf+1;
-        fhist(nf) = fnew;
-        xhist(:, nf) = xnew;
+    %     % Important modification!!!!!!
+    %     xbase = xnew;
+    %     fbase = fnew;
+    %     alpha = alpha*expand;
+    %     xnew = xbase+alpha*D(:, j);
+    %     fnew = eval_fun(fun, xnew);
+    %     nf = nf+1;
+    %     fhist(nf) = fnew;
+    %     xhist(:, nf) = xnew;
 
+    %     % Update the best point and the best function value.
+    %     if fnew < fval
+    %         xval = xnew;
+    %         fval = fnew;
+    %     end
+
+    %     % Stop the computations once the target value of the objective function
+    %     % is achieved.
+    %     if fnew <= ftarget
+    %         xval = xnew;
+    %         fval = fnew;
+    %         terminate = true;
+    %         information = "FTARGET_REACHED";
+    %         exitflag = get_exitflag(information);
+    %         break;
+    %     end
+
+    %     % Stop the loop if no more function evaluations can be performed. 
+    %     % Note that this should be checked before evaluating the objective function.
+    %     if nf >= options.MaxFunctionEvaluations
+    %         terminate = true;
+    %         exitflag = get_exitflag("MAXFUN_REACHED");
+    %         break;
+    %     end
+
+    %     sufficient_decrease = fnew + reduction_factor * ((expand-1) *alpha)^2 < fhist(nf-1);    
+
+    %     if sufficient_decrease
+    %         fval = fnew;
+    %         xval = xnew;
+    %     else
+    %         % If the sufficient decrease condition is not satisfied, then
+    %         % the alpha indicates to the last successful step size.
+    %         alpha = alpha/expand;
+    %     end
+    % end
+    if sufficient_decrease && (strcmpi(Algorithm, "lam") | strcmpi(Algorithm, "lam1"))
+        [xnew, fnew, exitflag, ls_output] = LS(fun, xnew, fnew, D(:, j), alpha, nf, options);
+        % Record the points visited by LS.
+        xhist(:, (nf+1):(nf+ls_output.nf)) = ls_output.xhist;
+        % Record the function values calculated by inner_direct_search,
+        fhist((nf+1):(nf+ls_output.nf)) = ls_output.fhist;
+        % Update the number of function evaluations.
+        nf = nf + ls_output.nf;
+        alpha = ls_output.alpha;
         % Update the best point and the best function value.
         if fnew < fval
             xval = xnew;
             fval = fnew;
         end
-
-        % Stop the computations once the target value of the objective function
-        % is achieved.
-        if fnew <= ftarget
-            xval = xnew;
-            fval = fnew;
-            terminate = true;
-            information = "FTARGET_REACHED";
-            exitflag = get_exitflag(information);
+        if nf >= MaxFunctionEvaluations || fval <= ftarget
             break;
-        end
-
-        % Stop the loop if no more function evaluations can be performed. 
-        % Note that this should be checked before evaluating the objective function.
-        if nf >= options.MaxFunctionEvaluations
-            terminate = true;
-            exitflag = get_exitflag("MAXFUN_REACHED");
-            break;
-        end
-
-        sufficient_decrease = fnew + reduction_factor * ((expand-1) *alpha)^2 < fhist(nf-1);    
-
-        if sufficient_decrease
-            fval = fnew;
-            xval = xnew;
-        else
-            % If the sufficient decrease condition is not satisfied, then
-            % the alpha indicates to the last successful step size.
-            alpha = alpha/expand;
         end
     end
      
@@ -148,6 +172,18 @@ for j = 1 : num_directions
     end
 end
 
+
+% When the algorithm reaches here, it means that there are three cases.
+% 1. The algorithm uses out of the allocated function evaluations.
+% 2. The algorithm reaches the target function value.
+% 3. The algorithm achieves a sufficient decrease when polling_inner is opportunistic.
+% We need to check whether the algorithm terminates by the first two cases.
+terminate = (nf >= MaxFunctionEvaluations || fval <= ftarget);
+if fval <= ftarget
+    exitflag = get_exitflag( "FTARGET_REACHED");
+elseif nf >= MaxFunctionEvaluations
+    exitflag = get_exitflag("MAXFUN_REACHED");
+end
 % Truncate FHIST and XHIST into an nf length vector.
 output.fhist = fhist(1:nf);
 output.xhist = xhist(:, 1:nf);
@@ -161,6 +197,5 @@ output.terminate = terminate;
 output.stepsize = alpha;
 
 end
-
 
 

@@ -202,6 +202,7 @@ for iter = 1:maxit
         suboptions.linesearch_type = linesearch_type;
         suboptions.iter = iter;
         suboptions.i_real = i_real;
+        suboptions.Algorithm = Algorithm;
 
         % if iter == 2 && i_real == 2
         %     keyboard

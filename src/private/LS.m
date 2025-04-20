@@ -1,6 +1,9 @@
 function [xopt, fopt, exitflag, output] = LS(fun, xbase, fbase, d, alpha, nf, options)
 
 % Set the value of reduction_factor.
+if isscalar(options.reduction_factor)
+    options.reduction_factor = options.reduction_factor * ones(1, 3);
+end
 reduction_factor = options.reduction_factor;
 
 % Set the value of expanding factor.
