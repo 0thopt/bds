@@ -639,7 +639,7 @@ for iter = 1:maxit
         suboptions.polling_inner = options.polling_inner;
         suboptions.verbose = verbose;
         suboptions.output_xhist = output_xhist;
-        % Temprorarily set the iter and i_real for debug.
+        % Set the iter and i_real for debug temporarily.
         suboptions.iter = iter;
         suboptions.i_real = i_real;
         if isfield(options, "Algorithm")

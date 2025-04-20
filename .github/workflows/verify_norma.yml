@@ -22,7 +22,6 @@ jobs:
         matlab: [latest]
         with_optim_toolbox: [yes]
         Algorithm: [lam1]
-        parallel: [true, false]
 
     steps:
 
@@ -95,7 +94,7 @@ jobs:
             
             % Run test
             cd(fullfile(root_dir, 'tests'))
+            parameters.solvers = {"bds", "lam"};
             parameters.Algorithm = '${{ matrix.Algorithm }}';
-            parameters.parallel = ${{ matrix.parallel }};
             verify_bds(parameters);
             
