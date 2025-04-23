@@ -96,8 +96,8 @@ The following tests are implemented by [Optiprofiler](https://github.com/optipro
     - [![Profile original cbds and fmds using optiprofiler, small](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_fmds_small.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_fmds_small.yml)
     - [![Profile lam1 and fmds using optiprofiler, big](https://github.com/0thopt/bds/actions/workflows/profile_lam1_fmds_big.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_lam1_fmds_big.yml)
     - [![Profile lam1 and fmds using optiprofiler, small](https://github.com/0thopt/bds/actions/workflows/profile_lam1_fmds_small.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_lam1_fmds_small.yml)
-    - [![Profile lam and lam1 using optiprofiler, big](https://github.com/0thopt/bds/actions/workflows/profile_lam_lam1_big.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_lam_lam1_big.yml)
-    - [![Profile lam and lam1 using optiprofiler, small](https://github.com/0thopt/bds/actions/workflows/profile_lam_lam1_small.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_lam_lam1_small.yml)
+    - [![Profile lam1 and lam using optiprofiler, big](https://github.com/0thopt/bds/actions/workflows/profile_lam1_lam_big.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_lam1_lam_big.yml)
+    - [![Profile lam1 and lam using optiprofiler, small](https://github.com/0thopt/bds/actions/workflows/profile_lam1_lam_small.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_lam1_lam_small.yml)
 
 - [Tests](https://github.com/dfopt/bds/actions) at [dfopt/bds](https://github.com/dfopt/bds)
 
