@@ -93,6 +93,10 @@ for j = 1 : num_directions
         xopt = xnew;
         fopt = fnew;
     end
+
+    if nf >= MaxFunctionEvaluations || fnew_real <= ftarget
+        break;
+    end
     
     % Check whether the sufficient decrease condition is achieved. To keep the same setting of forcing
     % function in LAM, we use forcing function x^2 instead of x^2 / 2.
@@ -103,10 +107,6 @@ for j = 1 : num_directions
         else
             fprintf("Sufficient decrease is not achieved.\n");
         end
-    end
-
-    if nf >= MaxFunctionEvaluations || fnew_real <= ftarget
-        break;
     end
 
     success = sufficient_decrease;
@@ -122,7 +122,6 @@ for j = 1 : num_directions
         % Update the number of function evaluations.
         nf = nf + ls_output.nf;
         alpha = ls_output.alpha;
-        sufficient_decrease = ls_output.sufficient_decrease;
         % Update the best point and the best function value.
         if fnew < fopt
             xopt = xnew;
@@ -163,18 +162,15 @@ output.xhist = xhist(:, 1:nf);
 %     keyboard
 % end
 output.nf = nf;
-output.direction_indices = direction_indices;
 output.terminate = terminate;
 output.alpha = alpha;
 output.success = success;
-% LS fails does not mean that BDS fails in this block. It is conflicted with the
-% way of BDS to check the success of the algorithm.
-% if success
-%     output.sufficient_decrease = true;
-% else
-%     output.sufficient_decrease = false;
-% end
-output.sufficient_decrease = sufficient_decrease;
+output.sufficient_decrease = success;
+if ~success && (strcmpi(Algorithm, "lam") || strcmpi(Algorithm, "lam1"))
+    output.direction_indices = direction_indices([2, 1]);
+else
+    output.direction_indices = direction_indices;
+end
 output.decrease_value = fbase - min(fhist(1:nf));
 end
 

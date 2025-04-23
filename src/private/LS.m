@@ -12,16 +12,15 @@ expand = options.expand;
 % Set ftarget of objective function.
 ftarget = options.ftarget;
 
-% Explain why NaN is good. It is possible that this function returns
-% with exitflag=NaN and this is NOT a bug. This is because other situations
-% are corresponding to other normal values. Easy to see whether there is
-% some bug related to exitflag.
-exitflag = NaN;
-
 % Adjust the maximum number of function evaluations for the inner LS loop.
 MaxFunctionEvaluations = options.MaxFunctionEvaluations - nf;
 % Reset the function evaluation counter for the inner LS loop.
 nf = 0;
+
+% If terminate is true and the exitflag is NaN, it means that the algorithm terminates
+% not because of the maximum number of function evaluations or the target function value,
+% which will be a bug.
+exitflag = NaN;
 
 xopt = xbase;
 fopt = fbase;
@@ -34,8 +33,8 @@ sufficient_decrease = true;
 
 while sufficient_decrease
 
-    alpha = alpha * expand;
-    xnew = xbase + alpha * d;
+    alpha_tmp = alpha * expand;
+    xnew = xbase + alpha_tmp * d;
     fnew = eval_fun(fun, xnew);
     nf = nf + 1;
     fhist(nf) = fnew;
@@ -69,10 +68,9 @@ while sufficient_decrease
     if sufficient_decrease
         fbase = fnew;
         xbase = xnew;
+        alpha = alpha_tmp;
     else
-        % If the sufficient decrease condition is not satisfied, then
-        % the alpha indicates to the last successful step size.
-        alpha = alpha/expand;
+        break;
     end
 end
 
@@ -81,7 +79,6 @@ output.fhist = fhist(1:nf);
 output.xhist = xhist(:, 1:nf);
 output.nf = nf;
 output.alpha = alpha;
-output.sufficient_decrease = sufficient_decrease;
 end
 
 

@@ -80,10 +80,14 @@ if 10 <= ir && ir <= 12
     test_options.StepTolerance = 1e-3*(1 + 0.5*(2*rand-1));
 end
 if 13 <= ir && ir <= 15
-    if ismember(solvers{1}, {'lam'}) || ismember(solvers{2}, {'lam'})
-        test_options.reduction_factor = rand(1) * ones(1, 3); 
+    if (ismember(solvers{1}, {'lam'}) || ismember(solvers{2}, {'lam'}) ...
+            || ismember(solvers{1}, {'lam1'}) || ismember(solvers{2}, {'lam1'}))
+        % This is only for verification with LAM. In LAM, there is no concept of
+        % reduction_factor(1) and reduction_factor(2). reduction_factor(3) should
+        % be the same as reduction_factor(1) and reduction_factor(2).
+        test_options.reduction_factor = rand(1) * ones(1, 3);
     else
-        test_options.reduction_factor = sort(rand(1, 3));
+        test_options.reduction_factor = [0, 0, rand(1)];
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -118,7 +122,7 @@ if ~endsWith(solvers{2}, '_norma')
 end
 
 %tic;
-% if ir == 1 && options.i_problem == 118
+% if ir == 14 && options.i_problem == 11
 %     keyboard
 %     test_options.output_xhist = true;
 %     test_options.output_alpha_hist = true;
@@ -173,7 +177,7 @@ function eq = iseq(x, f, exitflag, output, xx, ff, ee, oo, prec)
     if (norm(xx-x)/(1+norm(x)) > prec || abs(ff-f)/(1+abs(f)) > prec)
         eq = false;
     end
-    % keyboard    
+        
     if isfield(output, 'fhist')
         output.fhist = output.fhist(:);
     else

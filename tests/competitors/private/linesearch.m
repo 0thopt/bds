@@ -14,7 +14,7 @@ end
 % expand = options.expand;
 
 % Set the value of cycling_strategy, which represents the cycling strategy inside each block.
-cycling_strategy = 1;
+cycling_strategy = get_default_constant('cycling_inner');
 
 % Set the boolean value of WITH_CYCLING_MEMORY. 
 with_cycling_memory = options.with_cycling_memory;
@@ -43,16 +43,15 @@ success = false;
 nf = 0; 
 fbase = fval;
 xbase = xval;
-terminate = false;
 
 for j = 1 : num_directions
-    % Stop the loop if no more function evaluations can be performed. 
-    % Note that this should be checked before evaluating the objective function.
-    if nf >= MaxFunctionEvaluations
-        terminate = true;
-        exitflag = get_exitflag("MAXFUN_REACHED");
-        break;
-    end
+
+    % % Stop the loop if no more function evaluations can be performed. 
+    % % Note that this should be checked before evaluating the objective function.
+    % if nf >= MaxFunctionEvaluations
+    %     exitflag = get_exitflag("MAXFUN_REACHED");
+    %     break;
+    % end
 
     % Evaluate the objective function for the current polling direction.
     xnew = xbase+alpha*D(:, j);
@@ -71,10 +70,7 @@ for j = 1 : num_directions
 
     % Stop the computations once the target value of the objective function
     % is achieved.
-    if fnew <= ftarget
-        xval = xnew;
-        fval = fnew;
-        terminate = true;
+    if fnew_real <= ftarget
         information = "FTARGET_REACHED";
         exitflag = get_exitflag(information);
         break;
@@ -83,21 +79,14 @@ for j = 1 : num_directions
     % Stop the loop if no more function evaluations can be performed. 
     % Note that this should be checked before evaluating the objective function.
     if nf >= MaxFunctionEvaluations
-        terminate = true;
         exitflag = get_exitflag("MAXFUN_REACHED");
         break;
     end
-    
+
     % Check whether the sufficient decrease condition is achieved.
     sufficient_decrease = (fnew + reduction_factor * alpha^2 < fbase);
-    
-    % if sufficient decrease
-    if fnew < fval
-        fval = fnew;
-        xval = xnew;
-    end
-
     success = sufficient_decrease;
+
     % keyboard
     % while sufficient_decrease
 
@@ -192,7 +181,11 @@ output.nf = nf;
 %     keyboard
 % end
 output.success = success;
-output.direction_indices = direction_indices;
+if ~success && (strcmpi(Algorithm, "lam") || strcmpi(Algorithm, "lam1"))
+    output.direction_indices = direction_indices([2, 1]);
+else
+    output.direction_indices = direction_indices;
+end
 output.terminate = terminate;
 output.stepsize = alpha;
 

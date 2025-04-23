@@ -567,7 +567,7 @@ if nf >= MaxFunctionEvaluations
     maxit = 0;
 end
 % Check whether FTARGET is reached by fopt. If it is true, then terminate.
-if fopt <= ftarget
+if fbase_real <= ftarget
     information = "FTARGET_REACHED";
     exitflag = get_exitflag(information);
 
@@ -647,7 +647,7 @@ for iter = 1:maxit
         else
             suboptions.Algorithm = "cbds";
         end
-        % if iter == 2
+        % if iter == 3
         %     keyboard
         % end
 
@@ -656,7 +656,7 @@ for iter = 1:maxit
             fbase, D(:, direction_indices), direction_indices,...
             alpha_all(i_real), suboptions);
 
-        % if iter == 2
+        % if iter == 3
         %     keyboard
         % end
 
@@ -705,7 +705,7 @@ for iter = 1:maxit
             alpha_all(i_real) = shrink * alpha_all(i_real);
         end
 
-        % if iter == 1 && i_real == 2
+        % if iter == 3
         %     keyboard
         % end
 
@@ -717,25 +717,30 @@ for iter = 1:maxit
         % direct search in the i_real-th block. For "parallel", we will update xbase and fbase after
         % one iteration of the outer loop.
         if ~strcmpi(scheme, "parallel") 
-            if  ~(isfield(options, 'Algorithm') && any(ismember(options.Algorithm, lam_list)))
-                % Update xbase and fbase. xbase serves as the "base point" for the computation in the next block,
-                % meaning that reduction will be calculated with respect to xbase, as shown above.
-                % Note that their update requires a sufficient decrease if reduction_factor(1) > 0.
-                if (reduction_factor(1) <= 0 && sub_fopt < fbase) ...
-                        || sub_fopt + reduction_factor(1) * forcing_function(alpha_all(i_real)) < fbase
-                    xbase = sub_xopt;
-                    fbase = sub_fopt;
-                end
-            else
-                if sub_fopt < fbase
-                    xbase = sub_xopt;
-                    fbase = sub_fopt;
-                end
-                if sub_fopt < fopt
-                    fopt = sub_fopt;
-                    xopt = sub_xopt;
-                end
+            % if  ~(isfield(options, 'Algorithm') && any(ismember(options.Algorithm, lam_list)))
+            %     % Update xbase and fbase. xbase serves as the "base point" for the computation in the next block,
+            %     % meaning that reduction will be calculated with respect to xbase, as shown above.
+            %     % Note that their update requires a sufficient decrease if reduction_factor(1) > 0.
+            %     if (reduction_factor(1) <= 0 && sub_fopt < fbase) ...
+            %             || sub_fopt + reduction_factor(1) * forcing_function(alpha_all(i_real)) < fbase
+            %         xbase = sub_xopt;
+            %         fbase = sub_fopt;
+            %     end
+            % else
+            % To keep with the same rule of lam, when BDS compares with LAM, as long as the function
+            % value is smaller than fbase, we will update xbase and fbase. Thus, reduction_factor(1) and
+            % reduction_factor(2) should be set to 0 locally, not globally. When BDS decides whether to
+            % expand or shrink the step size, reduction_factor(2) and reduction_factor(3) are still
+            % the original values.
+            if sub_fopt < fbase
+                xbase = sub_xopt;
+                fbase = sub_fopt;
             end
+            if sub_fopt < fopt
+                fopt = sub_fopt;
+                xopt = sub_xopt;
+            end
+            % end
         end
 
         % Retrieve the direction indices of the i_real-th block, which represent the order of the
@@ -757,23 +762,6 @@ for iter = 1:maxit
             break;
         end
     end
-
-    % if iter == 9
-    %     keyboard
-    % end
-
-    if isfield(options, "Algorithm") && strcmpi(options.Algorithm, "lam")
-        alpha_all = (any(success_all) * LS_stepsize) + (~any(success_all) * shrink .* alpha_all);
-    end
-    
-    % Record the step size for every iteration if output_alpha_hist is true.
-    % Why iter+1? Because we record the step size for the next iteration.
-    alpha_hist(:, iter+1) = alpha_all;
-
-    % Actually, fopt is not always the minimum of fhist after the moment we update fopt
-    % since the value we used to iterate is not always equal to the value returned by the function.
-    % See eval_fun.m for details.
-    % assert(fopt == min(fhist));
 
     % For "parallel", we will update xbase and fbase only after one iteration of the outer loop.
     % During the inner loop, every block will share the same xbase and fbase.
@@ -801,10 +789,32 @@ for iter = 1:maxit
         end
     end
 
-    % Terminate the computations if terminate is true.
+    % Terminate the computations if terminate is true. If terminate is true, there is no need to
+    % continue the iteration.
     if terminate
         break;
     end
+
+    % if iter == 9
+    %     keyboard
+    % end
+
+    if isfield(options, "Algorithm") && strcmpi(options.Algorithm, "lam")
+        alpha_all = (any(success_all) * LS_stepsize) + (~any(success_all) * shrink .* alpha_all);
+        if max(alpha_all) < alpha_tol
+            exitflag = get_exitflag("SMALL_ALPHA");
+            break;
+        end
+    end
+    
+    % Record the step size for every iteration if output_alpha_hist is true.
+    % Why iter+1? Because we record the step size for the next iteration.
+    alpha_hist(:, iter+1) = alpha_all;
+
+    % Actually, fopt is not always the minimum of fhist after the moment we update fopt
+    % since the value we used to iterate is not always equal to the value returned by the function.
+    % See eval_fun.m for details.
+    % assert(fopt == min(fhist));
 
 end
 

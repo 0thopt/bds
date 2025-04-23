@@ -85,29 +85,45 @@ else
     alpha_tol = get_default_constant("StepTolerance");
 end
 
-% Set the value of expand factor. Since the expand factor in the paper A derivative-free algorithm for bound constrained optimization,
-% G. Liuzzi, and S. Lucidi, Computational Optimization and Applications, 2002 is set to 2, we set the default value of expand to 2.
-if isfield(options, "expand")
-    expand = options.expand;
-else
-    expand = 2;
-end
-% % Test the case where expand = 1, which means that the step size is not expanded when linesearch is successful.
-% expand = 1;
-
-% Set the value of shrink factor. Since the shrink factor in the paper A derivative-free algorithm for bound constrained optimization,
-% G. Liuzzi, and S. Lucidi, Computational Optimization and Applications, 2002 is set to 0.5, we set the default value of shrink to 0.5.
-if isfield(options, "shrink")
-    shrink = options.shrink;
-else
-    shrink = 0.5;
-end
-
 if isfield(options, 'Algorithm')
     % Set the algorithm type. The default value is 'lam'.
     Algorithm = options.Algorithm;
 else
     Algorithm = 'lam1';
+end
+lam_list = ['lam', 'lam1', 'fm'];
+
+if ~isfield(options, "expand")
+    if any(ismember(lower(options.Algorithm), lam_list))
+        % Set the value of expand factor. Since the expand factor in the paper A derivative-free algorithm for bound 
+        % constrained optimization, G. Liuzzi, and S. Lucidi, Computational Optimization and Applications, 2002 
+        % is set to 2, lam_expand is set to 2.
+        expand = get_default_constant("lam_expand");
+    else
+        % Since the Algorithm must be input, the default value of expand is set to be the same as the one in BDS when
+        % the algorithm is not lam or lam1.
+        if numel(x0) <= 5
+            expand = get_default_constant("expand_small");
+        else
+            expand = get_default_constant("expand_big");
+        end
+    end
+else
+    expand = options.expand;
+end
+
+if ~isfield(options, "shrink")
+    if any(ismember(lower(options.Algorithm), lam_list))
+        shrink = get_default_constant("lam_shrink");
+    else
+        if numel(x0) <= 5
+            shrink = get_default_constant("shrink_small");
+        else
+            shrink = get_default_constant("shrink_big");
+        end
+    end
+else
+    shrink = options.shrink;
 end
 
 % Set the boolean value of WITH_CYCLING_MEMORY. 
@@ -122,8 +138,11 @@ end
 if isfield(options, "stepsize_factor")
     stepsize_factor = options.stepsize_factor;
 else
-    stepsize_factor = 1e-10;
-    % stepsize_factor = 0;
+    if any(ismember(lower(options.Algorithm), lam_list))
+        stepsize_factor = 1e-10;
+    else
+        stepsize_factor = 0;
+    end
 end
 
 % Set the type of linesearch.
@@ -168,14 +187,26 @@ xval = x0;
 nf = 1; 
 fhist(nf) = fval_real;
 xhist(:, nf) = xval;
+terminate = false;
 
-% Check whether FTARGET is reached by FVAL. If it is true, then terminate.
-if fval <= ftarget
+% Stop the loop if no more function evaluations can be performed. 
+% Note that this should be checked before evaluating the objective function.
+if nf >= MaxFunctionEvaluations
+    information = "MAXFUN_REACHED";
+    exitflag = get_exitflag(information);
+
+    % MaxFunctionEvaluations has been reached at the very first function evaluation.
+    % In this case, no further computation should be entertained, and hence,
+    % no iteration should be run.
+    maxit = 0;
+end
+% Check whether FTARGET is reached by fopt. If it is true, then terminate.
+if fval_real <= ftarget
     information = "FTARGET_REACHED";
     exitflag = get_exitflag(information);
-    
-    % FTARGET has been reached at the very first function evaluation. 
-    % In this case, no further computation should be entertained, and hence, 
+
+    % FTARGET has been reached at the very first function evaluation.
+    % In this case, no further computation should be entertained, and hence,
     % no iteration should be run.
     maxit = 0;
 end
@@ -207,7 +238,6 @@ for iter = 1:maxit
         % if iter == 2 && i_real == 2
         %     keyboard
         % end
-        
         [xval, fval, sub_exitflag, suboutput] = linesearch(fun, xval,...
             fval, D(:, direction_indices), direction_indices,...
             alpha_bar, suboptions);
@@ -228,20 +258,6 @@ for iter = 1:maxit
         % Record the index of the block visited.
         num_visited_blocks = num_visited_blocks + 1;
         block_hist(num_visited_blocks) = i_real;
- 
-        % If suboutput.terminate is true, then inner_direct_search returns 
-        % boolean value of terminate because either the maximum number of function
-        % evaluations or the target of the objective function value is reached. 
-        % In both cases, the exitflag is set by inner_direct_search.
-        terminate = suboutput.terminate;
-        if terminate
-            exitflag = sub_exitflag;
-            break;
-        end
-        
-        % Retrieve the order of the polling directions and check whether a
-        % sufficient decrease has been achieved in inner_direct_search.
-        direction_set_indices{i_real} = suboutput.direction_indices;
 
         if strcmpi(Algorithm, 'lam1')
             if success_all(i_real)
@@ -256,10 +272,27 @@ for iter = 1:maxit
                 alpha_all(i_real) = shrink * alpha_bar;
             end
         end
-        % if iter == 1 && i_real == 2
-        %     keyboard
-        % end
-        % Terminate the computations if the largest step size is below StepTolerance.
+
+        if strcmpi(Algorithm, 'cbds')
+            if success_all(i_real)
+                alpha_all(i_real) = expand * alpha_all(i_real);
+            else
+                alpha_all(i_real) = shrink * alpha_all(i_real);
+            end
+        end
+
+        % Retrieve the order of the polling directions and check whether a
+        % sufficient decrease has been achieved in inner_direct_search.
+        direction_set_indices{i_real} = suboutput.direction_indices;
+
+        % Terminate the computations if sub_output.terminate is true, which means that inner_direct_search
+        % decides that the algorithm should be terminated for some reason indicated by sub_exitflag.
+        if suboutput.terminate
+            terminate = true;
+            exitflag = sub_exitflag;
+            break;
+        end
+
         if max(alpha_all) < alpha_tol
             terminate = true;
             exitflag = get_exitflag("SMALL_ALPHA");
@@ -268,20 +301,19 @@ for iter = 1:maxit
         
     end
 
-    % if iter == 10
-    %     keyboard
-    % end
-
-    % Check whether one of SMALL_ALPHA, MAXFUN_REACHED, and FTARGET_REACHED is reached.
+    % Terminate the computations if terminate is true.
     if terminate
         break;
     end
 
-
     % case 'lam1'
-    %     alpha_all = success_all .* LS_stepsize + shrink * (~success_all) .* alpha_all;
-    if strcmpi(Algorithm, 'lam')
+    % alpha_all = success_all .* LS_stepsize + shrink * (~success_all) .* alpha_all;
+    if isfield(options, "Algorithm") && strcmpi(options.Algorithm, "lam")
         alpha_all = (any(success_all) * LS_stepsize) + (~any(success_all) * shrink .* alpha_all);
+        if max(alpha_all) < alpha_tol
+            exitflag = get_exitflag("SMALL_ALPHA");
+            break;
+        end
     end
 
     % Why iter+1? Because we record the step size for the next iteration.
@@ -289,15 +321,10 @@ for iter = 1:maxit
 
     % Terminate the computations if the largest component of step size is below a
     % given StepTolerance.
-    if max(alpha_all) < alpha_tol
-        exitflag = get_exitflag("SMALL_ALPHA");
-        break;
-    end
-    
-    % Check whether MAXIT is reached.
-    if iter == maxit
-        exitflag = get_exitflag("MAXIT_REACHED");
-    end
+    % if max(alpha_all) < alpha_tol
+    %     exitflag = get_exitflag("SMALL_ALPHA");
+    %     break;
+    % end
     
 end
 
@@ -314,6 +341,7 @@ if output_block_hist
     output.blocks_hist = block_hist(1:num_visited_blocks);
 end
 
+% Set the message according to exitflag.
 switch exitflag
     case {get_exitflag("SMALL_ALPHA")}
         output.message = "The StepTolerance of the step size is reached.";
