@@ -1,4 +1,4 @@
-name: Profile original cbds and lam terminating outer loop using optiprofiler, big
+name: Profile original cbds and lam terminating outer loop, big
 
 on:
   # Trigger the workflow on # push or pull request
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Profile original CBDS and LAM terminating outer loop, big
+    name: Profile original cbds and lam terminating outer loop, big
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

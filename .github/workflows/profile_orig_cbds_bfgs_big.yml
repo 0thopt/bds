@@ -1,4 +1,4 @@
-name: Profile original cbds and bfgs using optiprofiler, big
+name: Profile original cbds and bfgs, big
 
 on:
   # Trigger the workflow on # push or pull request

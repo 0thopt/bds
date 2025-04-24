@@ -1,4 +1,4 @@
-name: Profile original cbds and lam1 terminating outer loop using optiprofiler, small
+name: Profile original cbds and lam1 terminating outer loop, big
 
 on:
   # Trigger the workflow on # push or pull request
@@ -10,14 +10,14 @@ on:
 
 jobs:
   test:
-    name: Profile original CBDS and lam1 terminating outer loop, small
+    name: Profile original CBDS and LAM1 terminating outer loop, big
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
         matlab: [latest]
-        dim: [small]
+        dim: [big]
         with_optim_toolbox: [yes]
         solver: [cbds-orig]
         competitor: [lam1-terminate-outer]

@@ -1,4 +1,4 @@
-name: Profile original cbds and lam using optiprofiler, big
+name: Profile original cbds and lam, big
 
 on:
   # Trigger the workflow on # push or pull request

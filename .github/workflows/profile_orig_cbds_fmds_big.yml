@@ -1,4 +1,4 @@
-name: Profile original cbds and fmds using optiprofiler, big
+name: Profile original cbds and fmds, big
 
 on:
   # Trigger the workflow on # push or pull request

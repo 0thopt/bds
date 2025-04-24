@@ -1,4 +1,4 @@
-name: Profile lam1 and lam using optiprofiler, small
+name: Profile lam1 and lam, small
 
 on:
   # Trigger the workflow on # push or pull request

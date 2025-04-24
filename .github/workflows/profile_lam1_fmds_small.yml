@@ -1,4 +1,4 @@
-name: Profile lam1 and fmds using optiprofiler, small
+name: Profile lam1 and fmds, small
 
 on:
   # Trigger the workflow on # push or pull request
