@@ -554,6 +554,17 @@ end
 % When we record fhist, we should use the real function value at xbase, which is fbase_real.
 fhist(nf) = fbase_real;
 terminate = false;
+
+% Flag to determine termination timing: after each block update or after full iteration.
+if isfield(options, "terminate_inner")
+    terminate_inner = options.terminate_inner;
+else
+    terminate_inner = true;
+end
+if isfield(options, "Algorithm") && strcmpi(options.Algorithm, "lam")
+    terminate_inner = false;
+end
+
 % TODO: when the exitflag is conflicted, what is the priority?
 % Stop the loop if no more function evaluations can be performed. 
 % Note that this should be checked before evaluating the objective function.
@@ -756,11 +767,12 @@ for iter = 1:maxit
         end
 
         % Terminate the computations if the largest step size is below StepTolerance.
-        if max(alpha_all) < alpha_tol
+        if terminate_inner && max(alpha_all) < alpha_tol
             terminate = true;
             exitflag = get_exitflag("SMALL_ALPHA");
             break;
         end
+
     end
 
     % For "parallel", we will update xbase and fbase only after one iteration of the outer loop.
@@ -795,16 +807,13 @@ for iter = 1:maxit
         break;
     end
 
-    % if iter == 9
-    %     keyboard
-    % end
-
     if isfield(options, "Algorithm") && strcmpi(options.Algorithm, "lam")
         alpha_all = (any(success_all) * LS_stepsize) + (~any(success_all) * shrink .* alpha_all);
-        if max(alpha_all) < alpha_tol
-            exitflag = get_exitflag("SMALL_ALPHA");
-            break;
-        end
+    end
+
+    if ~terminate_inner && max(alpha_all) < alpha_tol
+        exitflag = get_exitflag("SMALL_ALPHA");
+        break;
     end
     
     % Record the step size for every iteration if output_alpha_hist is true.

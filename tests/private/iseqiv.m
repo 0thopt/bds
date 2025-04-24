@@ -122,7 +122,7 @@ if ~endsWith(solvers{2}, '_norma')
 end
 
 %tic;
-% if ir == 14 && options.i_problem == 11
+% if ir == 8 && options.i_problem == 92
 %     keyboard
 %     test_options.output_xhist = true;
 %     test_options.output_alpha_hist = true;

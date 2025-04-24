@@ -189,6 +189,16 @@ fhist(nf) = fval_real;
 xhist(:, nf) = xval;
 terminate = false;
 
+% Flag to determine termination timing: after each block update or after full iteration.
+if isfield(options, "terminate_inner")
+    terminate_inner = options.terminate_inner;
+else
+    terminate_inner = true;
+end
+if isfield(options, "Algorithm") && strcmpi(options.Algorithm, "lam")
+    terminate_inner = false;
+end
+
 % Stop the loop if no more function evaluations can be performed. 
 % Note that this should be checked before evaluating the objective function.
 if nf >= MaxFunctionEvaluations
@@ -293,7 +303,8 @@ for iter = 1:maxit
             break;
         end
 
-        if max(alpha_all) < alpha_tol
+        % Terminate the computations if the largest step size is below StepTolerance.
+        if terminate_inner && max(alpha_all) < alpha_tol
             terminate = true;
             exitflag = get_exitflag("SMALL_ALPHA");
             break;
@@ -310,10 +321,11 @@ for iter = 1:maxit
     % alpha_all = success_all .* LS_stepsize + shrink * (~success_all) .* alpha_all;
     if isfield(options, "Algorithm") && strcmpi(options.Algorithm, "lam")
         alpha_all = (any(success_all) * LS_stepsize) + (~any(success_all) * shrink .* alpha_all);
-        if max(alpha_all) < alpha_tol
-            exitflag = get_exitflag("SMALL_ALPHA");
-            break;
-        end
+    end
+
+    if ~terminate_inner && max(alpha_all) < alpha_tol
+        exitflag = get_exitflag("SMALL_ALPHA");
+        break;
     end
 
     % Why iter+1? Because we record the step size for the next iteration.

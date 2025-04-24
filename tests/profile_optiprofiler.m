@@ -302,14 +302,20 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @bfo_test;
             case 'newuoa'
                 solvers{i} = @newuoa_test;
+            case 'cbds-terminate-outer'
+                solvers{i} = @bds_terminate_outer_test;
             case 'lam'
                 solvers{i} = @lam_test;
+            case 'lam-terminate-outer'
+                solvers{i} = @lam_terminate_outer_test;
             case 'bds-lam'
                 solvers{i} = @bds_lam_test;
             case 'lam1-0'
                 solvers{i} = @lam1_stepsize_factor_0_test;
             case 'lam1'
                 solvers{i} = @lam1_test;
+            case 'lam1-terminate-outer'
+                solvers{i} = @lam1_terminate_outer_test;
             case 'bds-lam1'
                 solvers{i} = @bds_lam1_test;
             case 'fmds'
@@ -1136,6 +1142,16 @@ function x = lam_test(fun, x0)
     
 end
 
+function x = lam_terminate_outer_test(fun, x0)
+
+    options.Algorithm = 'lam';
+    options.expand = 2;
+    options.shrink = 0.5;
+    options.terminate_inner = false;
+    x = lam(fun, x0, options);
+    
+end
+
 function x = bds_lam_test(fun, x0)
 
     options.Algorithm = 'lam';
@@ -1154,11 +1170,31 @@ function x = lam1_test(fun, x0)
     
 end
 
+function x = lam1_terminate_outer_test(fun, x0)
+
+    options.Algorithm = 'lam1';
+    options.expand = 2;
+    options.shrink = 0.5;
+    options.terminate_inner = false;
+    x = lam(fun, x0, options);
+    
+end
+
 function x = bds_lam1_test(fun, x0)
 
     options.Algorithm = 'lam1';
     options.expand = 2;
     options.shrink = 0.5;
+    x = bds(fun, x0, options);
+    
+end
+
+function x = bds_terminate_outer_test(fun, x0)
+
+    options.Algorithm = 'lam1';
+    options.expand = 2;
+    options.shrink = 0.5;
+    options.terminate_inner = false;
     x = bds(fun, x0, options);
     
 end
