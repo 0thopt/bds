@@ -1,6 +1,8 @@
 name: Coverage of unit test
 
-on: push
+on:
+  # push:  # 已移除
+  pull_request:  # 保留其他触发条件（如果有）
 
 jobs:
   run:
