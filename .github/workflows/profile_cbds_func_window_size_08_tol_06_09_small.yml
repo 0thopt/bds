@@ -1,28 +1,24 @@
-name: Profile cbds and bfgs using optiprofiler, big
+name: Profile cbds with func window size 8, tol 06 and 09, small
 
 on:
   # Trigger the workflow on # push or pull request
   # push:
   # Trigger the workflow manually
-  # schedule:
-  # - cron: '0 0 */2 * *'
+  schedule:
+  - cron: '0 6 */1 * *'
   workflow_dispatch:
 
 jobs:
   test:
-    name: Profile BDS and bfgs, big
+    name: Profile cbds with func window size 8, tol 06 and 09, small
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
         matlab: [latest]
-        dim: [big]
+        dim: [small]
         with_optim_toolbox: [yes]
-        solver: [cbds]
-        competitor: [fminunc]
-        run_plain: [false]
-        summarize_log_ratio_profiles: [false]
         feature: [plain, perturbed_x0_0.001, perturbed_x0_1, perturbed_x0_10, perturbed_x0_100, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, truncated_1, truncated_2, truncated_3, truncated_4, permuted, linearly_transformed, random_nan_5, random_nan_10, random_nan_20, quantized_1, quantized_2, quantized_3, quantized_4, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
 
     steps:
@@ -35,8 +31,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: optiprofiler/optiprofiler
-          ref: matlab
           path: optiprofiler
+          submodules: recursive
+          ref: b112c51c924e157731db6609006ee124c49f0832
 
       - name: Install Texlive
         run: sudo apt-get update && sudo apt-get install texlive
@@ -46,7 +43,7 @@ jobs:
 
       - name: Cache MATLAB
         id: cache-matlab
-        uses: actions/cache@v4.0.1
+        uses: actions/cache@v4
         with:
           path: ${{ runner.tool_cache }}/MATLAB
           key: ${{ matrix.os }}-${{ matrix.matlab }}-${{ matrix.with_optim_toolbox }}
@@ -76,22 +73,21 @@ jobs:
               addpath(pwd);
   
               % profile
-              cd(fullfile(root_dir, 'tests'));
+              addpath(fullfile(root_dir, 'tests'));
+              cd(fullfile(root_dir, 'tests', 'tuning'));
+              parameters.func_window_size = [8 1e8];
+              parameters.func_tol = [1e-6 1e-30];
+              parameters.func_tol_ratio = 1e-3;
               options = struct();
-              options.feature_name = '${{ matrix.feature }}';
-              options.solver_names = {'${{ matrix.solver }}', '${{ matrix.competitor }}'};
               options.dim = '${{ matrix.dim }}';
-              options.run_plain = ${{ matrix.run_plain }};
-              options.summarize_log_ratio_profiles = ${{ matrix.summarize_log_ratio_profiles }};
-              profile_optiprofiler(options);
+              options.feature_name = '${{ matrix.feature }}';
+              tuning_optiprofiler(parameters, options);
               cd(root_dir);
-              cd(fullfile(root_dir, 'tests', 'out'));
-              ls -R
-              cd(root_dir);
+
 
       - name: Change the summary file name
         run: |
-          cd ./tests/out
+          cd ./tests/tuning/tuning_data
           ls -R
           find . -type f -name 'summary.pdf' | while read -r file; do
             # Obtain the parent directory and name
@@ -122,8 +118,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: profile_optiprofiler_${{ matrix.solver }}_${{ matrix.competitor }}_${{ matrix.dim }}_${{ matrix.feature }}_${{ matrix.run_plain }}
-          path: ./tests/out/**
+          name: profile_optiprofiler_cbds_func_window_size_08_tol_06_09_${{ matrix.dim }}_${{ matrix.feature }}
+          path: ./tests/tuning/tuning_data/**
 
   merge_artifacts:
     name: Merge Artifacts
@@ -145,20 +141,23 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          path: tests/testdata/downloaded_artifacts
+          path: tests/tuning/tuning_data/downloaded_artifacts
 
       - name: List all files
         run: |
-          cd tests/testdata/downloaded_artifacts
+          cd tests/tuning/tuning_data/downloaded_artifacts
           ls -R
 
       - name: Merge PDF files
         run: |
-          cp tests/tools/merge_pdf.sh tests/testdata/downloaded_artifacts
-          cd tests/testdata/downloaded_artifacts/
+          cp tests/tools/merge_pdf.sh tests/tuning/tuning_data/downloaded_artifacts
+          cd tests/tuning/tuning_data/downloaded_artifacts/
 
           ARTIFACT_NAME=$(ls | grep "profile_optiprofiler" | head -n 1)
           BASE_INFO=$(echo $ARTIFACT_NAME | sed -n 's/.*optiprofiler_\([^_]*_[^_]*_\(small\|big\)\).*/\1/p')
+
+          # Replace all '-' with '_' in BASE_INFO
+          BASE_INFO=$(echo $BASE_INFO | sed 's/-/_/g')
           echo "Base info extracted: ${BASE_INFO}"
           echo "BASE_INFO=${BASE_INFO}" >> $GITHUB_ENV
 
@@ -172,10 +171,10 @@ jobs:
           cd summary
           ls
           bash ../merge_pdf.sh
-          mv merged.pdf "summary_${BASE_INFO}.pdf"
+          mv merged.pdf "summary_cbds_func_window_size_08_tol_06_09_small.pdf"
           cd ..
           if [ -d "summary" ]; then
-            mv summary "summary_${BASE_INFO}"
+            mv summary "summary_cbds_func_window_size_08_tol_06_09_small"
           fi
 
       - name: Upload merged artifact
@@ -183,13 +182,13 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: merged_profiles_${{ env.BASE_INFO }}
-          path: tests/testdata/downloaded_artifacts/**
+          name: merged_profiles_cbds_func_window_size_08_tol_06_09_small
+          path: tests/tuning/tuning_data/downloaded_artifacts/**
 
       - name: Upload summary files
         uses: actions/upload-artifact@v4
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: summary_files_${{ env.BASE_INFO }}
-          path: tests/testdata/downloaded_artifacts/summary_${{ env.BASE_INFO }}/**
+          name: summary_files_cbds_func_window_size_08_tol_06_09_small
+          path: tests/tuning/tuning_data/downloaded_artifacts/summary_cbds_func_window_size_08_tol_06_09_small/**
