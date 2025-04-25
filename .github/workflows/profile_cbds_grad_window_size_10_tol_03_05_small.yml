@@ -1,4 +1,4 @@
-name: Profile cbds with func window size 5, tol 03 and 08, big
+name: Profile cbds with grad window size 10, tol 03 and 05, small
 
 on:
   # Trigger the workflow on # push or pull request
@@ -10,14 +10,14 @@ on:
 
 jobs:
   test:
-    name: Profile cbds with func window size 5, tol 03 and 08, big
+    name: Profile cbds with grad window size 10, tol 03 and 05, small
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
         matlab: [latest]
-        dim: [big]
+        dim: [small]
         with_optim_toolbox: [yes]
         feature: [plain, perturbed_x0_0.001, perturbed_x0_1, perturbed_x0_10, perturbed_x0_100, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, truncated_1, truncated_2, truncated_3, truncated_4, permuted, linearly_transformed, random_nan_5, random_nan_10, random_nan_20, quantized_1, quantized_2, quantized_3, quantized_4, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
 
@@ -75,9 +75,9 @@ jobs:
               % profile
               addpath(fullfile(root_dir, 'tests'));
               cd(fullfile(root_dir, 'tests', 'tuning'));
-              parameters.func_window_size = [5 1e8];
-              parameters.func_tol = [1e-3 1e-30];
-              parameters.func_tol_ratio = 1e-5;
+              parameters.grad_window_size = [10 1e8];
+              parameters.grad_tol = [1e-3 1e-30];
+              parameters.grad_tol_ratio = 1e-2;
               options = struct();
               options.dim = '${{ matrix.dim }}';
               options.feature_name = '${{ matrix.feature }}';
@@ -118,7 +118,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: profile_optiprofiler_cbds_func_window_size_05_tol_03_08_${{ matrix.dim }}_${{ matrix.feature }}
+          name: profile_optiprofiler_cbds_grad_window_size_10_tol_03_05_${{ matrix.dim }}_${{ matrix.feature }}
           path: ./tests/tuning/tuning_data/**
 
   merge_artifacts:
@@ -171,10 +171,10 @@ jobs:
           cd summary
           ls
           bash ../merge_pdf.sh
-          mv merged.pdf "summary_cbds_func_window_size_05_tol_03_08_big.pdf"
+          mv merged.pdf "summary_cbds_grad_window_size_10_tol_03_05_small.pdf"
           cd ..
           if [ -d "summary" ]; then
-            mv summary "summary_cbds_func_window_size_05_tol_03_08_big"
+            mv summary "summary_cbds_grad_window_size_10_tol_03_05_small"
           fi
 
       - name: Upload merged artifact
@@ -182,7 +182,7 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: merged_profiles_cbds_func_window_size_05_tol_03_08_big
+          name: merged_profiles_cbds_grad_window_size_10_tol_03_05_small
           path: tests/tuning/tuning_data/downloaded_artifacts/**
 
       - name: Upload summary files
@@ -190,5 +190,5 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: summary_files_cbds_func_window_size_05_tol_03_08_big
-          path: tests/tuning/tuning_data/downloaded_artifacts/summary_cbds_func_window_size_05_tol_03_08_big/**
+          name: summary_files_cbds_grad_window_size_10_tol_03_05_small
+          path: tests/tuning/tuning_data/downloaded_artifacts/summary_cbds_grad_window_size_10_tol_03_05_small/**

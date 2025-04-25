@@ -2,7 +2,7 @@ name: Profile cbds with func window size 5, tol 03 and 08, small
 
 on:
   # Trigger the workflow on # push or pull request
-  push:
+  # push:
   # Trigger the workflow manually
   schedule:
   - cron: '0 6 */1 * *'
@@ -77,7 +77,7 @@ jobs:
               cd(fullfile(root_dir, 'tests', 'tuning'));
               parameters.func_window_size = [5 1e8];
               parameters.func_tol = [1e-3 1e-30];
-              parameters.func_tol_ratio = 1e-8;
+              parameters.func_tol_ratio = 1e-5;
               options = struct();
               options.dim = '${{ matrix.dim }}';
               options.feature_name = '${{ matrix.feature }}';
