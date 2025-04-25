@@ -2,7 +2,7 @@ name: Profile cbds with func window size 5, tol 03 and 08, big
 
 on:
   # Trigger the workflow on # push or pull request
-  push:
+  # push:
   # Trigger the workflow manually
   schedule:
   - cron: '0 6 */1 * *'

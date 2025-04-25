@@ -2,7 +2,7 @@ name: Profile cbds with grad window size 10, tol 03 and 06, big
 
 on:
   # Trigger the workflow on # push or pull request
-  push:
+  # push:
   # Trigger the workflow manually
   schedule:
   - cron: '0 6 */1 * *'
