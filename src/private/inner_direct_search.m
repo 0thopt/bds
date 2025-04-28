@@ -111,7 +111,7 @@ for j = 1 : num_directions
 
     success = sufficient_decrease;
     % keyboard
-    if sufficient_decrease && (strcmpi(Algorithm, "lam") | strcmpi(Algorithm, "lam1"))
+    if sufficient_decrease && (strcmpi(Algorithm, "lht") | strcmpi(Algorithm, "lht1"))
         [xnew, fnew, exitflag, ls_output] = LS(fun, xnew, fnew, D(:, j), alpha, nf, options);
         % Record the points visited by LS if the output_xhist is true.
         if output_xhist
@@ -166,7 +166,7 @@ output.terminate = terminate;
 output.alpha = alpha;
 output.success = success;
 output.sufficient_decrease = success;
-if ~success && (strcmpi(Algorithm, "lam") || strcmpi(Algorithm, "lam1"))
+if ~success && (strcmpi(Algorithm, "lht") || strcmpi(Algorithm, "lht1"))
     output.direction_indices = direction_indices([2, 1]);
 else
     output.direction_indices = direction_indices;

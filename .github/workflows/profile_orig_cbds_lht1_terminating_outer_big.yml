@@ -1,4 +1,4 @@
-name: Profile original cbds and lam1, big
+name: Profile original cbds and lht1 terminating outer loop, big
 
 on:
   # Trigger the workflow on push or pull request
@@ -10,17 +10,17 @@ on:
 
 jobs:
   test:
-    name: Profile original CBDS and LAM1, small
+    name: Profile original cbds and lht1 terminating outer loop, big
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
         matlab: [latest]
-        dim: [small]
+        dim: [big]
         with_optim_toolbox: [yes]
-        solver: [cbds-orig]
-        competitor: [lam1]
+        solver: [cbds-terminate-outer]
+        competitor: [lht1-terminate-outer]
         run_plain: [false]
         summarize_log_ratio_profiles: [false]
         feature: [plain, perturbed_x0_0.001, perturbed_x0_1, perturbed_x0_10, perturbed_x0_100, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, truncated_1, truncated_2, truncated_3, truncated_4, permuted, linearly_transformed, random_nan_5, random_nan_10, random_nan_20, quantized_1, quantized_2, quantized_3, quantized_4, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]

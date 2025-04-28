@@ -21,7 +21,7 @@ jobs:
         os: [ubuntu-latest]
         matlab: [latest]
         with_optim_toolbox: [yes]
-        Algorithm: [lam1, lam, cbds]
+        Algorithm: [lht1, lht, cbds]
 
     steps:
 

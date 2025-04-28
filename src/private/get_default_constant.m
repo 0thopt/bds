@@ -39,6 +39,10 @@ switch constant_name
         constant_value = 0.85;
     case {"lam_expand"}
         constant_value = 2;
+    case {"lht_expand"}
+        constant_value = 2;
+    case {"lht_shrink"}
+        constant_value = 0.5;
     case {"lam_shrink"}
         constant_value = 0.5;
     case {"reduction_factor"}

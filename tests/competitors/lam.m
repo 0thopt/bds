@@ -91,7 +91,7 @@ if isfield(options, 'Algorithm')
 else
     Algorithm = 'lam1';
 end
-lam_list = ['lam', 'lam1', 'fm'];
+lam_list = ['lam', 'lam1', 'fm', 'lht', 'lht1'];
 
 if ~isfield(options, "expand")
     if any(ismember(lower(options.Algorithm), lam_list))
@@ -195,7 +195,8 @@ if isfield(options, "terminate_inner")
 else
     terminate_inner = true;
 end
-if isfield(options, "Algorithm") && strcmpi(options.Algorithm, "lam")
+if isfield(options, "Algorithm") && (strcmpi(options.Algorithm, "lam") | ...
+        strcmpi(options.Algorithm, "lht"))
     terminate_inner = false;
 end
 
@@ -269,7 +270,7 @@ for iter = 1:maxit
         num_visited_blocks = num_visited_blocks + 1;
         block_hist(num_visited_blocks) = i_real;
 
-        if strcmpi(Algorithm, 'lam1')
+        if strcmpi(Algorithm, 'lam1') || strcmpi(Algorithm, 'lht1')
             if success_all(i_real)
                 % If the linesearch is successful, then we will use the step size
                 % returned by linesearch.
@@ -319,7 +320,8 @@ for iter = 1:maxit
 
     % case 'lam1'
     % alpha_all = success_all .* LS_stepsize + shrink * (~success_all) .* alpha_all;
-    if isfield(options, "Algorithm") && strcmpi(options.Algorithm, "lam")
+    if isfield(options, "Algorithm") && (strcmpi(options.Algorithm, "lam") || ...
+            strcmpi(options.Algorithm, "lht"))
         alpha_all = (any(success_all) * LS_stepsize) + (~any(success_all) * shrink .* alpha_all);
     end
 

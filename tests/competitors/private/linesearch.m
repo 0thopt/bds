@@ -10,8 +10,8 @@ else
     error("The length of reduction_factor should be 1 or 3.");
 end
 
-% Set the value of expanding factor.
-% expand = options.expand;
+ls_list = ['fm', 'lht', 'lht1'];
+lam_list = ['lam', 'lam1'];
 
 % Set the value of cycling_strategy, which represents the cycling strategy inside each block.
 cycling_strategy = get_default_constant('cycling_inner');
@@ -87,71 +87,30 @@ for j = 1 : num_directions
     sufficient_decrease = (fnew + reduction_factor * alpha^2 < fbase);
     success = sufficient_decrease;
 
-    % keyboard
-    % while sufficient_decrease
-
-    %     % Important modification!!!!!!
-    %     xbase = xnew;
-    %     fbase = fnew;
-    %     alpha = alpha*expand;
-    %     xnew = xbase+alpha*D(:, j);
-    %     fnew = eval_fun(fun, xnew);
-    %     nf = nf+1;
-    %     fhist(nf) = fnew;
-    %     xhist(:, nf) = xnew;
-
-    %     % Update the best point and the best function value.
-    %     if fnew < fval
-    %         xval = xnew;
-    %         fval = fnew;
-    %     end
-
-    %     % Stop the computations once the target value of the objective function
-    %     % is achieved.
-    %     if fnew <= ftarget
-    %         xval = xnew;
-    %         fval = fnew;
-    %         terminate = true;
-    %         information = "FTARGET_REACHED";
-    %         exitflag = get_exitflag(information);
-    %         break;
-    %     end
-
-    %     % Stop the loop if no more function evaluations can be performed. 
-    %     % Note that this should be checked before evaluating the objective function.
-    %     if nf >= options.MaxFunctionEvaluations
-    %         terminate = true;
-    %         exitflag = get_exitflag("MAXFUN_REACHED");
-    %         break;
-    %     end
-
-    %     sufficient_decrease = fnew + reduction_factor * ((expand-1) *alpha)^2 < fhist(nf-1);    
-
-    %     if sufficient_decrease
-    %         fval = fnew;
-    %         xval = xnew;
-    %     else
-    %         % If the sufficient decrease condition is not satisfied, then
-    %         % the alpha indicates to the last successful step size.
-    %         alpha = alpha/expand;
-    %     end
-    % end
-    if sufficient_decrease && (strcmpi(Algorithm, "lam") | strcmpi(Algorithm, "lam1"))
-        [xnew, fnew, exitflag, ls_output] = LS(fun, xnew, fnew, D(:, j), alpha, nf, options);
-        % Record the points visited by LS.
-        xhist(:, (nf+1):(nf+ls_output.nf)) = ls_output.xhist;
-        % Record the function values calculated by inner_direct_search,
-        fhist((nf+1):(nf+ls_output.nf)) = ls_output.fhist;
-        % Update the number of function evaluations.
-        nf = nf + ls_output.nf;
-        alpha = ls_output.alpha;
-        % Update the best point and the best function value.
-        if fnew < fval
-            xval = xnew;
-            fval = fnew;
-        end
-        if nf >= MaxFunctionEvaluations || fval <= ftarget
-            break;
+    if sufficient_decrease    
+        switch any(ismember(lower(Algorithm), ls_list))
+            case true
+                [xnew, fnew, exitflag, ls_output] = LS(fun, xnew, fnew, D(:, j), alpha, nf, options);
+                % Record the points visited by LS.
+                xhist(:, (nf+1):(nf+ls_output.nf)) = ls_output.xhist;
+                % Record the function values calculated by inner_direct_search,
+                fhist((nf+1):(nf+ls_output.nf)) = ls_output.fhist;
+                % Update the number of function evaluations.
+                nf = nf + ls_output.nf;
+                alpha = ls_output.alpha;
+                % Update the best point and the best function value.
+                if fnew < fval
+                    xval = xnew;
+                    fval = fnew;
+                end
+                if nf >= MaxFunctionEvaluations || fval <= ftarget
+                    break;
+                end
+            case false
+                % If the algorithm is LAM or LAM1, we need to use another way to do linesearch.
+                if strcmpi(Algorithm, "lht") || strcmpi(Algorithm, "lht1")
+                    success = sufficient_decrease;
+                end
         end
     end
      
@@ -181,7 +140,7 @@ output.nf = nf;
 %     keyboard
 % end
 output.success = success;
-if ~success && (strcmpi(Algorithm, "lam") || strcmpi(Algorithm, "lam1"))
+if ~success && (strcmpi(Algorithm, "lht") || strcmpi(Algorithm, "lht1"))
     output.direction_indices = direction_indices([2, 1]);
 else
     output.direction_indices = direction_indices;

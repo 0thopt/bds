@@ -304,22 +304,22 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @newuoa_test;
             case 'cbds-terminate-outer'
                 solvers{i} = @bds_terminate_outer_test;
-            case 'lam'
-                solvers{i} = @lam_test;
-            case 'lam-terminate-outer'
-                solvers{i} = @lam_terminate_outer_test;
-            case 'bds-lam'
-                solvers{i} = @bds_lam_test;
-            case 'lam1-0'
-                solvers{i} = @lam1_stepsize_factor_0_test;
-            case 'lam1'
-                solvers{i} = @lam1_test;
-            case 'lam1-terminate-outer'
-                solvers{i} = @lam1_terminate_outer_test;
-            case 'bds-lam1'
-                solvers{i} = @bds_lam1_test;
-            case 'fmds'
-                solvers{i} = @fmds_test;
+            case 'lht'
+                solvers{i} = @lht_test;
+            case 'lht-terminate-outer'
+                solvers{i} = @lht_terminate_outer_test;
+            case 'bds-lht'
+                solvers{i} = @bds_lht_test;
+            case 'lht1-0'
+                solvers{i} = @lht1_stepsize_factor_0_test;
+            case 'lht1'
+                solvers{i} = @lht1_test;
+            case 'lht1-terminate-outer'
+                solvers{i} = @lht1_terminate_outer_test;
+            case 'bds-lht1'
+                solvers{i} = @bds_lht1_test;
+            case 'fm'
+                solvers{i} = @fm_test;
             case 'nomad'
                 solvers{i} = @nomad_test;
             case 'nomad-6'
@@ -1133,18 +1133,18 @@ function x = newuoa_test(fun, x0)
     
 end
 
-function x = lam_test(fun, x0)
+function x = lht_test(fun, x0)
 
-    options.Algorithm = 'lam';
+    options.Algorithm = 'lht';
     options.expand = 2;
     options.shrink = 0.5;
     x = lam(fun, x0, options);
     
 end
 
-function x = lam_terminate_outer_test(fun, x0)
+function x = lht_terminate_outer_test(fun, x0)
 
-    options.Algorithm = 'lam';
+    options.Algorithm = 'lht';
     options.expand = 2;
     options.shrink = 0.5;
     options.terminate_inner = false;
@@ -1152,27 +1152,27 @@ function x = lam_terminate_outer_test(fun, x0)
     
 end
 
-function x = bds_lam_test(fun, x0)
+function x = bds_lht_test(fun, x0)
 
-    options.Algorithm = 'lam';
+    options.Algorithm = 'lht';
     options.expand = 2;
     options.shrink = 0.5;
     x = bds(fun, x0, options);
     
 end
 
-function x = lam1_test(fun, x0)
+function x = lht1_test(fun, x0)
 
-    options.Algorithm = 'lam1';
+    options.Algorithm = 'lht1';
     options.expand = 2;
     options.shrink = 0.5;
     x = lam(fun, x0, options);
     
 end
 
-function x = lam1_terminate_outer_test(fun, x0)
+function x = lht1_terminate_outer_test(fun, x0)
 
-    options.Algorithm = 'lam1';
+    options.Algorithm = 'lht1';
     options.expand = 2;
     options.shrink = 0.5;
     options.terminate_inner = false;
@@ -1180,9 +1180,9 @@ function x = lam1_terminate_outer_test(fun, x0)
     
 end
 
-function x = bds_lam1_test(fun, x0)
+function x = bds_lht1_test(fun, x0)
 
-    options.Algorithm = 'lam1';
+    options.Algorithm = 'lht1';
     options.expand = 2;
     options.shrink = 0.5;
     x = bds(fun, x0, options);
@@ -1191,7 +1191,7 @@ end
 
 function x = bds_terminate_outer_test(fun, x0)
 
-    options.Algorithm = 'lam1';
+    options.Algorithm = 'lht1';
     options.expand = 2;
     options.shrink = 0.5;
     options.terminate_inner = false;
@@ -1199,9 +1199,9 @@ function x = bds_terminate_outer_test(fun, x0)
     
 end
 
-function x = lam1_stepsize_factor_0_test(fun, x0)
+function x = lht1_stepsize_factor_0_test(fun, x0)
 
-    options.Algorithm = 'lam1';
+    options.Algorithm = 'lht1';
     options.expand = 2;
     options.shrink = 0.5;
     options.stepsize_factor = 0;
@@ -1209,7 +1209,7 @@ function x = lam1_stepsize_factor_0_test(fun, x0)
     
 end
 
-function x = fmds_test(fun, x0)
+function x = fm_test(fun, x0)
 
     options.expand = 1;
     options.shrink = 0.5;

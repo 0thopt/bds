@@ -17,8 +17,8 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               (randomized blockwise direct search), "ds"
 %                               (the classical direct search), "pads" (parallel
 %                               blockwise direct search). "scbds" (symmetric
-%                               blockwise direct search). "lam" (Linesearch Algorithm 
-%                               Model). "lam1" (Linesearch Algorithm Model).
+%                               blockwise direct search). "lht" (Linesearch Algorithm 
+%                               Model). "lht1" (Linesearch Algorithm Model).
 %                               "fm" (Fermi's Method). Default: "cbds".
 %   Scheme                      Scheme to use. It can be "cyclic" or "parallel",
 %                               Default: "cyclic".
@@ -163,8 +163,8 @@ D = get_direction_set(n, options);
 num_directions = size(D, 2);
 
 % Set the default Algorithm of BDS, which is 'cbds'.
-Algorithm_list = ['ds', 'cbds', 'pbds', 'rbds', 'pads', 'lam', 'lam1', 'fm'];
-lam_list = ['lam', 'lam1', 'fm'];
+Algorithm_list = ['ds', 'cbds', 'pbds', 'rbds', 'pads', 'lht', 'lht1', 'fm'];
+lht_list = ['lht', 'lht1', 'fm'];
 if isfield(options, "Algorithm") && ~any(ismember(lower(options.Algorithm), Algorithm_list))
     error("The Algorithm input is invalid");
 end
@@ -189,15 +189,23 @@ if isfield(options, "Algorithm")
             options.num_blocks = n;
             options.batch_size = n;
             options.scheme = "parallel";
+        case 'lht'
+            options.num_blocks = n;
+            options.batch_size = n;
+            options.scheme = "cyclic";
+        case 'lht1'
+            options.num_blocks = n;
+            options.batch_size = n;
+            options.scheme = "cyclic";
+        case 'fm'
+            options.num_blocks = n;
+            options.batch_size = n;
+            options.scheme = "cyclic";
         case 'lam'
             options.num_blocks = n;
             options.batch_size = n;
             options.scheme = "cyclic";
         case 'lam1'
-            options.num_blocks = n;
-            options.batch_size = n;
-            options.scheme = "cyclic";
-        case 'fm'
             options.num_blocks = n;
             options.batch_size = n;
             options.scheme = "cyclic";
@@ -303,8 +311,8 @@ if ~isfield(options, "expand")
             end
         end
     else
-        if isfield(options, "Algorithm") && any(ismember(lower(options.Algorithm), lam_list))
-            expand = get_default_constant("lam_expand");
+        if isfield(options, "Algorithm") && any(ismember(lower(options.Algorithm), lht_list))
+            expand = get_default_constant("lht_expand");
         else
             if numel(x0) <= 5
                 expand = get_default_constant("expand_small");
@@ -333,8 +341,8 @@ if ~isfield(options, "shrink")
             end
         end
     else
-        if isfield(options, "Algorithm") && any(ismember(lower(options.Algorithm), lam_list))
-            shrink = get_default_constant("lam_shrink");
+        if isfield(options, "Algorithm") && any(ismember(lower(options.Algorithm), lht_list))
+            shrink = get_default_constant("lht_shrink");
         else
             if numel(x0) <= 5
                 shrink = get_default_constant("shrink_small");
@@ -561,7 +569,7 @@ if isfield(options, "terminate_inner")
 else
     terminate_inner = true;
 end
-if isfield(options, "Algorithm") && strcmpi(options.Algorithm, "lam")
+if isfield(options, "Algorithm") && strcmpi(options.Algorithm, "lht")
     terminate_inner = false;
 end
 
@@ -706,13 +714,13 @@ for iter = 1:maxit
 
         % Update the step size alpha_all according to the reduction achieved.
         if (sub_fopt + reduction_factor(3) * forcing_function(alpha_all(i_real)) < fbase) 
-                if isfield(options, 'Algorithm') && any(ismember(options.Algorithm, lam_list))
+                if isfield(options, 'Algorithm') && any(ismember(options.Algorithm, lht_list))
                     alpha_all(i_real) = sub_output.alpha;
                 else
                     alpha_all(i_real) = expand * alpha_all(i_real);
                 end
         elseif (sub_fopt + reduction_factor(2) * forcing_function(alpha_all(i_real)) >= fbase) ...
-                && ~(isfield(options, "Algorithm") && strcmpi(options.Algorithm, "lam"))
+                && ~(isfield(options, "Algorithm") && strcmpi(options.Algorithm, "lht"))
             alpha_all(i_real) = shrink * alpha_all(i_real);
         end
 
@@ -728,7 +736,7 @@ for iter = 1:maxit
         % direct search in the i_real-th block. For "parallel", we will update xbase and fbase after
         % one iteration of the outer loop.
         if ~strcmpi(scheme, "parallel") 
-            % if  ~(isfield(options, 'Algorithm') && any(ismember(options.Algorithm, lam_list)))
+            % if  ~(isfield(options, 'Algorithm') && any(ismember(options.Algorithm, lht_list)))
             %     % Update xbase and fbase. xbase serves as the "base point" for the computation in the next block,
             %     % meaning that reduction will be calculated with respect to xbase, as shown above.
             %     % Note that their update requires a sufficient decrease if reduction_factor(1) > 0.
@@ -738,7 +746,7 @@ for iter = 1:maxit
             %         fbase = sub_fopt;
             %     end
             % else
-            % To keep with the same rule of lam, when BDS compares with LAM, as long as the function
+            % To keep with the same rule of lht, when BDS compares with lht, as long as the function
             % value is smaller than fbase, we will update xbase and fbase. Thus, reduction_factor(1) and
             % reduction_factor(2) should be set to 0 locally, not globally. When BDS decides whether to
             % expand or shrink the step size, reduction_factor(2) and reduction_factor(3) are still
@@ -793,7 +801,7 @@ for iter = 1:maxit
     % bigger than fopt due to the update of xbase and fbase.
     % NOTE: If the function values are complex, the min function will return the value with the smallest
     % norm (magnitude).
-    if ~(isfield(options, 'Algorithm') && any(ismember(options.Algorithm, lam_list)))
+    if ~(isfield(options, 'Algorithm') && any(ismember(options.Algorithm, lht_list)))
         [~, index] = min(fopt_all, [], "omitnan");
         if fopt_all(index) < fopt
             fopt = fopt_all(index);
@@ -807,7 +815,7 @@ for iter = 1:maxit
         break;
     end
 
-    if isfield(options, "Algorithm") && strcmpi(options.Algorithm, "lam")
+    if isfield(options, "Algorithm") && strcmpi(options.Algorithm, "lht")
         alpha_all = (any(success_all) * LS_stepsize) + (~any(success_all) * shrink .* alpha_all);
     end
 
