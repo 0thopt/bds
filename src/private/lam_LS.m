@@ -1,4 +1,4 @@
-function [xopt, fopt, exitflag, output] = LS(fun, xbase, fbase, d, alpha, nf, options)
+function [xopt, fopt, exitflag, output] = lam_LS(fun, xbase, fbase, d, alpha, nf, options)
 
 % Set the value of reduction_factor.
 reduction_factor = options.reduction_factor;
@@ -22,6 +22,8 @@ exitflag = NaN;
 xopt = xbase;
 fopt = fbase;
 
+x_init = xbase - alpha * d;
+
 % Initialize some parameters before entering the loop.
 n = length(xbase);
 fhist = NaN(1, MaxFunctionEvaluations);
@@ -30,8 +32,8 @@ sufficient_decrease = true;
 
 while sufficient_decrease
 
-    alpha_tmp = alpha * expand;
-    xnew = xbase + alpha_tmp * d;
+    alpha_tmp = expand * alpha;
+    xnew = x_init + alpha_tmp * d;
     fnew = eval_fun(fun, xnew);
     nf = nf + 1;
     fhist(nf) = fnew;
@@ -60,12 +62,11 @@ while sufficient_decrease
         break;
     end
 
-    sufficient_decrease = fnew + reduction_factor * ((expand-1) * alpha)^2 < fbase;  
+    sufficient_decrease = fnew + reduction_factor * ((expand-1) * alpha)^2 < fbase;
 
     if sufficient_decrease
+        alpha = expand * alpha;
         fbase = fnew;
-        xbase = xnew;
-        alpha = alpha_tmp;
     else
         break;
     end

@@ -42,12 +42,6 @@ verbose = options.verbose;
 % The type of the Algorithm.
 Algorithm = options.Algorithm;
 
-% Whether to output the history of x.
-output_xhist = options.output_xhist;
-
-% Initialize the success flag.
-success = false;
-
 % If terminate is true and the exitflag is NaN, it means that the algorithm terminates
 % not because of the maximum number of function evaluations or the target function value,
 % which will be a bug.
@@ -63,14 +57,7 @@ fopt = fbase;
 xopt = xbase;
 
 for j = 1 : num_directions
-
-    % % Stop the loop if no more function evaluations can be performed. 
-    % % Note that this should be checked before evaluating the objective function.
-    % if nf >= options.MaxFunctionEvaluations
-    %     exitflag = get_exitflag("MAXFUN_REACHED");
-    %     break;
-    % end
-
+    
     % Evaluate the objective function for the current polling direction.
     xnew = xbase+alpha*D(:, j);
     % fnew_real is the real function value at xnew, which is the value returned by fun 
@@ -93,14 +80,9 @@ for j = 1 : num_directions
         xopt = xnew;
         fopt = fnew;
     end
-
-    if nf >= MaxFunctionEvaluations || fnew_real <= ftarget
-        break;
-    end
     
-    % Check whether the sufficient decrease condition is achieved. To keep the same setting of forcing
-    % function in LAM, we use forcing function x^2 instead of x^2 / 2.
-    sufficient_decrease = (fnew + reduction_factor(3) * forcing_function(alpha) < fbase);
+    % Check whether the sufficient decrease condition is achieved.
+    sufficient_decrease = (fnew + reduction_factor(3) * forcing_function(alpha)/2 < fbase);
     if verbose
         if sufficient_decrease
             fprintf("%g decrease is achieved.\n", fbase - fnew);
@@ -109,35 +91,17 @@ for j = 1 : num_directions
         end
     end
 
-    success = sufficient_decrease;
-    % keyboard
-    if sufficient_decrease && (strcmpi(Algorithm, "lht") | strcmpi(Algorithm, "lht1"))
-        [xnew, fnew, exitflag, ls_output] = LS(fun, xnew, fnew, D(:, j), alpha, nf, options);
-        % Record the points visited by LS if the output_xhist is true.
-        if output_xhist
-            xhist(:, (nf+1):(nf+ls_output.nf)) = ls_output.xhist;
-        end
-        % Record the function values calculated by inner_direct_search,
-        fhist((nf+1):(nf+ls_output.nf)) = ls_output.fhist;
-        % Update the number of function evaluations.
-        nf = nf + ls_output.nf;
-        alpha = ls_output.alpha;
-        % Update the best point and the best function value.
-        if fnew < fopt
-            xopt = xnew;
-            fopt = fnew;
-        end
-        if nf >= MaxFunctionEvaluations || fnew_real <= ftarget
-            break;
-        end
-    end
-    
     % In the opportunistic case, if the current iteration achieves sufficient decrease,
     % stop the computations after cycling the indices of the polling directions. The reason  
     % that we cycle indices here is because inner_direct_search is called in a loop 
     % in outer_direct_search. 
-    if success && ~strcmpi(polling_inner, "complete")
+    if sufficient_decrease && ~strcmpi(polling_inner, "complete")
+        output.d = D(:, j);
         direction_indices = cycling(direction_indices, j, cycling_strategy, with_cycling_memory);
+        break;
+    end
+
+    if nf >= MaxFunctionEvaluations || fnew <= ftarget
         break;
     end
 
@@ -158,19 +122,15 @@ end
 % Truncate FHIST and XHIST into a vector of length nf.
 output.fhist = fhist(1:nf);
 output.xhist = xhist(:, 1:nf);
-% if options.iter == 9 && options.i_real == 3
-%     keyboard
-% end
 output.nf = nf;
 output.terminate = terminate;
 output.alpha = alpha;
-output.success = success;
-output.sufficient_decrease = success;
-if ~success && (strcmpi(Algorithm, "lht") || strcmpi(Algorithm, "lht1"))
+output.success = sufficient_decrease;
+if ~sufficient_decrease && ~strcmpi(Algorithm, "cbds")
     output.direction_indices = direction_indices([2, 1]);
 else
     output.direction_indices = direction_indices;
 end
-output.decrease_value = fbase - min(fhist(1:nf));
+
 end
 

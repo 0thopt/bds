@@ -304,20 +304,16 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @newuoa_test;
             case 'cbds-terminate-outer'
                 solvers{i} = @bds_terminate_outer_test;
-            case 'lht'
-                solvers{i} = @lht_test;
-            case 'lht-terminate-outer'
-                solvers{i} = @lht_terminate_outer_test;
-            case 'bds-lht'
-                solvers{i} = @bds_lht_test;
-            case 'lht1-0'
-                solvers{i} = @lht1_stepsize_factor_0_test;
             case 'lht1'
                 solvers{i} = @lht1_test;
-            case 'lht1-terminate-outer'
+            case 'lht-terminate-outer'
                 solvers{i} = @lht1_terminate_outer_test;
-            case 'bds-lht1'
-                solvers{i} = @bds_lht1_test;
+            case 'lam1'
+                solvers{i} = @lam1_test;
+            case 'lam1-terminate-outer'
+                solvers{i} = @lam1_terminate_outer_test;
+            case 'bds-terminate-outer'
+                solvers{i} = @bds_terminate_outer_test;
             case 'fm'
                 solvers{i} = @fm_test;
             case 'nomad'
@@ -1133,40 +1129,12 @@ function x = newuoa_test(fun, x0)
     
 end
 
-function x = lht_test(fun, x0)
-
-    options.Algorithm = 'lht';
-    options.expand = 2;
-    options.shrink = 0.5;
-    x = lam(fun, x0, options);
-    
-end
-
-function x = lht_terminate_outer_test(fun, x0)
-
-    options.Algorithm = 'lht';
-    options.expand = 2;
-    options.shrink = 0.5;
-    options.terminate_inner = false;
-    x = lam(fun, x0, options);
-    
-end
-
-function x = bds_lht_test(fun, x0)
-
-    options.Algorithm = 'lht';
-    options.expand = 2;
-    options.shrink = 0.5;
-    x = bds(fun, x0, options);
-    
-end
-
 function x = lht1_test(fun, x0)
 
     options.Algorithm = 'lht1';
     options.expand = 2;
     options.shrink = 0.5;
-    x = lam(fun, x0, options);
+    x = bds(fun, x0, options);
     
 end
 
@@ -1176,22 +1144,22 @@ function x = lht1_terminate_outer_test(fun, x0)
     options.expand = 2;
     options.shrink = 0.5;
     options.terminate_inner = false;
-    x = lam(fun, x0, options);
+    x = bds(fun, x0, options);
     
 end
 
-function x = bds_lht1_test(fun, x0)
+function x = lam1_test(fun, x0)
 
-    options.Algorithm = 'lht1';
+    options.Algorithm = 'lam1';
     options.expand = 2;
     options.shrink = 0.5;
     x = bds(fun, x0, options);
     
 end
 
-function x = bds_terminate_outer_test(fun, x0)
+function x = lam1_terminate_outer_test(fun, x0)
 
-    options.Algorithm = 'lht1';
+    options.Algorithm = 'lam1';
     options.expand = 2;
     options.shrink = 0.5;
     options.terminate_inner = false;
@@ -1199,22 +1167,22 @@ function x = bds_terminate_outer_test(fun, x0)
     
 end
 
-function x = lht1_stepsize_factor_0_test(fun, x0)
+function x = bds_terminate_outer_test(fun, x0)
 
-    options.Algorithm = 'lht1';
+    options.Algorithm = 'cbds';
     options.expand = 2;
     options.shrink = 0.5;
-    options.stepsize_factor = 0;
-    x = lam(fun, x0, options);
+    options.terminate_inner = false;
+    x = bds(fun, x0, options);
     
 end
 
 function x = fm_test(fun, x0)
 
+    options.Algorithm = 'fm';
     options.expand = 1;
     options.shrink = 0.5;
-    options.stepsize_factor = 0;
-    x = lam(fun, x0, options);
+    x = bds(fun, x0, options);
     
 end
 

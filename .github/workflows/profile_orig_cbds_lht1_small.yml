@@ -1,4 +1,4 @@
-name: Profile original cbds and lht1, big
+name: Profile original cbds and lht1, small
 
 on:
   # Trigger the workflow on push or pull request
