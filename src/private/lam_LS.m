@@ -63,6 +63,20 @@ while sufficient_decrease
     end
 
     sufficient_decrease = fnew + reduction_factor * ((expand-1) * alpha)^2 < fbase;
+    % The following code is used to check if ((expand - 1) * alpha)^2 
+    % is the same as the distance between the neighbour points.
+    % if nf == 1
+    %     if abs(((expand - 1) * alpha)^2 - norm(xnew - xbase)^2) > eps
+    %         warning('The nf is 1')
+    %         warning('The Algorithm is lam1 and the distance between the neighbour points is not equal to ((expand - 1) * alpha)^2');
+    %         keyboard
+    %     end
+    % else
+    %     if abs(((expand - 1) * alpha)^2 - norm(xnew - xhist(:, nf-1))^2) > eps
+    %         warning('The Algorithm is lam1 and the distance between the neighbour points is not equal to ((expand - 1) * alpha)^2');
+    %         keyboard
+    %     end
+    % end
 
     if sufficient_decrease
         alpha = expand * alpha;
