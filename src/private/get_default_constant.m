@@ -43,8 +43,6 @@ switch constant_name
         constant_value = @(alpha) alpha^2;
     case {"alpha_init"}
         constant_value = 1;
-    case {"alpha_threshold_ratio"}
-        constant_value = 1e-3;
     case {"StepTolerance"}
         constant_value = 1e-6;
     case {"grad_tol"}

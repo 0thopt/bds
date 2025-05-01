@@ -48,9 +48,6 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               less than 1. It depends on the dimension of the
 %                               problem and whether the problem is noisy or not
 %                               and the Algorithm. Default: 0.5.
-%   alpha_threshold             The threshold of the step size. When the step
-%                               size shrinks, the step size will be updated to
-%                               be the maximum of alpha_threshold and shrink*alpha.
 %                               It should be strictly less than StepTolerance.
 %                               A positive number. Default: 1e-3*StepTolerance.
 %   forcing_function            The forcing function used for deciding whether
@@ -403,14 +400,6 @@ else
     alpha_tol = get_default_constant("StepTolerance");
 end
 
-% Set the value of alpha_threshold. If the step size is smaller than alpha_threshold, then the step size
-% will be not allowed to shrink below alpha_threshold.
-if isfield(options, "alpha_threshold")
-    alpha_threshold = options.alpha_threshold;
-else
-    alpha_threshold = get_default_constant("alpha_threshold_ratio")*alpha_tol;
-end
-
 % Set the target of the objective function.
 if isfield(options, "ftarget")
     ftarget = options.ftarget;
@@ -692,8 +681,7 @@ for iter = 1:maxit
         if sub_fopt + reduction_factor(3) * forcing_function(alpha_all(i_real)) < fbase
             alpha_all(i_real) = expand * alpha_all(i_real);
         elseif sub_fopt + reduction_factor(2) * forcing_function(alpha_all(i_real)) >= fbase
-            alpha_all(i_real) = max(shrink * alpha_all(i_real), alpha_threshold);
-            %alpha_all(i_real) = shrink * alpha_all(i_real);
+            alpha_all(i_real) = shrink * alpha_all(i_real);
         end
 
         % If the scheme is not "parallel", then we will update xbase and fbase after finishing the
