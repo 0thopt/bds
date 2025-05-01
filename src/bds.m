@@ -518,7 +518,7 @@ if verbose
     fprintf("The corresponding X is:\n");
     fprintf("%.8f  ", xbase(:)');
     fprintf("\n");
-    fprintf("The corresponding alpha are:\n");
+    fprintf("The corresponding alpha is:\n");
     fprintf("%.10e ", alpha_all);
     fprintf("\n");
 end
@@ -549,28 +549,6 @@ if fbase_real <= ftarget
 elseif nf >= MaxFunctionEvaluations
     exitflag = get_exitflag("MAXFUN_REACHED");
 end
-
-% % Stop the loop if no more function evaluations can be performed. 
-% % Note that this should be checked after evaluating the objective function.
-% if nf >= MaxFunctionEvaluations
-%     information = "MAXFUN_REACHED";
-%     exitflag = get_exitflag(information);
-
-%     % MaxFunctionEvaluations has been reached at the very first function evaluation.
-%     % In this case, no further computation should be entertained, and hence,
-%     % no iteration should be run.
-%     maxit = 0;
-% end
-% % Check whether FTARGET is reached by fopt. If it is true, then terminate.
-% if fopt <= ftarget
-%     information = "FTARGET_REACHED";
-%     exitflag = get_exitflag(information);
-
-%     % FTARGET has been reached at the very first function evaluation.
-%     % In this case, no further computation should be entertained, and hence,
-%     % no iteration should be run.
-%     maxit = 0;
-% end
 
 % Initialize the block_indices, which is a vector containing the indices of blocks that we
 % are going to visit iterately. Initialize the number of blocks visited also.
@@ -643,7 +621,7 @@ for iter = 1:maxit
 
         if verbose
             fprintf("The number of the block visited is: %d\n", i_real);
-            fprintf("The corresponding alpha are:\n");
+            fprintf("The corresponding alpha is:\n");
             fprintf("%.8e ", alpha_all);
             fprintf("\n");
         end
