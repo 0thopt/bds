@@ -17,7 +17,9 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               (randomized blockwise direct search), "ds"
 %                               (the classical direct search), "pads" (parallel 
 %                               blockwise direct search). "scbds" (symmetric
-%                               blockwise direct search). Default: "cbds".
+%                               blockwise direct search). If no Algorithm is specified 
+%                               in the options, the default setting will be equivalent to 
+%                               using "cbds" as the input.
 %   Scheme                      Scheme to use. It can be "cyclic", "random", "parallel",
 %                               Default: "cyclic".
 %   num_blocks                  Number of blocks. A positive integer. 
@@ -55,18 +57,18 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               the step achieves a sufficient decrease. A
 %                               function handle.
 %                               Default: @(alpha) alpha^2. See also reduction_factor.
-%   reduction_factor            Factors multiplied to the forcing function when
-%                               deciding whether the step achieves a sufficient decrease.
+%   reduction_factor            Factors multiplied to the forcing function for
+%                               deciding whether a step achieves a sufficient decrease.
 %                               A 3-dimentional vector such that
 %                               reduction_factor(1) <= reduction_factor(2) <= reduction_factor(3),
 %                               reduction_factor(1) >= 0, and reduction_factor(2) > 0.
-%                               reduction_factor(0) is used for deciding whether
-%                               to update
-%                               the base point;
-%                               reduction_factor(1) is used for deciding whether
-%                               to shrink the step size;
-%                               reduction_factor(2) is used for deciding whether
-%                               to expand the step size.
+%                               After the "inner direct search" over each block, the base 
+%                               point is updated to the best trial point in the block if 
+%                               its reduction is more than reduction_factor(1) * forcing_function;
+%                               the step size in this block is shrunk if the reduction is at most 
+%                               reduction_factor(2) * forcing_function, and it is 
+%                               expanded if the reduction is at least 
+%                               reduction_factor(3) * forcing_function. 
 %                               Default: [0, eps, eps]. See also forcing_function.
 %   StepTolerance               Lower bound of the step size. If the step size is
 %                               smaller than StepTolerance, then the algorithm
@@ -138,9 +140,11 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %
 %   ***********************************************************************
 %   Authors:    Haitian LI (hai-tian.li@connect.polyu.hk)
-%               and Zaikun ZHANG (zaikun.zhang@polyu.edu.hk)
+%               and Zaikun ZHANG (zhangzaikun@mail.sysu.edu.cn)
 %               Department of Applied Mathematics,
 %               The Hong Kong Polytechnic University
+%               School of Mathematics,
+%               Sun Yat-sen University
 %   ***********************************************************************
 %   All rights reserved.
 %
@@ -376,8 +380,6 @@ else
     replacement_delay = floor(num_blocks/batch_size)-1;
 end
 
-% fprintf("bds.m: expand = %f, shrink = %f, replacement_delay = %d\n", expand, shrink, replacement_delay);
-
 % Set the boolean value of with_cycling_memory, which will be used in cycling.m.
 % cycling.m decides the order of the directions in each block when we perform direct search
 % in this block. This order is represented by direction_indices. If with_cycling_memory is true,
@@ -467,7 +469,10 @@ if isfield(options, "alpha_init")
 else
     alpha_all = ones(num_blocks, 1);
 end
-alpha_hist(:, 1) = alpha_all(:);
+% Record the initial step size into the alpha_hist.
+if  output_alpha_hist
+    alpha_hist(:, 1) = alpha_all(:);
+end
 
 % Initialize the history of function values.
 fhist = NaN(1, MaxFunctionEvaluations);
@@ -502,12 +507,6 @@ else
     output_sufficient_decrease = get_default_constant("output_sufficient_decrease");
 end
 
-if isfield(options, "use_estimated_gradient_stop")
-    use_estimated_gradient_stop = options.use_estimated_gradient_stop;
-else
-    use_estimated_gradient_stop = false;
-end
-
 % Initialize the history of sufficient decrease value and the boolean value of whether the sufficient decrease
 % is achieved or not.
 try
@@ -520,16 +519,6 @@ try
 catch
     warning("sufficient_decrease will be not included in the output due to the limit of memory.");
 end
-
-% Initialize the history of sufficient decrease value and the boolean value of whether the sufficient decrease
-% is achieved or not when the problem is not noisy and each block will be visited once in each iteration,
-% i.e., the Algorithm is "cbds" or "pbds" or "rbds" and batch_size is equal to num_blocks.
-% The use of sufficient_decrease_value and sufficient_decrease is to estimate the gradient of the function
-% at the best point encountered so far when the sufficient decrease condition is not achieved in the previous
-% iteration. It is an optional termination criterion unless use_estimated_gradient_stop is true.
-is_estimated_gradient_stop = use_estimated_gradient_stop && ~is_noisy && ...
-    (((strcmpi(options.Algorithm, "cbds") || strcmpi(options.Algorithm, "pbds")) && num_blocks == n) ...
-    || (strcmpi(options.Algorithm, "rbds") && batch_size == n));
 
 % Decide whether to print during the computation.
 if isfield(options, "verbose")
@@ -575,16 +564,40 @@ end
 fhist(nf) = fbase_real;
 
 terminate = false;
-% Check whether FTARGET is reached by fopt. If it is true, then terminate.
-if fopt <= ftarget
-    information = "FTARGET_REACHED";
-    exitflag = get_exitflag(information);
-
-    % FTARGET has been reached at the very first function evaluation.
+if nf >= MaxFunctionEvaluations || fnew <= ftarget
+    % Either MaxFunctionEvaluations has been reached at the very first function evaluation
+    % or FTARGET has been reached at the very first function evaluation.
     % In this case, no further computation should be entertained, and hence,
     % no iteration should be run.
     maxit = 0;
 end
+if fnew <= ftarget
+    exitflag = get_exitflag( "FTARGET_REACHED");
+elseif nf >= MaxFunctionEvaluations
+    exitflag = get_exitflag("MAXFUN_REACHED");
+end
+
+% % Stop the loop if no more function evaluations can be performed. 
+% % Note that this should be checked after evaluating the objective function.
+% if nf >= MaxFunctionEvaluations
+%     information = "MAXFUN_REACHED";
+%     exitflag = get_exitflag(information);
+
+%     % MaxFunctionEvaluations has been reached at the very first function evaluation.
+%     % In this case, no further computation should be entertained, and hence,
+%     % no iteration should be run.
+%     maxit = 0;
+% end
+% % Check whether FTARGET is reached by fopt. If it is true, then terminate.
+% if fopt <= ftarget
+%     information = "FTARGET_REACHED";
+%     exitflag = get_exitflag(information);
+
+%     % FTARGET has been reached at the very first function evaluation.
+%     % In this case, no further computation should be entertained, and hence,
+%     % no iteration should be run.
+%     maxit = 0;
+% end
 
 % Initialize the block_indices, which is a vector containing the indices of blocks that we
 % are going to visit iterately. Initialize the number of blocks visited also.
@@ -600,32 +613,6 @@ fopt_all = NaN(1, num_blocks);
 xopt_all = NaN(n, num_blocks);
 
 for iter = 1:maxit
-
-    % Use central difference to estimate the gradient of the function at xopt if the sufficient decrease
-    % condition is not achieved in the previous iteration and the problem is not noisy.
-    if is_estimated_gradient_stop && iter > 1 && ~any(sufficient_decrease(:, iter-1))
-        if verbose
-            fprintf("The Algorithm is %s and failed to achieve sufficient decrease " ...
-                + "in the previous iteration.\n", options.Algorithm);
-        end
-        g = NaN(n, 1);
-        % The following loop is to estimate the gradient at xopt using central difference, with the
-        % function values stored in the previous iteration.
-        for i = 1:n
-            i_real = block_indices(i);
-            g(i_real) = (fhist(nf - 2*(i_real - 1) - 1) - fhist(nf - 2*(i_real - 1))) / (2*alpha_hist(i_real, iter-1));
-        end
-        grad_hist = [grad_hist norm(g)];
-        if min(grad_hist) < grad_tol || (length(grad_hist) > 1 && ...
-                (grad_hist(1) - grad_hist(end)) / grad_hist(1) > (1 - 1e-6))
-            if min(grad_hist) < grad_tol
-                exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
-            else
-                exitflag = get_exitflag("ESTIMATED_GRADIENT_FULLY_REDUCED");
-            end
-            break;
-        end
-    end
     
     % Define block_indices, a vector that specifies both the indices of the blocks
     % and the order in which they will be visited during the current iteration.
@@ -677,7 +664,7 @@ for iter = 1:maxit
             alpha_all(i_real), suboptions);
 
         % Record the sufficient decrease value and the boolean value of whether the sufficient decrease
-        % is achieved or not if is_estimated_gradient_stop is true.
+        % is achieved or not.
         decrease_value(i_real, iter) = sub_output.decrease_value;
         sufficient_decrease(i_real, iter) = sub_output.sufficient_decrease;
 
@@ -703,42 +690,37 @@ for iter = 1:maxit
         % Update the number of function evaluations.
         nf = nf+sub_output.nf;
 
+        % Record the best function value and point encountered in the i_real-th block.
+        fopt_all(i_real) = sub_fopt;
+        xopt_all(:, i_real) = sub_xopt;
+
+        % Retrieve the direction indices of the i_real-th block, which represent the order of the
+        % directions in the i_real-th block when we perform the direct search in this block next time.
+        direction_set_indices{i_real} = sub_output.direction_indices;
+
+        % Whether to update xbase and fbase. xbase serves as the "base point" for the computation in the next block,
+        % meaning that reduction will be calculated with respect to xbase, as shown above.
+        % Note that their update requires a sufficient decrease if reduction_factor(1) > 0.
+        update_base = (reduction_factor(1) <= 0 && sub_fopt < fbase) ...
+                    || (sub_fopt + reduction_factor(1) * forcing_function(alpha_all(i_real)) < fbase);
+
         % Update the step size alpha_all according to the reduction achieved.
         if sub_fopt + reduction_factor(3) * forcing_function(alpha_all(i_real)) < fbase
             alpha_all(i_real) = expand * alpha_all(i_real);
         elseif sub_fopt + reduction_factor(2) * forcing_function(alpha_all(i_real)) >= fbase
-            % if isfield(options, "Algorithm") && ~strcmpi(options.Algorithm, "ds")
-            %     if shrink * alpha_all(i_real) < alpha_threshold
-            %         fprintf("The step size of the block %d is smaller than alpha_threshold.++++++++\n", i_real);
-            %     end
-            % end
-            % The following strategy is used to avoid the case that the step size of some block is too small such
-            % that it can not be updated. It might work on some anisotropic functions, but with no theoretical guarantee.
             alpha_all(i_real) = max(shrink * alpha_all(i_real), alpha_threshold);
             %alpha_all(i_real) = shrink * alpha_all(i_real);
         end
-        
-        % Record the best function value and point encountered in the i_real-th block.
-        fopt_all(i_real) = sub_fopt;
-        xopt_all(:, i_real) = sub_xopt;
 
         % If the scheme is not "parallel", then we will update xbase and fbase after finishing the
         % direct search in the i_real-th block. For "parallel", we will update xbase and fbase after
         % one iteration of the outer loop.
         if ~strcmpi(scheme, "parallel")
-            % Update xbase and fbase. xbase serves as the "base point" for the computation in the next block,
-            % meaning that reduction will be calculated with respect to xbase, as shown above.
-            % Note that their update requires a sufficient decrease if reduction_factor(1) > 0.
-            if (reduction_factor(1) <= 0 && sub_fopt < fbase) ...
-                    || sub_fopt + reduction_factor(1) * forcing_function(alpha_all(i_real)) < fbase
+            if update_base
                 xbase = sub_xopt;
                 fbase = sub_fopt;
             end
         end
-
-        % Retrieve the direction indices of the i_real-th block, which represent the order of the
-        % directions in the i_real-th block when we perform the direct search in this block next time.
-        direction_set_indices{i_real} = sub_output.direction_indices;
 
         % Terminate the computations if sub_output.terminate is true, which means that inner_direct_search
         % decides that the algorithm should be terminated for some reason indicated by sub_exitflag.

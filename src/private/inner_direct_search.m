@@ -9,7 +9,7 @@ function [xopt, fopt, exitflag, output] = inner_direct_search(fun, ...
 %   structure OPTIONS, which includes reduction_factor, ftarget, polling, 
 %   with_cycling_memory, cycling.
 %
-%   DIRECTION_INDICES is the indices of directions of this block in D.
+%   DIRECTION_INDICES is the indices of directions of the current block in D.
 %
 
 % Set the value of sufficient decrease factor.
@@ -82,7 +82,7 @@ for j = 1 : num_directions
     sufficient_decrease = (fnew + reduction_factor(3) * forcing_function(alpha)/2 < fbase);
     if verbose
         if sufficient_decrease
-            fprintf("%g decrease is achieved.\n", fbase - fnew);
+            fprintf("%g sufficient decrease is achieved.\n", fbase - fnew);
         else
             fprintf("Sufficient decrease is not achieved.\n");
         end
