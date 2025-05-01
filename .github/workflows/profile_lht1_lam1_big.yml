@@ -2,10 +2,10 @@ name: Profile lht1 and lam1, big
 
 on:
   # Trigger the workflow on push or pull request
-  push:
+  # push:
   # Trigger the workflow manually
   schedule:
-    - cron: '0 12 */1 * *'
+  - cron: '0 12 */3 * *'
   workflow_dispatch:
 
 jobs:
