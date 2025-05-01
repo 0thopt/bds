@@ -97,15 +97,6 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               equal to floor(num_blocks/batch_size)-1.                               
 %                               Default: floor(num_blocks/batch_size)-1.
 %   seed                        The seed for random number generator. Default: "shuffle".
-%   use_estimated_gradient_stop Whether to use the estimated gradient to stop
-%                               the algorithm. If it is true and the problem is
-%                               not noisy and each block will be visited once in
-%                               each iteration, then the algorithm will estimate
-%                               the gradient of the function at the best point
-%                               encountered so far when the sufficient decrease
-%                               condition is not achieved in the previous iteration.
-%                               It is an optional termination criterion.
-%                               Default: false.
 %   output_xhist                Whether to output the history of points visited.
 %                               Default: false.
 %   output_alpha_hist           Whether to output the history of step sizes.
@@ -412,13 +403,6 @@ else
     alpha_tol = get_default_constant("StepTolerance");
 end
 
-
-if isfield(options, "grad_tol")
-    grad_tol = options.grad_tol;
-else
-    grad_tol = get_default_constant("grad_tol");
-end
-
 % Set the value of alpha_threshold. If the step size is smaller than alpha_threshold, then the step size
 % will be not allowed to shrink below alpha_threshold.
 if isfield(options, "alpha_threshold")
@@ -564,14 +548,14 @@ end
 fhist(nf) = fbase_real;
 
 terminate = false;
-if nf >= MaxFunctionEvaluations || fnew <= ftarget
+if nf >= MaxFunctionEvaluations || fbase_real <= ftarget
     % Either MaxFunctionEvaluations has been reached at the very first function evaluation
     % or FTARGET has been reached at the very first function evaluation.
     % In this case, no further computation should be entertained, and hence,
     % no iteration should be run.
     maxit = 0;
 end
-if fnew <= ftarget
+if fbase_real <= ftarget
     exitflag = get_exitflag( "FTARGET_REACHED");
 elseif nf >= MaxFunctionEvaluations
     exitflag = get_exitflag("MAXFUN_REACHED");
@@ -603,7 +587,7 @@ end
 % are going to visit iterately. Initialize the number of blocks visited also.
 all_block_indices = (1:num_blocks);
 num_visited_blocks = 0;
-grad_hist = [];
+
 % fopt_all(i) stores the best function value found in the i-th block after one iteration, 
 % while xopt_all(:, i) holds the corresponding x. If a block is not visited during the iteration, 
 % fopt_all(i) is set to NaN. Both fopt_all and xopt_all have a length of num_blocks, not batch_size, 
@@ -792,8 +776,8 @@ end
 if output_sufficient_decrease
     output.sufficient_decrease = sufficient_decrease(:, 1:min(iter, maxit));
     output.decrease_value = decrease_value(:, 1:min(iter, maxit));
-    output.grad_hist = grad_hist;
 end
+
 if output_xhist
     output.xhist = xhist(:, 1:nf);
 end
@@ -809,10 +793,6 @@ switch exitflag
         output.message = "The target of the objective function is reached.";
     case {get_exitflag("MAXIT_REACHED")}
         output.message = "The maximum number of iterations is reached.";
-    case {get_exitflag("SMALL_ESTIMATE_GRADIENT")}
-        output.message = "The estimated gradient tolerance is reached.";
-    case {get_exitflag("ESTIMATED_GRADIENT_FULLY_REDUCED")}
-        output.message = "The estimated gradient is fully reduced.";
     otherwise
         output.message = "Unknown exitflag";
 end
