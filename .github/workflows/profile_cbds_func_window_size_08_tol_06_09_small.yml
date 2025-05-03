@@ -1,4 +1,4 @@
-name: Profile cbds with func window size 8, tol 06 and 09, small
+name: Profile cbds with func 8, 6x, 9x, small
 
 on:
   # Trigger the workflow on # push or pull request

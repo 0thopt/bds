@@ -823,24 +823,13 @@ for iter = 1:maxit
         % Update the number of function evaluations.
         nf = nf+sub_output.nf;
 
-        % Update the step size alpha_all according to the reduction achieved.
-        if sub_fopt + reduction_factor(3) * forcing_function(alpha_all(i_real)) < fbase
-            alpha_all(i_real) = expand * alpha_all(i_real);
-        elseif sub_fopt + reduction_factor(2) * forcing_function(alpha_all(i_real)) >= fbase
-            % if isfield(options, "Algorithm") && ~strcmpi(options.Algorithm, "ds")
-            %     if shrink * alpha_all(i_real) < alpha_threshold
-            %         fprintf("The step size of the block %d is smaller than alpha_threshold.++++++++\n", i_real);
-            %     end
-            % end
-            % The following strategy is used to avoid the case that the step size of some block is too small such
-            % that it can not be updated. It might work on some anisotropic functions, but with no theoretical guarantee.
-            alpha_all(i_real) = max(shrink * alpha_all(i_real), alpha_threshold);
-            %alpha_all(i_real) = shrink * alpha_all(i_real);
-        end
-
         % Record the best function value and point encountered in the i_real-th block.
         fopt_all(i_real) = sub_fopt;
         xopt_all(:, i_real) = sub_xopt;
+
+        % Retrieve the direction indices of the i_real-th block, which represent the order of the
+        % directions in the i_real-th block when we perform the direct search in this block next time.
+        direction_set_indices{i_real} = sub_output.direction_indices;
 
         % If the scheme is not "parallel", then we will update xbase and fbase after finishing the
         % direct search in the i_real-th block. For "parallel", we will update xbase and fbase after
@@ -856,9 +845,15 @@ for iter = 1:maxit
             end
         end
 
-        % Retrieve the direction indices of the i_real-th block, which represent the order of the
-        % directions in the i_real-th block when we perform the direct search in this block next time.
-        direction_set_indices{i_real} = sub_output.direction_indices;
+        % Update the step size alpha_all according to the reduction achieved.
+        if sub_fopt + reduction_factor(3) * forcing_function(alpha_all(i_real)) < fbase
+            alpha_all(i_real) = expand * alpha_all(i_real);
+        elseif sub_fopt + reduction_factor(2) * forcing_function(alpha_all(i_real)) >= fbase
+            % The following strategy is used to avoid the case that the step size of some block is too small such
+            % that it can not be updated. It might work on some anisotropic functions, but with no theoretical guarantee.
+            % alpha_all(i_real) = max(shrink * alpha_all(i_real), alpha_threshold);
+            alpha_all(i_real) = shrink * alpha_all(i_real);
+        end
 
         % Terminate the computations if sub_output.terminate is true, which means that inner_direct_search
         % decides that the algorithm should be terminated for some reason indicated by sub_exitflag.

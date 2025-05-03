@@ -24,19 +24,8 @@ If the above succeeds, then the package `bds` is installed and ready to use. Try
 We do not support MATLAB R2017a or earlier. If there exists any problems, please open an issue by
 https://github.com/blockwise-direct-search/bds/issues.
 
-## The coverage of unit test (offered by [Codecov](https://about.codecov.io/))
-
-[![Codecov](https://img.shields.io/codecov/c/github/blockwise-direct-search/bds?style=for-the-badge&logo=codecov)](https://app.codecov.io/github/blockwise-direct-search/bds)
-
 ## Test of BDS.
 The tests are **automated** by [GitHub Actions](https://docs.github.com/en/actions).
-- [![Check Spelling](https://github.com/blockwise-direct-search/bds/actions/workflows/spelling.yml/badge.svg)](https://github.com/blockwise-direct-search/bds/actions/workflows/spelling.yml)
-- [![Unit test of BDS](https://github.com/blockwise-direct-search/bds/actions/workflows/unit_test.yml/badge.svg)](https://github.com/blockwise-direct-search/bds/actions/workflows/unit_test.yml)
-- [![Coverage test of BDS](https://github.com/blockwise-direct-search/bds/actions/workflows/unit_test_coverage.yml/badge.svg)](https://github.com/blockwise-direct-search/bds/actions/workflows/unit_test_coverage.yml)
-- [![Stress test of BDS](https://github.com/blockwise-direct-search/bds/actions/workflows/stress_test.yml/badge.svg)](https://github.com/blockwise-direct-search/bds/actions/workflows/stress_test.yml)
-- [![Parallel test of BDS](https://github.com/blockwise-direct-search/bds/actions/workflows/parallel_test.yml/badge.svg)](https://github.com/blockwise-direct-search/bds/actions/workflows/parallel_test.yml)
-- [![Recursive test of BDS](https://github.com/blockwise-direct-search/bds/actions/workflows/recursive_test.yml/badge.svg)](https://github.com/blockwise-direct-search/bds/actions/workflows/recursive_test.yml)
-- [![Verify norma](https://github.com/zeroth-order-optimization/bds/actions/workflows/verify_norma.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/verify_norma.yml)
 
 The following tests are implemented by [Optiprofiler](https://github.com/optiprofiler/optiprofiler).
   
@@ -49,11 +38,9 @@ The following tests are implemented by [Optiprofiler](https://github.com/optipro
 
 - [Tests](https://github.com/gradient-free-opt/bds/actions) at [gradient-free-opt/bds](https://github.com/gradient-free-opt/bds)
 
-    - [![Profile cbds with grad window size 10, tol 03 and 04, big](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_grad_window_size_10_tol_03_04_big.yml/badge.svg)](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_grad_window_size_10_tol_03_04_big.yml)
-    - [![Profile cbds with grad window size 08, tol 03 and 04, small](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_grad_window_size_10_tol_03_04_small.yml/badge.svg)](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_grad_window_size_10_tol_03_04_small.yml)
-    - [![Profile cbds with grad window size 10, tol 03 and 05, big](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_grad_window_size_10_tol_03_05_big.yml/badge.svg)](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_grad_window_size_10_tol_03_05_big.yml)
-    - [![Profile cbds with grad window size 08, tol 03 and 05, small](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_grad_window_size_10_tol_03_05_small.yml/badge.svg)](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_grad_window_size_10_tol_03_05_small.yml)
-    - [![Profile cbds with grad window size 10, tol 03 and 06, big](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_grad_window_size_10_tol_03_06_big.yml/badge.svg)](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_grad_window_size_10_tol_03_06_big.yml)
-    - [![Profile cbds with grad window size 08, tol 03 and 06, small](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_grad_window_size_10_tol_03_06_small.yml/badge.svg)](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_grad_window_size_10_tol_03_06_small.yml)
-    - [![Profile cbds with grad window size 10, tol 03 and 08, big](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_grad_window_size_10_tol_03_08_big.yml/badge.svg)](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_grad_window_size_10_tol_03_08_big.yml)
-    - [![Profile cbds with grad window size 08, tol 03 and 08, small](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_grad_window_size_10_tol_03_08_small.yml/badge.svg)](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_grad_window_size_10_tol_03_08_small.yml)
+    - [![Profile cbds with grad window size 06, tol 03 and 05, big](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_grad_window_size_06_tol_03_05_big.yml/badge.svg)](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_grad_window_size_06_tol_03_05_big.yml)
+    - [![Profile cbds with grad window size 06, tol 03 and 05, small](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_grad_window_size_06_tol_03_05_small.yml/badge.svg)](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_grad_window_size_06_tol_03_05_small.yml)
+    - [![Profile cbds with grad window size 06, tol 03 and 06, big](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_grad_window_size_06_tol_03_06_big.yml/badge.svg)](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_grad_window_size_06_tol_03_06_big.yml)
+    - [![Profile cbds with grad window size 06, tol 03 and 06, small](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_grad_window_size_06_tol_03_06_small.yml/badge.svg)](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_grad_window_size_06_tol_03_06_small.yml)
+    - [![Profile cbds with grad window size 06, tol 03 and 08, big](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_grad_window_size_06_tol_03_08_big.yml/badge.svg)](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_grad_window_size_06_tol_03_08_big.yml)
+    - [![Profile cbds with grad window size 06, tol 03 and 08, small](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_grad_window_size_06_tol_03_08_small.yml/badge.svg)](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_grad_window_size_06_tol_03_08_small.yml)
