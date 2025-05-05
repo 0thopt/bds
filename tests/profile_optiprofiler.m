@@ -185,6 +185,8 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @cbds_terminate_outer_test;
             case 'lht1'
                 solvers{i} = @lht1_test;
+            case 'lht1-orig'
+                solvers{i} = @lht1_orig_test;
             case 'lht-terminate-outer'
                 solvers{i} = @lht1_terminate_outer_test;
             case 'lam1'
@@ -397,6 +399,17 @@ function x = lht1_test(fun, x0)
     options.Algorithm = 'lht1';
     options.expand = 2;
     options.shrink = 0.5;
+    x = bds(fun, x0, options);
+    
+end
+
+function x = lht1_orig_test(fun, x0)
+
+    options.Algorithm = 'lht1';
+    options.expand = 2;
+    options.shrink = 0.5;
+    options.stepsize_factor = 1e-10;
+    options.reduction_factor = [1e-6, 1e-6, 1e-6];
     x = bds(fun, x0, options);
     
 end

@@ -735,7 +735,7 @@ for iter = 1:maxit
                 end
 
             else
-                alpha_all(i_real) = shrink * alpha_all(i_real);
+                alpha_all(i_real) = shrink * alpha;
             end
         end
 
