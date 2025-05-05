@@ -284,7 +284,7 @@ if ~isfield(options, "expand")
         if numel(x0) <= 5
             expand = get_default_constant("ds_expand_small");
         else
-            % Judge whether the problem is noisy or not.
+            % Decide the expand value according to whether the problem is noisy or not.
             if is_noisy
                 expand = get_default_constant("ds_expand_big_noisy");
             else
