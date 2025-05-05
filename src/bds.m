@@ -534,9 +534,6 @@ if isfield(options, "terminate_inner")
 else
     terminate_inner = true;
 end
-if isfield(options, "Algorithm") && strcmpi(options.Algorithm, "lht")
-    terminate_inner = false;
-end
 
 % TODO: when the exitflag is conflicted, what is the priority?
 % Stop the loop if no more function evaluations can be performed. 
@@ -574,6 +571,12 @@ num_visited_blocks = 0;
 % blocks must still be recorded.
 fopt_all = NaN(1, num_blocks);
 xopt_all = NaN(n, num_blocks);
+
+if isfield(options, "stepsize_factor")
+    stepsize_factor = options.stepsize_factor;
+else
+    stepsize_factor = 0;
+end
 
 for iter = 1:maxit
 
@@ -626,10 +629,16 @@ for iter = 1:maxit
         suboptions.i_real = i_real;
         suboptions.Algorithm = options.Algorithm;
 
+        if strcmpi(options.Algorithm, 'cbds')
+            alpha = alpha_all(i_real);
+        else
+            alpha = max(alpha_all(i_real), stepsize_factor * max(alpha_all));
+        end
+
         % Perform the direct search within the i_real-th block.
         [sub_xopt, sub_fopt, sub_exitflag, sub_output] = inner_direct_search(fun, xbase,...
             fbase, D(:, direction_indices), direction_indices,...
-            alpha_all(i_real), suboptions);
+            alpha, suboptions);
 
         % Record the index of the block visited.
         num_visited_blocks = num_visited_blocks + 1;

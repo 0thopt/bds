@@ -2,10 +2,10 @@ name: Profile original cbds and lam1, small
 
 on:
   # Trigger the workflow on push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   schedule:
-    - cron: '0 9 */7 * *'
+    - cron: '0 6 */5 * *'
   workflow_dispatch:
 
 jobs:
