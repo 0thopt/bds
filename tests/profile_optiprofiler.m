@@ -181,9 +181,9 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @(fun, x0) fminunc_adaptive(fun, x0, options.noise_level);
             case 'fminunc'
                 solvers{i} = @fminunc_test;
-            case 'fminsearch'
+            case 'nelder-mead'
                 solvers{i} = @fminsearch_test;
-            case 'ds'
+            case 'direct-search'
                 solvers{i} = @ds_test;
             case 'ds-block'
                 solvers{i} = @ds_block_test;
