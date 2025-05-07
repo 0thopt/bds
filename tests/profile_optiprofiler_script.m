@@ -7,8 +7,8 @@ options.solver_names = {'cbds-orig', 'lht1'};
 %     options.feature_name = feature{i};
 %     profile_optiprofiler(options);
 % end
-options.mindim = 1;
-options.maxdim = 5;
+options.mindim = 6;
+options.maxdim = 50;
 % options.n_jobs = 1;
 %options.solver_names = {'rbds-zero-delay', 'rbds-one-delay', 'rbds-eighth-delay', 'rbds-quarter-delay', 'rbds-half-delay', 'rbds-n-minus-one-delay'};
 options.feature_name = 'plain';

@@ -690,7 +690,8 @@ for iter = 1:maxit
                 fbase = sub_fopt;
             end
             if sub_output.success
-                ls_options.MaxFunctionEvaluations = MaxFunctionEvaluations - nf;
+                % ls_options.MaxFunctionEvaluations = MaxFunctionEvaluations - nf;
+                ls_options.MaxFunctionEvaluations = MaxFunctionEvaluations;
                 ls_options.reduction_factor = reduction_factor(3);
                 ls_options.expand = expand;
                 ls_options.forcing_function = forcing_function;
@@ -732,6 +733,10 @@ for iter = 1:maxit
                 if ls_fopt < sub_fopt
                     sub_fopt = ls_fopt;
                     sub_xopt = ls_xopt;
+                    if  (ls_fopt + reduction_factor(1) * forcing_function(alpha_all(i_real)) < fbase)
+                        xbase = ls_xopt;
+                        fbase = ls_fopt;
+                    end
                 end
 
             else
