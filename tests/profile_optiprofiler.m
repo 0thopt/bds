@@ -185,6 +185,8 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @fminsearch_test;
             case 'direct-search'
                 solvers{i} = @ds_test;
+            case 'direct-search-orig'
+                solvers{i} = @ds_orig_test;
             case 'ds-block'
                 solvers{i} = @ds_block_test;
             case 'ds-noisy'
@@ -552,6 +554,15 @@ function x = fminunc_adaptive(fun, x0, noise_level)
     options.with_gradient = true;
     options.noise_level = noise_level;
     x = fminunc_wrapper(fun, x0, options);
+
+end
+
+function x = ds_orig_test(fun, x0)
+
+    option.Algorithm = 'ds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    x = bds(fun, x0, option);
 
 end
 
