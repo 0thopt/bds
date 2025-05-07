@@ -121,8 +121,8 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
     % such that it can not decide the step size.
     feature_adaptive = {'noisy', 'custom', 'truncated'};
     if ismember(options.feature_name, feature_adaptive)
-        if ismember('fminunc', options.solver_names)
-            options.solver_names(strcmpi(options.solver_names, 'fminunc')) = {'fminunc-adaptive'};
+        if ismember('fd-bfgs', options.solver_names)
+            options.solver_names(strcmpi(options.solver_names, 'fd-bfgs')) = {'adaptive-fd-bfgs'};
         end
         bds_Algorithms = {'ds', 'ds-randomized-orthogonal', 'pbds', 'rbds', 'pads', 'scbds', 'cbds', 'cbds-randomized-orthogonal',...
          'cbds-randomized-gaussian', 'cbds-permuted', 'cbds-rotated-initial-point'};
@@ -177,10 +177,14 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
     solvers = cell(1, length(options.solver_names));
     for i = 1:length(options.solver_names)
         switch options.solver_names{i}
-            case 'fminunc-adaptive'
+            case 'adaptive-fd-bfgs'
                 solvers{i} = @(fun, x0) fminunc_adaptive(fun, x0, options.noise_level);
-            case 'fminunc'
+            case 'fd-bfgs'
                 solvers{i} = @fminunc_test;
+            case 'default-fd-bfgs'
+                solvers{i} = @(fun, x0) fminunc_adaptive_tmp(fun, x0, options.noise_level);
+            case 'praxis'
+                solvers{i} = @praxis_test;
             case 'nelder-mead'
                 solvers{i} = @fminsearch_test;
             case 'direct-search'
@@ -555,6 +559,26 @@ function x = fminunc_adaptive(fun, x0, noise_level)
     options.noise_level = noise_level;
     x = fminunc_wrapper(fun, x0, options);
 
+end
+
+function x = fminunc_adaptive_tmp(fun, x0, noise_level)
+
+    options.with_gradient = true;
+    options.noise_level = noise_level;
+    x = fminunc_wrapper_tmp(fun, x0, options);
+
+end
+
+function x = praxis_test(fun, x0)
+    %xtol = eps;
+    xtol = 1e-6;
+    %xtol = 1e-3;
+    h0 = 1;
+    n = length(x0);
+    prin = 0;
+    funn = @(x, n) fun(x);
+    addpath('praxis/matlab');
+    [~, x] = praxis(xtol, h0, n, prin, x0, funn);
 end
 
 function x = ds_orig_test(fun, x0)
