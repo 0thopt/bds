@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Profile original CBDS and nomad, small
+    name: Profile original cbds and nomad, small
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

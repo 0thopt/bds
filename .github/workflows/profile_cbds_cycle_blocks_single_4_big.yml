@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Profile CBDS with cycling blocks using strategy 4, big
+    name: Profile cbds with cycling blocks using strategy 4, big
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -43,7 +43,7 @@ jobs:
       # Check out specific commit in the development branch
       - name: Check out specific commit
         working-directory: development
-        run: git checkout 65d15b191201f788ca409f5b0458f25f830e9b60
+        run: git checkout 68dcb09c302269e2771a72286410bdeb00b92a72
       
       - name: Checkout OptiProfiler
         uses: actions/checkout@v4

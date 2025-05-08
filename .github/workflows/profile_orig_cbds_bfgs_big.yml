@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Profile original CBDS and bfgs, big
+    name: Profile original cbds and bfgs, big
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

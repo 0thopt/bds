@@ -22,7 +22,7 @@ jobs:
         matlab: [R2023a]
         dim: [big]
         with_optim_toolbox: [yes]
-        solver: [CBDS]
+        solver: [cbds]
         competitor: [nlopt_newuoa]
         feature: [plain, badly_scaled, low, medium, high, randomx0_1e-3, randomx0_1, randomx0_10, randomx0_100, rotation]
 

@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Profile original CBDS with different blocks input, small
+    name: Profile original cbds with different blocks input, small
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

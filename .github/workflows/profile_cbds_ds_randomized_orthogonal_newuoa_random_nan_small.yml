@@ -1,4 +1,4 @@
-name: Profile cbds, ds with randomized orthogonal matrix input and NEWUOA, small, random_nan
+name: Profile cbds, ds with randomized orthogonal matrix input and newuoa, small, random_nan
 
 on:
   # Trigger the workflow on # push or pull request
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Profile CBDS, DS with randomized orthogonal matrix input and NEWUOA, small, random_nan
+    name: Profile cbds, DS with randomized orthogonal matrix input and newuoa, small, random_nan
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
