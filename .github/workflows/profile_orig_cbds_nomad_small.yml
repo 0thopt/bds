@@ -37,7 +37,7 @@ jobs:
           repository: optiprofiler/optiprofiler
           path: optiprofiler
           submodules: recursive
-          ref: b112c51c924e157731db6609006ee124c49f0832
+          ref: 912b4b8e3b11db078342894f1242ab23c9a67d31
 
       - name: Checkout Nomad
         uses: actions/checkout@v4
