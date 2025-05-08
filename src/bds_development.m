@@ -831,28 +831,27 @@ for iter = 1:maxit
         % directions in the i_real-th block when we perform the direct search in this block next time.
         direction_set_indices{i_real} = sub_output.direction_indices;
 
-        % If the scheme is not "parallel", then we will update xbase and fbase after finishing the
-        % direct search in the i_real-th block. For "parallel", we will update xbase and fbase after
-        % one iteration of the outer loop.
-        if ~strcmpi(scheme, "parallel")
-            % Update xbase and fbase. xbase serves as the "base point" for the computation in the next block,
-            % meaning that reduction will be calculated with respect to xbase, as shown above.
-            % Note that their update requires a sufficient decrease if reduction_factor(1) > 0.
-            if (reduction_factor(1) <= 0 && sub_fopt < fbase) ...
-                    || sub_fopt + reduction_factor(1) * forcing_function(alpha_all(i_real)) < fbase
-                xbase = sub_xopt;
-                fbase = sub_fopt;
-            end
-        end
+        % Whether to update xbase and fbase. xbase serves as the "base point" for the computation in the next block,
+        % meaning that reduction will be calculated with respect to xbase, as shown above.
+        % Note that their update requires a sufficient decrease if reduction_factor(1) > 0.
+        update_base = (reduction_factor(1) <= 0 && sub_fopt < fbase) ...
+                    || (sub_fopt + reduction_factor(1) * forcing_function(alpha_all(i_real)) < fbase);
 
         % Update the step size alpha_all according to the reduction achieved.
         if sub_fopt + reduction_factor(3) * forcing_function(alpha_all(i_real)) < fbase
             alpha_all(i_real) = expand * alpha_all(i_real);
         elseif sub_fopt + reduction_factor(2) * forcing_function(alpha_all(i_real)) >= fbase
-            % The following strategy is used to avoid the case that the step size of some block is too small such
-            % that it can not be updated. It might work on some anisotropic functions, but with no theoretical guarantee.
-            % alpha_all(i_real) = max(shrink * alpha_all(i_real), alpha_threshold);
             alpha_all(i_real) = shrink * alpha_all(i_real);
+        end
+
+        % If the scheme is not "parallel", then we will update xbase and fbase after finishing the
+        % direct search in the i_real-th block. For "parallel", we will update xbase and fbase after
+        % one iteration of the outer loop.
+        if ~strcmpi(scheme, "parallel")
+            if update_base
+                xbase = sub_xopt;
+                fbase = sub_fopt;
+            end
         end
 
         % Terminate the computations if sub_output.terminate is true, which means that inner_direct_search
