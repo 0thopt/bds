@@ -733,6 +733,7 @@ for iter = 1:maxit
                 if ls_fopt < sub_fopt
                     sub_fopt = ls_fopt;
                     sub_xopt = ls_xopt;
+                    % Update the xbase and fbase if the reduction is sufficient during the linesearch.
                     if  (ls_fopt + reduction_factor(1) * forcing_function(alpha_all(i_real)) < fbase)
                         xbase = ls_xopt;
                         fbase = ls_fopt;
