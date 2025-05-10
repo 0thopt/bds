@@ -1,16 +1,16 @@
-name: Profile original cbds and original lht1, big
+name: Profile original cbds, true, 3 with original cbds, true, 4, big
 
 on:
   # Trigger the workflow on push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   schedule:
-    - cron: '0 3 */5 * *'
+    - cron: '0 3 */7 * *'
   workflow_dispatch:
 
 jobs:
   test:
-    name: Profile original cbds and original lht1, big
+    name: Profile original cbds, true, 3 with original cbds, true, 4, big
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -19,12 +19,11 @@ jobs:
         matlab: [latest]
         dim: [big]
         with_optim_toolbox: [yes]
-        solver: [cbds-orig]
-        competitor: [lht1-orig]
+        solver: [cbds-orig-true-3]
+        competitor: [cbds-orig-true-4]
         run_plain: [false]
         summarize_log_ratio_profiles: [false]
         feature: [plain, perturbed_x0_0.001, perturbed_x0_1, perturbed_x0_10, perturbed_x0_100, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, permuted, linearly_transformed, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
-
 
     steps:
       - name: Check out repository

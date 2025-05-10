@@ -24,34 +24,16 @@ If the above succeeds, then the package `bds` is installed and ready to use. Try
 We do not support MATLAB R2017a or earlier. If there exists any problems, please open an issue by
 https://github.com/blockwise-direct-search/bds/issues.
 
-## The coverage of unit test (offered by [Codecov](https://about.codecov.io/))
-
-[![Codecov](https://img.shields.io/codecov/c/github/blockwise-direct-search/bds?style=for-the-badge&logo=codecov)](https://app.codecov.io/github/blockwise-direct-search/bds)
-
 ## Test of BDS.
-The tests are **automated** by [GitHub Actions](https://docs.github.com/en/actions).
-- [![Check Spelling](https://github.com/blockwise-direct-search/bds/actions/workflows/spelling.yml/badge.svg)](https://github.com/blockwise-direct-search/bds/actions/workflows/spelling.yml)
-- [![Unit test of BDS](https://github.com/blockwise-direct-search/bds/actions/workflows/unit_test.yml/badge.svg)](https://github.com/blockwise-direct-search/bds/actions/workflows/unit_test.yml)
-- [![Coverage test of BDS](https://github.com/blockwise-direct-search/bds/actions/workflows/unit_test_coverage.yml/badge.svg)](https://github.com/blockwise-direct-search/bds/actions/workflows/unit_test_coverage.yml)
-- [![Verify norma](https://github.com/zeroth-order-optimization/bds/actions/workflows/verify_norma.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/verify_norma.yml)
 
 The following tests are implemented by [Optiprofiler](https://github.com/optiprofiler/optiprofiler).
-    
-- [Tests](https://github.com/0thopt/bds/actions) at [0thopt/bds](https://github.com/0thopt/bds)
 
-    - [![Profile original cbds and lht1, big](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_lht1_big.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_lht1_big.yml)
-    - [![Profile original cbds and lht1, small](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_lht1_small.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_lht1_small.yml)
-    - [![Profile original cbds and fm, big](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_fm_big.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_fm_big.yml)
-    - [![Profile original cbds and fm, small](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_fm_small.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_fm_small.yml)
-    - [![Profile original cbds and lam1, big](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_lam1_big.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_lam1_big.yml)
-    - [![Profile original cbds and lam1, small](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_lam1_small.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_lam1_small.yml)
-    - [![Profile original cbds and original lam1, big](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_orig_lam1_big.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_orig_lam1_big.yml)
-    - [![Profile original cbds and original lam1, small](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_orig_lam1_small.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_orig_lam1_small.yml)
-    - [![Profile original cbds and original lht1, big](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_orig_lht1_big.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_orig_lht1_big.yml)
-    - [![Profile original cbds and original lht1, small](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_orig_lht1_small.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_orig_lht1_small.yml)
-    - [![Profile original cbds with terminating outer and lam1 with terminating outer, small](https://github.com/0thopt/bds/actions/workflows/profile_cbds_terminate_outer_lam1_terminate_outer_small.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_cbds_terminate_outer_lam1_terminate_outer_small.yml)
-    - [![Profile original cbds with terminating outer and lam1 with terminating outer, big](https://github.com/0thopt/bds/actions/workflows/profile_cbds_terminate_outer_lam1_terminate_outer_big.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_cbds_terminate_outer_lam1_terminate_outer_big.yml)
-    - [![Profile original cbds with original cbds not preserving order, small](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_orig_cbds_not_preserve_order_small.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_orig_cbds_not_preserve_order_small.yml)
-    - [![Profile original cbds with original cbds not preserving order, big](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_orig_cbds_not_preserve_order_big.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_orig_cbds_not_preserve_order_big.yml)
-    - [![Profile lht1 and lam1, big](https://github.com/0thopt/bds/actions/workflows/profile_lht1_lam1_big.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_lht1_lam1_big.yml)
-    - [![Profile lht1 and lam1, small](https://github.com/0thopt/bds/actions/workflows/profile_lht1_lam1_small.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_lht1_lam1_small.yml)
+- [Tests](https://github.com/derivative-free-optimization/bds/actions) at [derivative-free-optimization/bds](https://github.com/derivative-free-optimization/bds)
+    - [![Profile original cbds, true, 1 with original cbds, false, 1, small](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_orig_cbds_true_1_orig_cbds_false_1_small.yml/badge.svg)](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_orig_cbds_true_1_orig_cbds_false_1_small.yml)
+    - [![Profile original cbds, true, 2 with original cbds, false, 2, small](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_orig_cbds_true_2_orig_cbds_false_2_small.yml/badge.svg)](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_orig_cbds_true_2_orig_cbds_false_2_small.yml)
+    - [![Profile original cbds, true, 3 with original cbds, false, 3, small](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_orig_cbds_true_3_orig_cbds_false_3_small.yml/badge.svg)](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_orig_cbds_true_3_orig_cbds_false_3_small.yml)
+    - [![Profile original cbds, true, 4 with original cbds, false, 4, small](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_orig_cbds_true_4_orig_cbds_false_4_small.yml/badge.svg)](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_orig_cbds_true_4_orig_cbds_false_4_small.yml)
+    - [![Profile original cbds, true, 1 with original cbds, true, 2, big](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_orig_cbds_true_1_orig_cbds_true_2_big.yml/badge.svg)](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_orig_cbds_true_1_orig_cbds_true_2_big.yml)
+    - [![Profile original cbds, true, 1 with original cbds, true, 2, small](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_orig_cbds_true_1_orig_cbds_true_2_small.yml/badge.svg)](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_orig_cbds_true_1_orig_cbds_true_2_small.yml)
+    - [![Profile original cbds, true, 3 with original cbds, true, 4, big](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_orig_cbds_true_3_orig_cbds_true_4_big.yml/badge.svg)](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_orig_cbds_true_3_orig_cbds_true_4_big.yml)
+    - [![Profile original cbds, true, 3 with original cbds, true, 4, small](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_orig_cbds_true_3_orig_cbds_true_4_small.yml/badge.svg)](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_orig_cbds_true_3_orig_cbds_true_4_small.yml)

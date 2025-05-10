@@ -177,28 +177,24 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
     solvers = cell(1, length(options.solver_names));
     for i = 1:length(options.solver_names)
         switch options.solver_names{i}
-            case 'cbds'
-                solvers{i} = @cbds_test;
             case 'cbds-orig'
                 solvers{i} = @cbds_orig_test;
-            case 'cbds-orig-not-preserve-order'
-                solvers{i} = @cbds_orig_not_preserve_order_test;
-            case 'cbds-terminate-outer'
-                solvers{i} = @cbds_terminate_outer_test;
-            case 'lht1'
-                solvers{i} = @lht1_test;
-            case 'lht1-orig'
-                solvers{i} = @lht1_orig_test;
-            case 'lht-terminate-outer'
-                solvers{i} = @lht1_terminate_outer_test;
-            case 'lam1'
-                solvers{i} = @lam1_test;
-            case 'lam1-orig'
-                solvers{i} = @lam1_orig_test;
-            case 'lam1-terminate-outer'
-                solvers{i} = @lam1_terminate_outer_test;
-            case 'fm'
-                solvers{i} = @fm_test;
+            case 'cbds-orig-true-1'
+                solvers{i} = @cbds_orig_true_1_test;
+            case 'cbds-orig-true-2'
+                solvers{i} = @cbds_orig_true_2_test;
+            case 'cbds-orig-true-3'
+                solvers{i} = @cbds_orig_true_3_test;
+            case 'cbds-orig-true-4'
+                solvers{i} = @cbds_orig_true_4_test;
+            case 'cbds-orig-false-1'
+                solvers{i} = @cbds_orig_false_1_test;
+            case 'cbds-orig-false-2'
+                solvers{i} = @cbds_orig_false_2_test;
+            case 'cbds-orig-false-3'
+                solvers{i} = @cbds_orig_false_3_test;
+            case 'cbds-orig-false-4'
+                solvers{i} = @cbds_orig_false_4_test;
             otherwise
                 error('Unknown solver');
         end
@@ -380,12 +376,6 @@ function [A, b, inv] = perm_affine(rand_stream, problem)
     inv = P;
 end
 
-function x = cbds_test(fun, x0)
-
-    option.Algorithm = 'cbds';
-    x = bds(fun, x0, option);
-    
-end
 
 function x = cbds_orig_test(fun, x0)
 
@@ -396,91 +386,90 @@ function x = cbds_orig_test(fun, x0)
     
 end
 
-function x = cbds_orig_not_preserve_order_test(fun, x0)
+function x = cbds_orig_true_1_test(fun, x0)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
     option.shrink = 0.5;
-    option.preserve_direction_order = false;
+    option.with_cycling_memory = true;
+    option.cycling_strategy = 1;
     x = bds(fun, x0, option);
     
 end
 
-function x = lht1_test(fun, x0)
+function x = cbds_orig_true_2_test(fun, x0)
 
-    options.Algorithm = 'lht1';
-    options.expand = 2;
-    options.shrink = 0.5;
-    x = bds(fun, x0, options);
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = true;
+    option.cycling_strategy = 2;
+    x = bds(fun, x0, option);
     
 end
 
-function x = lht1_orig_test(fun, x0)
+function x = cbds_orig_true_3_test(fun, x0)
 
-    options.Algorithm = 'lht1';
-    options.expand = 2;
-    options.shrink = 0.5;
-    options.stepsize_factor = 1e-10;
-    options.reduction_factor = [1e-6, 1e-6, 1e-6];
-    x = bds(fun, x0, options);
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = true;
+    option.cycling_strategy = 3;
+    x = bds(fun, x0, option);
     
 end
 
-function x = lht1_terminate_outer_test(fun, x0)
+function x = cbds_orig_true_4_test(fun, x0)
 
-    options.Algorithm = 'lht1';
-    options.expand = 2;
-    options.shrink = 0.5;
-    options.terminate_inner = false;
-    x = bds(fun, x0, options);
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = true;
+    option.cycling_strategy = 4;
+    x = bds(fun, x0, option);
     
 end
 
-function x = lam1_test(fun, x0)
+function x = cbds_orig_false_1_test(fun, x0)
 
-    options.Algorithm = 'lam1';
-    options.expand = 2;
-    options.shrink = 0.5;
-    x = bds(fun, x0, options);
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = false;
+    option.cycling_strategy = 1;
+    x = bds(fun, x0, option);
+    
+end 
+
+function x = cbds_orig_false_2_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = false;
+    option.cycling_strategy = 2;
+    x = bds(fun, x0, option);
     
 end
 
-function x = lam1_orig_test(fun, x0)
+function x = cbds_orig_false_3_test(fun, x0)
 
-    options.Algorithm = 'lam1';
-    options.expand = 2;
-    options.shrink = 0.5;
-    options.stepsize_factor = 1e-10;
-    options.reduction_factor = [1e-6, 1e-6, 1e-6];
-    x = bds(fun, x0, options);
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = false;
+    option.cycling_strategy = 3;
+    x = bds(fun, x0, option);
     
 end
 
-function x = lam1_terminate_outer_test(fun, x0)
+function x = cbds_orig_false_4_test(fun, x0)
 
-    options.Algorithm = 'lam1';
-    options.expand = 2;
-    options.shrink = 0.5;
-    options.terminate_inner = false;
-    x = bds(fun, x0, options);
-    
-end
-
-function x = cbds_terminate_outer_test(fun, x0)
-
-    options.Algorithm = 'cbds';
-    options.expand = 2;
-    options.shrink = 0.5;
-    options.terminate_inner = false;
-    x = bds(fun, x0, options);
-    
-end
-
-function x = fm_test(fun, x0)
-
-    options.Algorithm = 'fm';
-    options.expand = 1;
-    options.shrink = 0.5;
-    x = bds(fun, x0, options);
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = false;
+    option.cycling_strategy = 4;
+    x = bds(fun, x0, option);
     
 end
