@@ -181,6 +181,8 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @cbds_test;
             case 'cbds-orig'
                 solvers{i} = @cbds_orig_test;
+            case 'cbds-orig-not-preserve-order'
+                solvers{i} = @cbds_orig_not_preserve_order_test;
             case 'cbds-terminate-outer'
                 solvers{i} = @cbds_terminate_outer_test;
             case 'lht1'
@@ -390,6 +392,16 @@ function x = cbds_orig_test(fun, x0)
     option.Algorithm = 'cbds';
     option.expand = 2;
     option.shrink = 0.5;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_orig_not_preserve_order_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.preserve_direction_order = false;
     x = bds(fun, x0, option);
     
 end

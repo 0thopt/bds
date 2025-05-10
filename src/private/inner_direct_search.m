@@ -42,6 +42,9 @@ verbose = options.verbose;
 % The type of the Algorithm.
 Algorithm = options.Algorithm;
 
+% The value of whether to preserve the order of the direction indices when the Algorithm fails in this block.
+preserve_direction_order = options.preserve_direction_order;
+
 % If terminate is true and the exitflag is NaN, it means that the algorithm terminates
 % not because of the maximum number of function evaluations or the target function value,
 % which will be a bug.
@@ -126,7 +129,7 @@ output.nf = nf;
 output.terminate = terminate;
 output.alpha = alpha;
 output.success = sufficient_decrease;
-if ~sufficient_decrease && ~strcmpi(Algorithm, "cbds")
+if ~sufficient_decrease && ~(strcmpi(Algorithm, "cbds") && preserve_direction_order)
     output.direction_indices = direction_indices([2, 1]);
 else
     output.direction_indices = direction_indices;

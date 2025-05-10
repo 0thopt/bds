@@ -578,6 +578,12 @@ else
     stepsize_factor = 0;
 end
 
+if isfield(options, "preserve_direction_order")
+    preserve_direction_order = options.preserve_direction_order;
+else
+    preserve_direction_order = true;
+end
+
 for iter = 1:maxit
 
     % Define block_indices, a vector that specifies both the indices of the blocks
@@ -628,6 +634,7 @@ for iter = 1:maxit
         suboptions.iter = iter;
         suboptions.i_real = i_real;
         suboptions.Algorithm = options.Algorithm;
+        suboptions.preserve_direction_order = preserve_direction_order;
 
         if strcmpi(options.Algorithm, 'cbds')
             alpha = alpha_all(i_real);
