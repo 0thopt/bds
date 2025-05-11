@@ -195,6 +195,8 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @lam1_test;
             case 'lam1-orig'
                 solvers{i} = @lam1_orig_test;
+            case 'lam1-orig-not-preserve-order'
+                solvers{i} = @lam1_orig_not_preserve_order_test;
             case 'lam1-terminate-outer'
                 solvers{i} = @lam1_terminate_outer_test;
             case 'fm'
@@ -463,6 +465,16 @@ function x = lam1_terminate_outer_test(fun, x0)
     options.shrink = 0.5;
     options.terminate_inner = false;
     x = bds(fun, x0, options);
+    
+end
+
+function x = lam1_orig_not_preserve_order_test(fun, x0)
+
+    option.Algorithm = 'lam1';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.preserve_direction_order = false;
+    x = bds(fun, x0, option);
     
 end
 

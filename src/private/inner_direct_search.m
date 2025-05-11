@@ -129,7 +129,7 @@ output.nf = nf;
 output.terminate = terminate;
 output.alpha = alpha;
 output.success = sufficient_decrease;
-if ~sufficient_decrease && ~(strcmpi(Algorithm, "cbds") && preserve_direction_order)
+if ~sufficient_decrease && ~preserve_direction_order
     output.direction_indices = direction_indices([2, 1]);
 else
     output.direction_indices = direction_indices;
