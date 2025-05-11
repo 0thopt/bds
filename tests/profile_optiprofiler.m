@@ -195,6 +195,22 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @cbds_orig_false_3_test;
             case 'cbds-orig-false-4'
                 solvers{i} = @cbds_orig_false_4_test;
+            case 'ds-orig-true-1'
+                solvers{i} = @ds_orig_true_1_test;
+            case 'ds-orig-true-2'
+                solvers{i} = @ds_orig_true_2_test;
+            case 'ds-orig-true-3'
+                solvers{i} = @ds_orig_true_3_test;
+            case 'ds-orig-true-4'
+                solvers{i} = @ds_orig_true_4_test;
+            case 'ds-orig-false-1'
+                solvers{i} = @ds_orig_false_1_test;
+            case 'ds-orig-false-2'
+                solvers{i} = @ds_orig_false_2_test;
+            case 'ds-orig-false-3'
+                solvers{i} = @ds_orig_false_3_test;
+            case 'ds-orig-false-4'
+                solvers{i} = @ds_orig_false_4_test;
             otherwise
                 error('Unknown solver');
         end
@@ -466,6 +482,94 @@ end
 function x = cbds_orig_false_4_test(fun, x0)
 
     option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = false;
+    option.cycling_strategy = 4;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = ds_orig_true_1_test(fun, x0)
+
+    option.Algorithm = 'ds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = true;
+    option.cycling_strategy = 1;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = ds_orig_true_2_test(fun, x0)
+
+    option.Algorithm = 'ds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = true;
+    option.cycling_strategy = 2;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = ds_orig_true_3_test(fun, x0)
+
+    option.Algorithm = 'ds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = true;
+    option.cycling_strategy = 3;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = ds_orig_true_4_test(fun, x0)
+
+    option.Algorithm = 'ds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = true;
+    option.cycling_strategy = 4;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = ds_orig_false_1_test(fun, x0)
+
+    option.Algorithm = 'ds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = false;
+    option.cycling_strategy = 1;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = ds_orig_false_2_test(fun, x0)
+
+    option.Algorithm = 'ds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = false;
+    option.cycling_strategy = 2;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = ds_orig_false_3_test(fun, x0)
+
+    option.Algorithm = 'ds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = false;
+    option.cycling_strategy = 3;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = ds_orig_false_4_test(fun, x0)
+
+    option.Algorithm = 'ds';
     option.expand = 2;
     option.shrink = 0.5;
     option.with_cycling_memory = false;
