@@ -9,7 +9,7 @@ function [xopt, fopt, exitflag, output] = inner_direct_search(fun, ...
 %   structure OPTIONS, which includes reduction_factor, ftarget, polling, 
 %   with_cycling_memory, cycling.
 %
-%   DIRECTION_INDICES is the indices of directions of this block in D.
+%   DIRECTION_INDICES is the indices of directions of the current block in D.
 %
 
 % Set the value of sufficient decrease factor.
@@ -39,12 +39,6 @@ FunctionEvaluations_exhausted = options.FunctionEvaluations_exhausted;
 % The value of verbose.
 verbose = options.verbose;
 
-% The type of the Algorithm.
-Algorithm = options.Algorithm;
-
-% The value of whether to preserve the order of the direction indices when the Algorithm fails in this block.
-preserve_direction_order = options.preserve_direction_order;
-
 % If terminate is true and the exitflag is NaN, it means that the algorithm terminates
 % not because of the maximum number of function evaluations or the target function value,
 % which will be a bug.
@@ -53,8 +47,8 @@ exitflag = NaN;
 % Initialize some parameters before entering the loop.
 n = length(xbase);
 num_directions = length(direction_indices);
-fhist = NaN(1, MaxFunctionEvaluations);
-xhist = NaN(n, MaxFunctionEvaluations);
+fhist = NaN(1, num_directions);
+xhist = NaN(n, num_directions);
 nf = 0; 
 fopt = fbase;
 xopt = xbase;
@@ -88,7 +82,7 @@ for j = 1 : num_directions
     sufficient_decrease = (fnew + reduction_factor(3) * forcing_function(alpha)/2 < fbase);
     if verbose
         if sufficient_decrease
-            fprintf("%g decrease is achieved.\n", fbase - fnew);
+            fprintf("%g sufficient decrease is achieved.\n", fbase - fnew);
         else
             fprintf("Sufficient decrease is not achieved.\n");
         end
@@ -99,7 +93,6 @@ for j = 1 : num_directions
     % that we cycle indices here is because inner_direct_search is called in a loop 
     % in outer_direct_search. 
     if sufficient_decrease && ~strcmpi(polling_inner, "complete")
-        output.d = D(:, j);
         direction_indices = cycling(direction_indices, j, cycling_strategy, with_cycling_memory);
         break;
     end
@@ -126,14 +119,12 @@ end
 output.fhist = fhist(1:nf);
 output.xhist = xhist(:, 1:nf);
 output.nf = nf;
+output.direction_indices = direction_indices;
 output.terminate = terminate;
-output.alpha = alpha;
-output.success = sufficient_decrease;
-if ~sufficient_decrease && ~(strcmpi(Algorithm, "cbds") && preserve_direction_order)
-    output.direction_indices = direction_indices([2, 1]);
+if sufficient_decrease
+    output.sufficient_decrease = true;
 else
-    output.direction_indices = direction_indices;
+    output.sufficient_decrease = false;
 end
-
+output.decrease_value = fbase - min(fhist(1:nf));
 end
-

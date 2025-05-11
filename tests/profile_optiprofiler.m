@@ -408,7 +408,7 @@ function x = cbds_orig_true_1_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.with_cycling_memory = true;
-    option.cycling_strategy = 1;
+    option.cycling_inner = 1;
     x = bds(fun, x0, option);
     
 end
@@ -419,7 +419,7 @@ function x = cbds_orig_true_2_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.with_cycling_memory = true;
-    option.cycling_strategy = 2;
+    option.cycling_inner = 2;
     x = bds(fun, x0, option);
     
 end
@@ -430,7 +430,7 @@ function x = cbds_orig_true_3_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.with_cycling_memory = true;
-    option.cycling_strategy = 3;
+    option.cycling_inner = 3;
     x = bds(fun, x0, option);
     
 end
@@ -441,7 +441,7 @@ function x = cbds_orig_true_4_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.with_cycling_memory = true;
-    option.cycling_strategy = 4;
+    option.cycling_inner = 4;
     x = bds(fun, x0, option);
     
 end
@@ -452,7 +452,7 @@ function x = cbds_orig_false_1_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.with_cycling_memory = false;
-    option.cycling_strategy = 1;
+    option.cycling_inner = 1;
     x = bds(fun, x0, option);
     
 end 
@@ -463,7 +463,7 @@ function x = cbds_orig_false_2_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.with_cycling_memory = false;
-    option.cycling_strategy = 2;
+    option.cycling_inner = 2;
     x = bds(fun, x0, option);
     
 end
@@ -474,7 +474,7 @@ function x = cbds_orig_false_3_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.with_cycling_memory = false;
-    option.cycling_strategy = 3;
+    option.cycling_inner = 3;
     x = bds(fun, x0, option);
     
 end
@@ -485,7 +485,18 @@ function x = cbds_orig_false_4_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.with_cycling_memory = false;
-    option.cycling_strategy = 4;
+    option.cycling_inner = 4;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = ds_orig_true_0_test(fun, x0)
+
+    option.Algorithm = 'ds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = true;
+    option.cycling_inner = 0;
     x = bds(fun, x0, option);
     
 end
@@ -496,7 +507,7 @@ function x = ds_orig_true_1_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.with_cycling_memory = true;
-    option.cycling_strategy = 1;
+    option.cycling_inner = 1;
     x = bds(fun, x0, option);
     
 end
@@ -507,7 +518,7 @@ function x = ds_orig_true_2_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.with_cycling_memory = true;
-    option.cycling_strategy = 2;
+    option.cycling_inner = 2;
     x = bds(fun, x0, option);
     
 end
@@ -518,7 +529,7 @@ function x = ds_orig_true_3_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.with_cycling_memory = true;
-    option.cycling_strategy = 3;
+    option.cycling_inner = 3;
     x = bds(fun, x0, option);
     
 end
@@ -529,7 +540,7 @@ function x = ds_orig_true_4_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.with_cycling_memory = true;
-    option.cycling_strategy = 4;
+    option.cycling_inner = 4;
     x = bds(fun, x0, option);
     
 end
@@ -540,7 +551,7 @@ function x = ds_orig_false_1_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.with_cycling_memory = false;
-    option.cycling_strategy = 1;
+    option.cycling_inner = 1;
     x = bds(fun, x0, option);
     
 end
@@ -551,7 +562,7 @@ function x = ds_orig_false_2_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.with_cycling_memory = false;
-    option.cycling_strategy = 2;
+    option.cycling_inner = 2;
     x = bds(fun, x0, option);
     
 end
@@ -562,7 +573,7 @@ function x = ds_orig_false_3_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.with_cycling_memory = false;
-    option.cycling_strategy = 3;
+    option.cycling_inner = 3;
     x = bds(fun, x0, option);
     
 end
@@ -573,7 +584,7 @@ function x = ds_orig_false_4_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.with_cycling_memory = false;
-    option.cycling_strategy = 4;
+    option.cycling_inner = 4;
     x = bds(fun, x0, option);
     
 end
