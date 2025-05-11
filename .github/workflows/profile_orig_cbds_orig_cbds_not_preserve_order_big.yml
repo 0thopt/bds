@@ -2,7 +2,7 @@ name: Profile original cbds with original cbds not preserving order, big
 
 on:
   # Trigger the workflow on push or pull request
-  push:
+  # push:
   # Trigger the workflow manually
   schedule:
     - cron: '0 3 */7 * *'

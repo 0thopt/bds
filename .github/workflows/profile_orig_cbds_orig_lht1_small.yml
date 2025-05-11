@@ -1,8 +1,8 @@
-name: Profile original cbds and original lht1, big
+name: Profile original cbds and original lht1, small
 
 on:
   # Trigger the workflow on push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   schedule:
     - cron: '0 3 */5 * *'
@@ -10,14 +10,14 @@ on:
 
 jobs:
   test:
-    name: Profile original cbds and original lht1, big
+    name: Profile original cbds and original lht1, small
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
         matlab: [latest]
-        dim: [big]
+        dim: [small]
         with_optim_toolbox: [yes]
         solver: [cbds-orig]
         competitor: [lht1-orig]
