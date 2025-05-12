@@ -195,6 +195,8 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @cbds_orig_false_3_test;
             case 'cbds-orig-false-4'
                 solvers{i} = @cbds_orig_false_4_test;
+            case 'ds-orig-0'
+                solvers{i} = @ds_orig_0_test;
             case 'ds-orig-true-1'
                 solvers{i} = @ds_orig_true_1_test;
             case 'ds-orig-true-2'
@@ -490,7 +492,7 @@ function x = cbds_orig_false_4_test(fun, x0)
     
 end
 
-function x = ds_orig_true_0_test(fun, x0)
+function x = ds_orig_0_test(fun, x0)
 
     option.Algorithm = 'ds';
     option.expand = 2;

@@ -2,7 +2,7 @@ name: Profile original ds, true, 4 with original ds, false, 4, small
 
 on:
   # Trigger the workflow on push or pull request
-  push:
+  # push:
   # Trigger the workflow manually
   schedule:
     - cron: '0 3 */7 * *'
