@@ -562,8 +562,6 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
     % blocks must still be recorded.
     fopt_all = NaN(1, num_blocks);
     xopt_all = NaN(n, num_blocks);
-
-    direction_indices_hist = NaN(2*n, maxit);
     
     for iter = 1:maxit
         
@@ -599,8 +597,6 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
     
             % Get indices of directions in the i_real-th block.
             direction_indices = direction_set_indices{i_real};
-
-            direction_indices_hist(:, iter) = direction_indices';
     
             % Set the options for the direct search within the i_real-th block.
             suboptions.FunctionEvaluations_exhausted = nf;
@@ -752,7 +748,6 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
         output.xhist = xhist(:, 1:nf);
     end
     output.fhist = fhist(1:nf);
-    output.direction_indices = direction_indices_hist(:, 1:min(iter, maxit));
     
     % Set the message according to exitflag.
     switch exitflag
