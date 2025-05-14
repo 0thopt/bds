@@ -121,11 +121,11 @@ output.xhist = xhist(:, 1:nf);
 output.nf = nf;
 output.direction_indices = direction_indices;
 output.terminate = terminate;
-if sufficient_decrease
-    output.sufficient_decrease = true;
-else
-    output.sufficient_decrease = false;
-end
-output.decrease_value = fbase - min(fhist(1:nf));
+% if sufficient_decrease
+%     output.sufficient_decrease = true;
+% else
+%     output.sufficient_decrease = false;
+% end
+% output.decrease_value = fbase - min(fhist(1:nf));
 end
 

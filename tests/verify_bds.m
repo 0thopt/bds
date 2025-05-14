@@ -35,17 +35,17 @@ end
 try
 
     % Compile the version of norma.
-    path_norma = locate_norma();
-    path_verify_bds = fileparts(mfilename('fullpath'));
-    cd(path_norma{1});
-    setup
-    cd(path_verify_bds);
+    % path_norma = locate_norma();
+    % path_verify_bds = fileparts(mfilename('fullpath'));
+    % cd(path_norma{1});
+    % setup
+    % cd(path_verify_bds);
 
-    % Compile the version of modern repository.
-    path_root = fileparts(path_verify_bds);
-    cd(path_root);
-    setup
-    cd(path_verify_bds);
+    % % Compile the version of modern repository.
+    % path_root = fileparts(path_verify_bds);
+    % cd(path_root);
+    % setup
+    % cd(path_verify_bds);
 
     solvers = {"bds", "bds_norma"};
 

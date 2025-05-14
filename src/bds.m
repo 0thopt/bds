@@ -22,10 +22,9 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               using "cbds" as the input.
 %   Scheme                      Scheme to use. It can be "cyclic", "random", "parallel",
 %                               Default: "cyclic".
-%   num_blocks                  Number of blocks. A positive integer. 
-%                               Default: ceil(num_directions/2), where num_directions
-%                               is the number of directions used to define the polling
-%                               directions.
+%   num_blocks                  Number of blocks. A positive integer. The number of blocks
+%                               should be less than or equal to the dimension of the problem.
+%                               Default: n.
 %   MaxFunctionEvaluations      Maximum of function evaluations. A positive integer.
 %   direction_set               A matrix whose columns will be used to define
 %                               the polling directions. If options does not
@@ -39,7 +38,9 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               direction_set to make it linear independent.
 %                               See get_direction_set.m for details. Default: eye(n).
 %   is_noisy                    A flag deciding whether the problem is noisy or
-%                               not. Default: false.
+%                               not. The value of is_noisy will be only used to
+%                               determine the values of expand and shrink now.
+%                               Default: false.
 %   expand                      Expanding factor of step size. A real number
 %                               no less than 1. It depends on the dimension of
 %                               the problem and whether the problem is noisy or
@@ -70,6 +71,11 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %   StepTolerance               Lower bound of the step size. If the step size is
 %                               smaller than StepTolerance, then the algorithm
 %                               terminates.A (small) positive number. Default: 1e-10.
+%   alpha_init                  Initial step size. If alpha_init is a positive
+%                               scalar, then the initial step size of each block
+%                               is set to alpha_init. If alpha_init is a vector,
+%                               then the initial step size of the i-th block is
+%                               set to alpha_init(i).
 %   ftarget                     Target of the function value. If the function value
 %                               is smaller than or equal to ftarget, then the
 %                               algorithm terminates. A real number. Default: -Inf.
@@ -146,6 +152,9 @@ end
 x0_is_row = isrow(x0);
 x0 = double(x0(:));
 
+% Set the default value of options.
+options = set_options(options, x0);
+
 % Get the dimension of the problem.
 n = length(x0);
 
@@ -156,95 +165,6 @@ if isfield(options, "debug_flag")
 else
     debug_flag = false;
 end
-
-% Get the direction set.
-D = get_direction_set(n, options);
-% Get the number of blocks.
-num_directions = size(D, 2);
-
-% Set the default value of scheme.
-scheme_list = ["cyclic", "random", "parallel"];
-if isfield(options, "scheme") && ~ismember(lower(options.scheme), scheme_list)
-    error("The scheme should be one of the following: cyclic, random, parallel.\n");
-end
-
-% Set the default value of num_blocks and batch_size.
-if isfield(options, "num_blocks")
-    num_blocks = options.num_blocks;
-else
-    % num_blocks = ceil(num_directions / 2);
-    % Avoid using division to get num_blocks to avoid numerical issues.
-    % In our case, num_directions is 2*n, so num_blocks is n.
-    num_blocks = n;
-end
-
-% Preprocess the number of blocks.
-if isfield(options, "num_blocks")
-    if options.num_blocks > num_directions
-        error("The number of blocks should be less than or equal to the number of directions.\n");
-    end
-    if options.num_blocks > n
-        warning("The number of blocks should be less than or equal to the dimension of the problem.\n");
-        warning("The number of blocks is set to be the minimum of the number of directions and the dimension of the problem.\n");
-        options.num_blocks = min(num_directions, n);
-    end
-end
-
-if isfield(options, "batch_size")
-    batch_size = options.batch_size;
-else
-    batch_size = num_blocks;
-end
-
-% Ensure batch_size does not exceed num_blocks.
-if batch_size > num_blocks
-    warning("The number of batch_size should be less than or equal to the number of blocks.");
-    fprintf("\n!!! THE NUMBER OF BATCH_SIZE IS SET TO BE THE NUMBER OF BLOCKS !!!\n");
-    batch_size = num_blocks;
-end
-
-% Set the default value of scheme if it is not provided.
-if ~isfield(options, "scheme")
-    scheme = get_default_constant("scheme");
-else
-    scheme = lower(options.scheme);
-end
-
-% Set the default Algorithm of BDS, which is "cbds".
-Algorithm_list = ["ds", "cbds", "pbds", "rbds", "pads"];
-if isfield(options, "Algorithm") && ~ismember(lower(options.Algorithm), Algorithm_list)
-    error("The Algorithm input is invalid");
-end
-if isfield(options, "Algorithm")
-    options.Algorithm = lower(options.Algorithm);
-    switch lower(options.Algorithm)
-        case "ds"
-            num_blocks = 1;
-            batch_size = 1;
-        case "cbds"
-            num_blocks = n;
-            batch_size = n;
-            scheme = "cyclic";
-        case "pbds"
-            num_blocks = n;
-            batch_size = n;
-            scheme = "random";
-        case "rbds"
-            num_blocks = n;
-            batch_size = 1;
-            options.replacement_delay = floor(num_blocks/batch_size)-1;
-            scheme = "random";
-        case "pads"
-            num_blocks = n;
-            batch_size = n;
-            scheme = "parallel";
-        otherwise
-            error("The Algorithm input is invalid");
-    end
-end
-
-% Determine the indices of directions in each block.
-direction_set_indices = divide_direction_set(n, num_blocks);
 
 % Check the inputs of the user when debug_flag is true.
 if debug_flag
@@ -261,132 +181,29 @@ if x0_is_row
     fun = @(x)fun(x');
 end
 
-% To avoid that the users bring some randomized strings.
-if ~isfield(options, "seed")
-    options.seed = get_default_constant("seed");
-end
-random_stream = RandStream("mt19937ar", "Seed", options.seed);
+% Get the direction set.
+D = get_direction_set(n, options);
 
-% Set the default value of noisy.
-if isfield(options, "is_noisy")
-    is_noisy = options.is_noisy;
-else
-    is_noisy = get_default_constant("is_noisy");
-end
+scheme = options.scheme;
+num_blocks = options.num_blocks;
+batch_size = options.batch_size;
+% Determine the indices of directions in each block.
+direction_set_indices = divide_direction_set(n, num_blocks);
 
-% Set the value of expand and shrink based on the dimension of the problem and the Algorithm,
-% and whether the problem is noisy or not. The default values of expand and shrink are
-% selected based on the S2MPJ problems (see https://github.com/GrattonToint/S2MPJ).
-% If options contain expand or shrink, then expand or shrink is set to the corresponding value.
-if ~isfield(options, "expand")
-    % n == 1 is treated as a special case, and we can treat the Algorithm as "ds".
-    if (isfield(options, "Algorithm") && strcmpi(options.Algorithm, "ds")) || n == 1 || (num_blocks == 1 && batch_size == 1)
-        if numel(x0) <= 5
-            expand = get_default_constant("ds_expand_small");
-        else
-            % Decide the expand value according to whether the problem is noisy or not.
-            if is_noisy
-                expand = get_default_constant("ds_expand_big_noisy");
-            else
-                expand = get_default_constant("ds_expand_big");
-            end
-        end
-    else
-        if numel(x0) <= 5
-            expand = get_default_constant("expand_small");
-        else
-            if is_noisy
-                expand = get_default_constant("expand_big_noisy");
-            else
-                expand = get_default_constant("expand_big");
-            end
-        end
-    end
-else
-    expand = options.expand;
-end
+expand = options.expand;
+shrink = options.shrink;
 
-if ~isfield(options, "shrink")
-    if (isfield(options, "Algorithm") && strcmpi(options.Algorithm, "ds")) || n == 1 || (num_blocks == 1 && batch_size == 1)
-        if numel(x0) <= 5
-            shrink = get_default_constant("ds_shrink_small");
-        else
-            if is_noisy
-                shrink = get_default_constant("ds_shrink_big_noisy");
-            else
-                shrink = get_default_constant("ds_shrink_big");
-            end
-        end
-    else
-        if numel(x0) <= 5
-            shrink = get_default_constant("shrink_small");
-        else
-            if is_noisy
-                shrink = get_default_constant("shrink_big_noisy");
-            else
-                shrink = get_default_constant("shrink_big");
-            end
-        end
-    end
-else
-    shrink = options.shrink;
-end
+seed = options.seed;
+random_stream = RandStream("mt19937ar", "Seed", seed);
 
-% Set the value of reduction_factor.
-if isfield(options, "reduction_factor")
-    reduction_factor = options.reduction_factor;
-else
-    reduction_factor = get_default_constant("reduction_factor");
-end
+reduction_factor = options.reduction_factor;
+forcing_function = options.forcing_function;
+polling_inner = options.polling_inner;
+cycling_inner = options.cycling_inner;
+with_cycling_memory = options.with_cycling_memory;
+replacement_delay = options.replacement_delay;
 
-% Set the forcing function, which should be the function handle.
-if isfield(options, "forcing_function")
-    forcing_function = options.forcing_function;
-else
-    forcing_function = get_default_constant("forcing_function");
-end
-
-% Set polling_inner, which is the polling strategy employed within one block.
-if ~isfield(options, "polling_inner")
-    options.polling_inner = get_default_constant("polling_inner");
-end
-
-% Set cycling_inner, which represents the cycling strategy inside each block.
-if isfield(options, "cycling_inner")
-    cycling_inner = options.cycling_inner;
-else
-    cycling_inner = get_default_constant("cycling_inner");
-end
-
-% If replacement_delay is r, then the block that is selected in the current
-% iteration will not be selected in the next r iterations. Note that replacement_delay cannot exceed
-% floor(num_blocks/batch_size)-1. The reason we set the default value of replacement_delay to
-% floor(num_blocks/batch_size)-1 is that the performance will be better when replacement_delay is larger.
-if isfield(options, "replacement_delay")
-    replacement_delay = min(options.replacement_delay, floor(num_blocks/batch_size)-1);
-else
-    replacement_delay = floor(num_blocks/batch_size)-1;
-end
-
-% Set the boolean value of with_cycling_memory, which will be used in cycling.m.
-% cycling.m decides the order of the directions in each block when we perform direct search
-% in this block. This order is represented by direction_indices. If with_cycling_memory is true,
-% then direction_indices is decided based on the last direction_indices; otherwise, it is
-% decided based on the initial direction_indices.
-if isfield(options, "with_cycling_memory")
-    with_cycling_memory = options.with_cycling_memory;
-else
-    with_cycling_memory = get_default_constant("with_cycling_memory");
-end
-
-% Set the maximum number of function evaluations. If the options do not contain MaxFunctionEvaluations,
-% it is set to MaxFunctionEvaluations_dim_factor*n, where n is the dimension of the problem.
-if isfield(options, "MaxFunctionEvaluations")
-    MaxFunctionEvaluations = options.MaxFunctionEvaluations;
-else
-    MaxFunctionEvaluations = get_default_constant("MaxFunctionEvaluations_dim_factor")*n;
-end
-
+MaxFunctionEvaluations = options.MaxFunctionEvaluations;
 % Set the maximum number of iterations.
 % Each iteration will use at least one function evaluation. Setting maxit to MaxFunctionEvaluations will
 % ensure that MaxFunctionEvaluations is exhausted before maxit is reached.
@@ -394,25 +211,11 @@ maxit = MaxFunctionEvaluations;
 
 % Set the value of StepTolerance. The algorithm will terminate if the stepsize is less than
 % the StepTolerance.
-if isfield(options, "StepTolerance")
-    alpha_tol = options.StepTolerance;
-else
-    alpha_tol = get_default_constant("StepTolerance");
-end
+alpha_tol = options.StepTolerance;
 
-% Set the target of the objective function.
-if isfield(options, "ftarget")
-    ftarget = options.ftarget;
-else
-    ftarget = get_default_constant("ftarget");
-end
+ftarget = options.ftarget;
 
-% Decide whether to output the history of step sizes.
-if isfield(options, "output_alpha_hist")
-    output_alpha_hist = options.output_alpha_hist;
-else
-    output_alpha_hist = get_default_constant("output_alpha_hist");
-end
+output_alpha_hist = options.output_alpha_hist;
 % Initialize alpha_hist if output_alpha_hist is true and alpha_hist does not exceed the
 % maximum memory size allowed.
 try
@@ -422,40 +225,13 @@ catch
     warning("alpha_hist will be not included in the output due to the limit of memory." )
 end
 
-
-% Set the initial step sizes. If options do not contain the field of alpha_init, then the
-% initial step size of each block is set to 1. If alpha_init is a positive scalar, then the initial step
-% size of each block is set to alpha_init. If alpha_init is a vector, then the initial step size
-% of the i-th block is set to alpha_init(i). If alpha_init is "auto", then the initial step size is
-% set according to the coordinates of x0 with respect to the directions in D(:, 1 : 2 : 2*n-1).
-if isfield(options, "alpha_init")
-    if isscalar(options.alpha_init)
-        alpha_all = options.alpha_init*ones(num_blocks, 1);
-    elseif length(options.alpha_init) == num_blocks
-        alpha_all = options.alpha_init;
-    % elseif strcmpi(options.alpha_init,"auto")
-    %     % x0_coordinates is the coordinates of x0 with respect to the directions in
-    %     % D(:, 1 : 2 : 2*n-1), where D(:, 1 : 2 : 2*n-1) is a basis of R^n.
-    %     x0_coordinates = D(:, 1 : 2 : 2*n-1) \ x0;
-    %     alpha_all = 0.5 * max(1, abs(x0_coordinates));
-    end
-else
-    alpha_all = ones(num_blocks, 1);
-end
+alpha_all = options.alpha_init;
 % Record the initial step size into the alpha_hist.
 if  output_alpha_hist
     alpha_hist(:, 1) = alpha_all(:);
 end
 
-% Initialize the history of function values.
-fhist = NaN(1, MaxFunctionEvaluations);
-
-% Initialize the boolean variable to indicate whether the algorithm should return the history of visited points.
-if isfield(options, "output_xhist")
-    output_xhist = options.output_xhist;
-else
-    output_xhist = get_default_constant("output_xhist");
-end
+output_xhist = options.output_xhist;
 % If xhist exceeds the maximum memory size allowed, then we will not output xhist.
 if output_xhist
     try
@@ -466,41 +242,14 @@ if output_xhist
     end
 end
 
-% Decide whether to output the history of blocks visited.
-if isfield(options, "output_block_hist")
-    output_block_hist = options.output_block_hist;
-else
-    output_block_hist = get_default_constant("output_block_hist");
-end
-% Initialize the history of sufficient decrease value and the boolean value of whether the sufficient decrease
-% is achieved or not.
-if isfield(options, "output_sufficient_decrease")
-    output_sufficient_decrease = options.output_sufficient_decrease;
-else
-    output_sufficient_decrease = get_default_constant("output_sufficient_decrease");
-end
+% Initialize the history of function values.
+fhist = NaN(1, MaxFunctionEvaluations);
 
-% Initialize the history of sufficient decrease value and the boolean value of whether the sufficient decrease
-% is achieved or not.
-try
-    decrease_value = zeros(num_blocks, MaxFunctionEvaluations);
-catch
-    warning("decrease_value will be not included in the output due to the limit of memory.");
-end
-try
-    sufficient_decrease = true(num_blocks, MaxFunctionEvaluations);
-catch
-    warning("sufficient_decrease will be not included in the output due to the limit of memory.");
-end
-
-% Decide whether to print during the computation.
-if isfield(options, "verbose")
-    verbose = options.verbose;
-else
-    verbose = get_default_constant("verbose");
-end
+output_block_hist = options.output_block_hist;
 % Initialize the history of blocks visited.
 block_hist = NaN(1, MaxFunctionEvaluations);
+
+verbose = options.verbose;
 
 % Initialize exitflag. If exitflag is not set elsewhere, then the maximum number of iterations
 % is reached, and hence we initialize exitflag to the corresponding value.
@@ -585,8 +334,6 @@ for iter = 1:maxit
             % block_indices = block_indices(random_stream.randperm(length(block_indices)));
         case "parallel"
             block_indices = all_block_indices;
-        otherwise
-            error('Invalid scheme input. The scheme should be one of the following: cyclic, random, parallel.\n');
     end
 
     for i = 1:length(block_indices)
@@ -606,18 +353,13 @@ for iter = 1:maxit
         suboptions.reduction_factor = reduction_factor;
         suboptions.forcing_function = forcing_function;
         suboptions.ftarget = ftarget;
-        suboptions.polling_inner = options.polling_inner;
+        suboptions.polling_inner = polling_inner;
         suboptions.verbose = verbose;
 
         % Perform the direct search within the i_real-th block.
         [sub_xopt, sub_fopt, sub_exitflag, sub_output] = inner_direct_search(fun, xbase,...
             fbase, D(:, direction_indices), direction_indices,...
             alpha_all(i_real), suboptions);
-
-        % Record the sufficient decrease value and the boolean value of whether the sufficient decrease
-        % is achieved or not.
-        decrease_value(i_real, iter) = sub_output.decrease_value;
-        sufficient_decrease(i_real, iter) = sub_output.sufficient_decrease;
 
         if verbose
             fprintf("The number of the block visited is: %d\n", i_real);
@@ -738,10 +480,6 @@ if output_block_hist
 end
 if output_alpha_hist
     output.alpha_hist = alpha_hist(:, 1:min(iter, maxit));
-end
-if output_sufficient_decrease
-    output.sufficient_decrease = sufficient_decrease(:, 1:min(iter, maxit));
-    output.decrease_value = decrease_value(:, 1:min(iter, maxit));
 end
 
 if output_xhist

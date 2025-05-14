@@ -3,12 +3,6 @@ function constant_value = get_default_constant(constant_name)
 %
 
 switch constant_name
-    case {"MaxFunctionEvaluations_dim_factor"}
-        constant_value = 500;
-    case {"scheme"}
-        constant_value = "cyclic";
-    case {"is_noisy"}
-        constant_value = false;
     case {"ds_expand_small"}
         constant_value = 1.25;
     case {"ds_shrink_small"}
@@ -37,6 +31,8 @@ switch constant_name
         constant_value = 1.25;
     case {"shrink_big_noisy"}
         constant_value = 0.85;
+    case {"MaxFunctionEvaluations_dim_factor"}
+        constant_value = 500;
     case {"reduction_factor"}
         constant_value = [0, eps, eps];
     case {"forcing_function"}
@@ -45,8 +41,6 @@ switch constant_name
         constant_value = 1;
     case {"StepTolerance"}
         constant_value = 1e-6;
-    case {"grad_tol"}
-        constant_value = 1e-4;
     case {"seed"}
         constant_value = "shuffle";
     case {"ftarget"}
@@ -62,10 +56,6 @@ switch constant_name
     case {"output_alpha_hist"}
         constant_value = false;
     case {"output_block_hist"}
-        constant_value = false;
-    case {"output_xhist_failed"}
-        constant_value = false;
-    case {"output_sufficient_decrease"}
         constant_value = false;
     case {"verbose"}
         constant_value = false;
