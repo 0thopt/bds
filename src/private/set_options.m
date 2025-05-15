@@ -28,6 +28,7 @@ field_list = {
     'output_alpha_hist'
     'output_block_hist'
     'verbose'
+    'debug_flag'
     };
 
 % Get the field names of options.
@@ -85,7 +86,7 @@ else
         options = rmfield(options, 'Algorithm');
     end
 
-    % Set the vaule of num_blocks.
+    % Set the value of num_blocks.
     if ~isfield(options, 'num_blocks')
         % If num_blocks is not provided, set it to n, the dimension of the problem.
         options.num_blocks = n;

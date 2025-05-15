@@ -52,8 +52,8 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               It should be strictly less than StepTolerance.
 %                               A positive number. Default: 1e-3*StepTolerance.
 %   forcing_function            The forcing function used for deciding whether
-%                               the step achieves a sufficient decrease. A
-%                               function handle.
+%                               the step achieves a sufficient decrease. forcing_function
+%                               should be a function handle.
 %                               Default: @(alpha) alpha^2. See also reduction_factor.
 %   reduction_factor            Factors multiplied to the forcing function for
 %                               deciding whether a step achieves a sufficient decrease.
@@ -70,15 +70,18 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               Default: [0, eps, eps]. See also forcing_function.
 %   StepTolerance               Lower bound of the step size. If the step size is
 %                               smaller than StepTolerance, then the algorithm
-%                               terminates.A (small) positive number. Default: 1e-10.
+%                               terminates.A (small) positive number. 
+%                               Default: 1e-10.
 %   alpha_init                  Initial step size. If alpha_init is a positive
 %                               scalar, then the initial step size of each block
 %                               is set to alpha_init. If alpha_init is a vector,
 %                               then the initial step size of the i-th block is
 %                               set to alpha_init(i).
+%                               Default: 1.
 %   ftarget                     Target of the function value. If the function value
 %                               is smaller than or equal to ftarget, then the
-%                               algorithm terminates. A real number. Default: -Inf.
+%                               algorithm terminates. ftarget should be a real number.
+%                               Default: -Inf.
 %   polling_inner               Polling strategy in each block. It can be "complete" or
 %                               "opportunistic". Default: "opportunistic".
 %   cycling_inner               Cycling strategy employed within each block. It
@@ -88,7 +91,6 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %   with_cycling_memory         Whether the cycling strategy within each block memorizes
 %                               the history or not. It is used only when polling_inner
 %                               is "opportunistic". Default: true.
-%                               A positive integer. Default: 1.
 %   batch_size                  Suppose that batch_size is k. In each iteration,
 %                               k blocks are randomly selected to visit. A positive
 %                               integer less than or equal to num_blocks.
@@ -111,6 +113,9 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               is true, then the function values, the corresponding
 %                               point, and the step size will be printed in each
 %                               function evaluation.
+%   debug_flag                  A flag deciding whether to check the inputs and outputs
+%                               when the algorithm is running.
+%                               Default: false.
 %
 %   [XOPT, FOPT] = BDS(...) returns an approximate minimizer XOPT and its function value FOPT.
 %
@@ -158,16 +163,8 @@ options = set_options(options, x0);
 % Get the dimension of the problem.
 n = length(x0);
 
-% Set the default value of debug_flag. If options do not contain debug_flag, then
-% debug_flag is set to false.
-if isfield(options, "debug_flag")
-    debug_flag = options.debug_flag;
-else
-    debug_flag = false;
-end
-
 % Check the inputs of the user when debug_flag is true.
-if debug_flag
+if options.debug_flag
     verify_preconditions(fun, x0, options);
 end
 
@@ -507,6 +504,6 @@ if x0_is_row
 end
 
 % verify_postconditions is to detect whether the output is valid when debug_flag is true.
-if debug_flag
+if options.debug_flag
     verify_postconditions(fun_orig, xopt, fopt, exitflag, output);
 end

@@ -3,6 +3,8 @@ function constant_value = get_default_constant(constant_name)
 %
 
 switch constant_name
+    case {"MaxFunctionEvaluations_dim_factor"}
+        constant_value = 500;
     case {"ds_expand_small"}
         constant_value = 1.25;
     case {"ds_shrink_small"}
@@ -31,26 +33,24 @@ switch constant_name
         constant_value = 1.25;
     case {"shrink_big_noisy"}
         constant_value = 0.85;
-    case {"MaxFunctionEvaluations_dim_factor"}
-        constant_value = 500;
-    case {"reduction_factor"}
-        constant_value = [0, eps, eps];
     case {"forcing_function"}
         constant_value = @(alpha) alpha^2;
-    case {"alpha_init"}
-        constant_value = 1;
+    case {"reduction_factor"}
+        constant_value = [0, eps, eps];
     case {"StepTolerance"}
         constant_value = 1e-6;
-    case {"seed"}
-        constant_value = "shuffle";
-    case {"ftarget"}
-        constant_value = -inf;
+    case {"alpha_init"}
+        constant_value = 1;
     case {"polling_inner"}
         constant_value = "opportunistic";
     case {"cycling_inner"}
         constant_value = 1;
     case {"with_cycling_memory"}
         constant_value = true;
+    case {"seed"}
+        constant_value = "shuffle";
+    case {"ftarget"}
+        constant_value = -inf;
     case {"output_xhist"}
         constant_value = false;
     case {"output_alpha_hist"}
@@ -58,6 +58,8 @@ switch constant_name
     case {"output_block_hist"}
         constant_value = false;
     case {"verbose"}
+        constant_value = false;
+    case {"debug_flag"}
         constant_value = false;
     otherwise
         error("Unknown constant name")

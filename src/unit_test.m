@@ -125,10 +125,6 @@ constant_name = "MaxFunctionEvaluations_dim_factor";
 constant_value = 500;
 verifyEqual(testCase, get_default_constant(constant_name), constant_value)
 
-constant_name = "scheme";
-constant_value = "cyclic";
-verifyEqual(testCase, get_default_constant(constant_name), constant_value)
-
 constant_name = "ds_expand_small";
 constant_value = 1.25;
 verifyEqual(testCase, get_default_constant(constant_name), constant_value)
@@ -228,10 +224,6 @@ constant_value = false;
 verifyEqual(testCase, get_default_constant(constant_name), constant_value)
 
 constant_name = "output_block_hist";
-constant_value = false;
-verifyEqual(testCase, get_default_constant(constant_name), constant_value)
-
-constant_name = "output_xhist_failed";
 constant_value = false;
 verifyEqual(testCase, get_default_constant(constant_name), constant_value)
 
@@ -433,20 +425,20 @@ x0 = zeros(3,1);
 verifyEqual(testCase, fopt, 0)
 options = struct();
 options.verbose = true;
-options.MaxFunctionEvaluations_dim_factor = 5000;
+options.MaxFunctionEvaluations = 5000 * length(x0);
 options.ftarget = -inf;
 options.output_alpha_hist = true;
 options.output_xhist = true;
 options.debug_flag = true;
 [~, fopt, ~, ~] = bds(@chrosen, x0, options);
 verifyEqual(testCase, fopt, 0)
-options.scheme = "parallel";
+options.Scheme = "parallel";
 [~, fopt, ~, ~] = bds(@chrosen, x0, options);
 if abs(fopt) > 1e-3
     error('The function value is not close to 0.');
 end
 
-options.scheme = "random";
+options.Scheme = "random";
 [~, fopt, ~, ~] = bds(@chrosen, x0, options);
 if abs(fopt) > 1e-8
     error('The function value is not close to 0.');
@@ -483,7 +475,7 @@ end
 options = rmfield(options, 'replacement_delay');
 options = rmfield(options, 'batch_size');
 
-options.scheme = "parallel";
+options.Scheme = "parallel";
 options.batch_size = numel(x0);
 [~, fopt, ~, ~] = bds(@chrosen, x0, options);
 if abs(fopt) > 1e-3
@@ -496,12 +488,12 @@ options.num_blocks = 1;
 if abs(fopt) > 1e-6
     error('The function value is not close to 0.');
 end
-options.scheme = "random";
+options.Scheme = "random";
 [~, fopt, ~, ~] = bds(@chrosen, x0, options);
 if abs(fopt) > 1e-6
     error('The function value is not close to 0.');
 end
-options.scheme = "cyclic";
+options.Scheme = "cyclic";
 [~, fopt, ~, ~] = bds(@chrosen, x0, options);
 if abs(fopt) > 1e-6
     error('The function value is not close to 0.');

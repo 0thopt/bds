@@ -10,9 +10,22 @@ if ~isrealvector(x0)
     error("x0 should be a real vector.");
 end
 
-if isfield(options, "direction_set")
-    if ~(ismatrix(options.direction_set) && size(options.direction_set, 1) == length(x0) && size(options.direction_set, 2) == length(x0))
-        error("options.direction_set should be a square matrix with the order being the length of x0.");
+if isfield(options, "num_blocks")
+    if ~(isintegerscalar(options.num_blocks) && options.num_blocks > 0)
+        error("options.num_blocks should be a positive integer.");
+    end
+end
+
+scheme_list = ["cyclic", "random", "parallel"];
+if isfield(options, "scheme")
+    if ~(ischarstr(options.scheme) && any(ismember(lower(options.scheme), lower(scheme_list))))
+        error("options.scheme should be a string in the scheme_list");
+    end
+end
+
+if isfield(options, "batch_size")
+    if ~(isintegerscalar(options.batch_size) && options.batch_size > 0)
+        error("options.batch_size should be a positive integer.");
     end
 end
 
@@ -28,16 +41,9 @@ if isfield(options, "MaxFunctionEvaluations_factor")
     end
 end
 
-if isfield(options, "num_blocks")
-    if ~(isintegerscalar(options.num_blocks) && options.num_blocks > 0)
-        error("options.num_blocks should be a positive integer.");
-    end
-end
-
-scheme_list = ["cyclic", "random", "parallel"];
-if isfield(options, "scheme")
-    if ~(ischarstr(options.scheme) && any(ismember(lower(options.scheme), lower(scheme_list))))
-        error("options.scheme should be a string in the scheme_list");
+if isfield(options, "direction_set")
+    if ~(ismatrix(options.direction_set) && size(options.direction_set, 1) == length(x0) && size(options.direction_set, 2) == length(x0))
+        error("options.direction_set should be a square matrix with the order being the length of x0.");
     end
 end
 
@@ -131,35 +137,20 @@ if isfield(options, "shrink_big_noisy")
     end
 end
 
+if isfield(options, "forcing_function")
+    if ~isa(options.forcing_function, "function_handle")
+        error("options.forcing_function should be a function handle.");
+    end
+end
+
 if isfield(options, "reduction_factor")
     if ~(isnumvec(options.reduction_factor) && length(options.reduction_factor) == 3)
         error("options.reduction_factor should be a 3-dimensional real vector.");
     end
-
     if ~(options.reduction_factor(1) <= options.reduction_factor(2) && ...
             options.reduction_factor(2) <= options.reduction_factor(3) && ...
         options.reduction_factor(1) >= 0 && options.reduction_factor(2) > 0)
         error("options.reduction_factor should satisfy the conditions where 0 <= reduction_factor(1) <= reduction_factor(2) <= reduction_factor(3) and reduction_factor(2) > 0.")
-    end
-end
-
-if isfield(options, "forcing_function_type")
-    if ~ischarstr(options.forcing_function_type)
-        error("options.forcing_function_type should be a string.");
-    end
-end
-
-if isfield(options, "alpha_init")
-    if ~((isrealscalar(options.alpha_init) && options.alpha_init > 0) || ...
-        (isnumvec(options.alpha_init) && length(options.alpha_init) == num_blocks && all(options.alpha_init > 0)) || ...
-        (ischarstr(options.alpha_init) && strcmpi(options.alpha_init, "auto")))
-        error("options.alpha_init should be a positive scalar or a positive real vector with length equal to num_blocks or a string 'auto'.");
-    end
-end
-
-if isfield(options, "alpha_threshold_ratio")
-    if ~(isrealscalar(options.alpha_threshold_ratio) && options.alpha_threshold_ratio > 0)
-        error("options.alpha_threshold_ratio should be a positive real number.");
     end
 end
 
@@ -169,27 +160,17 @@ if isfield(options, "StepTolerance")
     end
 end
 
-if isfield(options, "alpha_all")
-    if ~(isrealscalar(options.alpha_all) && options.alpha_all > 0)
-        error("options.alpha_all should be a positive real vector.");
+if isfield(options, "alpha_init")
+    if ~((isrealscalar(options.alpha_init) && options.alpha_init > 0) || ...
+        (isnumvec(options.alpha_init) && length(options.alpha_init) == options.     num_blocks && all(options.alpha_init > 0)) || ...
+        (ischarstr(options.alpha_init) && strcmpi(options.alpha_init, "auto")))
+        error("options.alpha_init should be a positive scalar or a positive real vector with length equal to num_blocks or a string 'auto'.");
     end
 end
 
-if isfield(options, "batch_size")
-    if ~(isintegerscalar(options.batch_size) && options.batch_size > 0)
-        error("options.batch_size should be a positive integer.");
-    end
-end
-
-if isfield(options, "replacement_delay")
-    if ~isintegerscalar(options.replacement_delay)
-        error("options.replacement_delay should be an integer.");
-    end
-end
-
-if isfield(options, "seed")
-    if ~(isintegerscalar(options.seed) && options.seed > 0)
-        error("options.seed should be a positive integer.");
+if isfield(options, "ftarget")
+    if ~(isrealscalar(options.ftarget))
+        error("options.ftarget should be a real number.");
     end
 end
 
@@ -211,6 +192,18 @@ if isfield(options, "with_cycling_memory")
     end
 end
 
+if isfield(options, "batch_size")
+    if ~(isintegerscalar(options.batch_size) && options.batch_size > 0)
+        error("options.batch_size should be a positive integer.");
+    end
+end
+
+if isfield(options, "replacement_delay")
+    if ~isintegerscalar(options.replacement_delay)
+        error("options.replacement_delay should be an integer.");
+    end
+end
+
 if isfield(options, "output_xhist")
     if ~islogical(options.output_xhist)
         error("options.output_xhist should be a logical value.");
@@ -229,15 +222,9 @@ if isfield(options, "output_block_hist")
     end
 end
 
-if isfield(options, "output_xhist_failed")
-    if ~islogical(options.output_xhist_failed)
-        error("options.output_xhist_failed should be a logical value.");
-    end
-end
-
-if isfield(options, "output_sufficient_decrease")
-    if ~islogical(options.output_sufficient_decrease)
-        error("options.output_sufficient_decrease should be a logical value.");
+if isfield(options, "verbose")
+    if ~islogical(options.verbose)
+        error("options.verbose should be a logical value.");
     end
 end
 
