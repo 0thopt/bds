@@ -10,6 +10,7 @@ field_list = {
     'num_blocks'
     'batch_size'
     'MaxFunctionEvaluations'
+    'direction_set'
     'is_noisy'
     'expand'
     'shrink'
@@ -216,9 +217,11 @@ else
     end
 
     % Remove those fields that will work corporatively with the problem.
-    % The fields are: Algorithm, Scheme, num_blocks, batch_size, expand, shrink, replacement_delay, MaxFunctionEvaluations, alpha_init.
+    % The fields are: Algorithm, Scheme, num_blocks, direction_set, batch_size, expand, shrink, 
+    % replacement_delay, MaxFunctionEvaluations, alpha_init.
     % The above fields are removed from the field_list to avoid setting the default value of them again.
-    field_list = setdiff(field_list, {'Algorithm', 'Scheme', 'num_blocks', 'batch_size', 'expand', 'shrink', 'replacement_delay', 'MaxFunctionEvaluations', 'alpha_init'});
+    field_list = setdiff(field_list, {'Algorithm', 'Scheme', 'num_blocks', 'direction_set', 'batch_size', ...
+    'expand', 'shrink', 'replacement_delay', 'MaxFunctionEvaluations', 'alpha_init'});
     
     for i = 1:length(field_list)
         field_name = field_list{i};
