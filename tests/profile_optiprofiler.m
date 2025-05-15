@@ -36,26 +36,30 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
     if ~isfield(options, 'savepath')
         options.savepath = fullfile(fileparts(mfilename('fullpath')), 'testdata');
     end
-    if startsWith(options.feature_name, 'noisy')
+    if contains(options.feature_name, 'noisy')
         if sum(options.feature_name == '_') > 0
-            options.noise_level = 10.^(str2double(options.feature_name(end-1:end)));
+            % Find the position of the last underscore
+            underscore_pos = find(options.feature_name == '_', 1, 'last');
+            % Extract the part after the last underscore as noise level. If the part
+            % contains 'e', it means the noise level is written in scientific notation.
+            % If the part does not contain 'e', it means the noise level is written in
+            % decimal notation.
+            if contains(options.feature_name(underscore_pos + 1:end), 'e')
+                options.noise_level = 10.^(str2double(options.feature_name(end-1:end)));
+            else
+                options.noise_level = str2double(options.feature_name(underscore_pos + 1:end));
+            end
         else
             options.noise_level = 1e-3;
         end
-        options.feature_name = 'noisy';
-    end 
-    if startsWith(options.feature_name, 'rotation_noisy')
-        options.noise_level = 10.^(str2double(options.feature_name(end-1:end)));
-        options.feature_name = 'custom';
-    end
-    if startsWith(options.feature_name, 'permuted_noisy')
-        if sum(options.feature_name == '_') > 0
-            options.noise_level = 10.^(str2double(options.feature_name(end-1:end)));
+        if startsWith(options.feature_name, 'permuted_noisy')
+            options.feature_name = 'custom';
+            options.permuted = true;
+        elseif startsWith(options.feature_name, 'rotation_noisy')
+            options.feature_name = 'custom';
         else
-            options.noise_level = 1e-3;
+            options.feature_name = 'noisy';
         end
-        options.feature_name = 'custom';
-        options.permuted = true;
     end
     if startsWith(options.feature_name, 'truncated')
         if sum(options.feature_name == '_') > 0
@@ -63,26 +67,14 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
         else
             options.significant_digits = 6;
         end
-        switch options.significant_digits
-            % Why we set the noise level like this? See the link below:
-            % https://github.com/Lht97/to_do_list. 
-            case 1
-                options.noise_level = 10^(-1) / (2 * sqrt(3));
-            case 2
-                options.noise_level = 10^(-2) / (2 * sqrt(3));
-            case 3
-                options.noise_level = 10^(-3) / (2 * sqrt(3));
-            case 4
-                options.noise_level = 10^(-4) / (2 * sqrt(3));                
-            case 5
-                options.noise_level = 10^(-5) / (2 * sqrt(3));
-            case 6
-                options.noise_level = 10^(-6) / (2 * sqrt(3));
-            case 7
-                options.noise_level = 10^(-7) / (2 * sqrt(3));
-            case 8
-                options.noise_level = 10^(-8) / (2 * sqrt(3));
-        end
+        % Actually, the way of truncating the function value is to
+        % Truncate to n significant figures and round off the last digit, which
+        % can be regarded as some kind of noise. The minimum value should be
+        % 0 of course. When it comes to the case of maximum value, the actural 
+        % value is 10^m + 5*10^{m-n} and the truncated value is 5*10^{m-n}.
+        % The relative error is 5/(10^n + 5). Assume that the noise follows
+        % the uniform distribution, then the noise level is 5/(10^n + 5) * 0.5.
+        options.noise_level = 5 / (10^options.significant_digits + 5) * 0.5;
         options.feature_name = 'truncated';
     end
     if startsWith(options.feature_name, 'quantized')
@@ -157,7 +149,7 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
     options.ptype = 'u';
     if isfield(options, 'dim')
         if strcmpi(options.dim, 'small')
-            options.mindim = 2;
+            options.mindim = 1;
             options.maxdim = 5;
         elseif strcmpi(options.dim, 'big')
             options.mindim = 6;
@@ -166,7 +158,7 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
         options = rmfield(options, 'dim');
     end
     if ~isfield(options, 'mindim')
-        options.mindim = 2;
+        options.mindim = 1;
     end
     if ~isfield(options, 'maxdim')
         options.maxdim = 5;
@@ -331,12 +323,26 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
     options.benchmark_id = [options.benchmark_id, '_', num2str(options.mindim), '_', num2str(options.maxdim), '_', num2str(options.n_runs)];
     switch options.feature_name
         case 'noisy'
-            options.benchmark_id = [options.benchmark_id, '_', options.feature_name, '_', int2str(int32(-log10(options.noise_level))), '_no_rotation'];
-        case 'custom'
-            if isfield(options, 'permuted') && options.permuted
-                options.benchmark_id = [options.benchmark_id, '_', 'permuted_noisy', '_', int2str(int32(-log10(options.noise_level)))];
+            % If the noise level is written in scientific notation, we will use the power to express the noise level in benchmark_id.
+            % If the noise level is written in decimal notation, we will use the decimal notation to express the noise level in benchmark_id.
+            % For example, if the noise level is 1e-3, we will use 3 to express the noise level in benchmark_id.
+            % If the noise level is 0.001, we will use 0_001 to express the noise level in benchmark_id.
+            if abs(log10(options.noise_level) - floor(log10(options.noise_level))) < 1e-10 || abs(log10(options.noise_level) - ceil(log10(options.noise_level))) < 1e-10
+                options.benchmark_id = [options.benchmark_id, '_', options.feature_name, '_', int2str(int32(-log10(options.noise_level))), '_no_rotation'];
             else
-                options.benchmark_id = [options.benchmark_id, '_', 'rotation_noisy', '_', int2str(int32(-log10(options.noise_level)))];
+                noise_level_str = strrep(num2str(options.noise_level), '.', '_');
+                options.benchmark_id = [options.benchmark_id, '_', options.feature_name, '_', noise_level_str, '_no_rotation'];
+            end
+        case 'custom'
+            % The same notation as above. The only difference is that we will distinguish permuted_noisy and rotation_noisy.
+            if abs(log10(options.noise_level) - floor(log10(options.noise_level))) < 1e-10 || abs(log10(options.noise_level) - ceil(log10(options.noise_level))) < 1e-10
+                noise_level_str = int2str(int32(-log10(options.noise_level)));
+            else
+                noise_level_str = strrep(num2str(options.noise_level), '.', '_');
+            end
+            options.benchmark_id = [options.benchmark_id, '_', 'permuted_noisy', '_', noise_level_str];
+            if ~(isfield(options, 'permuted') && options.permuted)
+                options.benchmark_id = strrep(options.benchmark_id, 'permuted', 'rotation');
             end
         case 'truncated'
             options.benchmark_id = [options.benchmark_id, '_', options.feature_name, '_', int2str(options.significant_digits)];
@@ -344,22 +350,20 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
         case 'quantized'
             options.benchmark_id = [options.benchmark_id, '_', options.feature_name, '_', int2str(int32(-log10(options.mesh_size)))];
         case 'random_nan'
-            if 100*options.nan_rate < 10
+            % Since the nan_rate should be in the range of [0, 1], we will discuss in two cases: one is nan_rate < 0.1, 
+            % the other is nan_rate >= 0.1.
+            if options.nan_rate < 0.1
                 options.benchmark_id = [options.benchmark_id, '_', options.feature_name, '_0', int2str(int32(options.nan_rate * 100))];
             else
                 options.benchmark_id = [options.benchmark_id, '_', options.feature_name, '_', int2str(int32(options.nan_rate * 100))];
             end
         case 'perturbed_x0'
-            switch options.perturbation_level
-                case 1e-3
-                    options.benchmark_id = [options.benchmark_id, '_', options.feature_name];
-                case 1
-                    options.benchmark_id = [options.benchmark_id, '_', options.feature_name, '_01'];
-                case 10
-                    options.benchmark_id = [options.benchmark_id, '_', options.feature_name, '_10'];
-                case 100
-                    options.benchmark_id = [options.benchmark_id, '_', options.feature_name, '_100'];
-            end
+            options.benchmark_id = [options.benchmark_id, '_', options.feature_name];
+            % For perturbed_x0, we will only use decimal notation to express the perturbation level in benchmark_id.
+            % For example, if the perturbation level is 1e-3, we will use 0_001 to express the perturbation level in benchmark_id.
+            % If the perturbation level is 10, we will use 10 to express the perturbation level in benchmark_id.
+            perturbation_level_str = strrep(num2str(options.perturbation_level), '.', '_');
+            options.benchmark_id = [options.benchmark_id, '_', perturbation_level_str];
     otherwise
         options.benchmark_id = [options.benchmark_id, '_', options.feature_name];
     end
@@ -430,6 +434,10 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 options.mod_fun = @mod_fun_3;
             case 1e-4
                 options.mod_fun = @mod_fun_4;
+            case 1e-5
+                options.mod_fun = @mod_fun_5;
+            case 1e-6
+                options.mod_fun = @mod_fun_6;
             otherwise
                 error('Unknown noise level');
         end
@@ -476,6 +484,18 @@ function f = mod_fun_4(x, rand_stream, problem)
 
     f = problem.fun(x);
     f = f + max(1, abs(f)) * 1e-4 * rand_stream.randn(1);
+end
+
+function f = mod_fun_5(x, rand_stream, problem)
+
+    f = problem.fun(x);
+    f = f + max(1, abs(f)) * 1e-5 * rand_stream.randn(1);
+end
+
+function f = mod_fun_6(x, rand_stream, problem)
+
+    f = problem.fun(x);
+    f = f + max(1, abs(f)) * 1e-6 * rand_stream.randn(1);
 end
 
 function [A, b, inv] = mod_affine(rand_stream, problem)

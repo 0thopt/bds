@@ -1,16 +1,16 @@
 clear all
 % options.dim = 'big';
 options.solver_names = {'fd-bfgs', 'praxis'};
-options.mindim = 6;
-options.maxdim = 50;
-options.feature_name = 'plain';
+options.mindim = 1;
+options.maxdim = 1;
+% options.feature_name = 'plain';
+% profile_optiprofiler(options);
+
+options.feature_name = 'perturbed_x0_100';
 profile_optiprofiler(options);
 
-options.feature_name = 'noisy_1e-3';
-profile_optiprofiler(options);
-
-options.feature_name = 'noisy_1e-6';
-profile_optiprofiler(options);
+% options.feature_name = 'noisy_1e-6';
+% profile_optiprofiler(options);
 
 % options.solver_names = {'default-fd-bfgs', 'praxis'};
 
