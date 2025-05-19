@@ -2,10 +2,10 @@ name: Profile original lam1 with original lam1 not preserving order, big
 
 on:
   # Trigger the workflow on push or pull request
-  push:
+  # push:
   # Trigger the workflow manually
   schedule:
-    - cron: '0 3 */7 * *'
+    - cron: '0 3 */11 * *'
   workflow_dispatch:
 
 jobs:
