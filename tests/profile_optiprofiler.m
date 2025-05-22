@@ -1258,7 +1258,7 @@ function x = cbds_quadratic_test(fun, x0)
     
 end
 
-function x = cbds_qubic_test(fun, x0)
+function x = cbds_cubic_test(fun, x0)
 
     option.forcing_function = @(alpha) alpha^3;
     option.expand = 2;
