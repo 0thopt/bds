@@ -308,6 +308,16 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @nomad_test;
             case 'nomad-6'
                 solvers{i} = @nomad_6_test;
+            case 'quadratic'
+                solvers{i} = @cbds_quadratic_test;
+            case 'cubic'
+                solvers{i} = @cbds_cubic_test;
+            case 'quartic'
+                solvers{i} = @cbds_quartic_test;
+            case 'quintic'
+                solvers{i} = @cbds_quintic_test;
+            case 'sextic'
+                solvers{i} = @cbds_sextic_test;
             otherwise
                 error('Unknown solver');
         end
@@ -1236,5 +1246,54 @@ function x = nomad_6_test(fun, x0)
     fun = @(x) fun(x(:));
 
     [x, ~, ~, ~, ~] = nomadOpt(fun,x0,lb,ub,params);
+    
+end
+
+function x = cbds_quadratic_test(fun, x0)
+
+    option.forcing_function = @(alpha) alpha^2;
+    option.expand = 2;
+    option.shrink = 0.5;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_qubic_test(fun, x0)
+
+    option.forcing_function = @(alpha) alpha^3;
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.Algorithm = 'cbds';
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_quartic_test(fun, x0)
+
+    option.forcing_function = @(alpha) alpha^4;
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.Algorithm = 'cbds';
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_quintic_test(fun, x0)
+
+    option.forcing_function = @(alpha) alpha^5;
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.Algorithm = 'cbds';
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_sextic_test(fun, x0)
+
+    option.forcing_function = @(alpha) alpha^6;
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.Algorithm = 'cbds';
+    x = bds(fun, x0, option);
     
 end

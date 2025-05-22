@@ -1,16 +1,16 @@
-name: Profile cbds with cycling blocks using strategy 4, big
+name: Profile cbds with forcing function of quadratic vs cubic, big
 
 on:
   # Trigger the workflow on # push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   schedule:
-  - cron: '0 15 */1 * *'
+  - cron: '0 0 */2 * *'
   workflow_dispatch:
 
 jobs:
   test:
-    name: Profile cbds with cycling blocks using strategy 4, big
+    name: Profile cbds with forcing function of quadratic vs cubic, big
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -19,32 +19,18 @@ jobs:
         matlab: [latest]
         dim: [big]
         with_optim_toolbox: [yes]
-        solver: [cbds-development]
-        competitor: [cbds-cycle-4]
+        solver: [quadratic]
+        competitor: [cubic]
         run_plain: [false]
         summarize_log_ratio_profiles: [false]
-        feature: [plain, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, permuted, permuted_noisy_1e-1, permuted_noisy_1e-2, permuted_noisy_1e-3, permuted_noisy_1e-4, linearly_transformed, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
+        feature: [plain, perturbed_x0_0.001, perturbed_x0_1, perturbed_x0_10, perturbed_x0_100, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, permuted, linearly_transformed, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
 
     steps:
-      # Check out the main branch
-      - name: Check out main branch
+      - name: Check out repository
         uses: actions/checkout@v4
         with:
-          ref: main
+          submodules: recursive
 
-      # Check out the development branch into a subdirectory
-      - name: Check out development branch into subdirectory
-        uses: actions/checkout@v4
-        with:
-          ref: development        
-          path: development
-          fetch-depth: 0 # get all history for all branches and tags
-          
-      # Check out specific commit in the development branch
-      - name: Check out specific commit
-        working-directory: development
-        run: git checkout 68dcb09c302269e2771a72286410bdeb00b92a72
-      
       - name: Checkout OptiProfiler
         uses: actions/checkout@v4
         with:
@@ -83,13 +69,11 @@ jobs:
               % Setup optiprofiler
               cd(fullfile(root_dir, 'optiprofiler'));
               setup
-              cd(root_dir);
   
               % Setup bds
+              cd(root_dir);
               setup
-
-              % Set up the path for the development branch
-              cd(fullfile(root_dir, 'development', 'src'));
+              cd(fullfile(root_dir, 'tests', 'competitors'));
               addpath(pwd);
   
               % profile
@@ -101,7 +85,6 @@ jobs:
               options.run_plain = ${{ matrix.run_plain }};
               options.summarize_log_ratio_profiles = ${{ matrix.summarize_log_ratio_profiles }};
               profile_optiprofiler(options);
-              cd(root_dir);
               cd(fullfile(root_dir, 'tests'));
               ls -R
               cd(root_dir);
