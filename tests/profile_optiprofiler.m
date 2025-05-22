@@ -318,6 +318,14 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @cbds_quintic_test;
             case 'sextic'
                 solvers{i} = @cbds_sextic_test;
+            case 'cbds-reduction-factor-6'
+                solvers{i} = @cbds_reduction_factor_6_test;
+            case 'cbds-reduction-factor-8'
+                solvers{i} = @cbds_reduction_factor_8_test;
+            case 'cbds-reduction-factor-10'
+                solvers{i} = @cbds_reduction_factor_10_test;
+            case 'cbds-reduction-factor-12'
+                solvers{i} = @cbds_reduction_factor_12_test;
             otherwise
                 error('Unknown solver');
         end
@@ -1258,7 +1266,7 @@ function x = cbds_quadratic_test(fun, x0)
     
 end
 
-function x = cbds_qubic_test(fun, x0)
+function x = cbds_cubic_test(fun, x0)
 
     option.forcing_function = @(alpha) alpha^3;
     option.expand = 2;
@@ -1294,6 +1302,46 @@ function x = cbds_sextic_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.Algorithm = 'cbds';
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_reduction_factor_6_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.Algorithm = 'cbds';
+    option.reduction_factor = [1e-6, 1e-6, 1e-6];
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_reduction_factor_8_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.Algorithm = 'cbds';
+    option.reduction_factor = [1e-8, 1e-8, 1e-8];
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_reduction_factor_10_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.Algorithm = 'cbds';
+    option.reduction_factor = [1e-10, 1e-10, 1e-10];
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_reduction_factor_12_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.Algorithm = 'cbds';
+    option.reduction_factor = [1e-12, 1e-12, 1e-12];
     x = bds(fun, x0, option);
     
 end
