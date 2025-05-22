@@ -1,4 +1,4 @@
-name: Profile original cbds with original cbds with reduction factor 10x, small
+name: Profile cbds with reduction factor 6x, small
 
 on:
   # Trigger the workflow on # push or pull request
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Profile original cbds with original cbds with reduction factor 10x, small
+    name: Profile cbds with reduction factor 6x, small
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -20,7 +20,7 @@ jobs:
         dim: [small]
         with_optim_toolbox: [yes]
         solver: [cbds-orig]
-        competitor: [cbds-reduction-factor-10]
+        competitor: [cbds-reduction-factor-6]
         run_plain: [false]
         summarize_log_ratio_profiles: [false]
         feature: [plain, perturbed_x0_0.001, perturbed_x0_1, perturbed_x0_10, perturbed_x0_100, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, permuted, linearly_transformed, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
