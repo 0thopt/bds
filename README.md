@@ -52,6 +52,8 @@ The following tests are implemented by [Optiprofiler](https://github.com/optipro
 
     - [![Profile cbds and bfgs using optiprofiler, big](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_bfgs_big.yml/badge.svg)](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_bfgs_big.yml)
     - [![Profile cbds and bfgs using optiprofiler, small](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_bfgs_small.yml/badge.svg)](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_bfgs_small.yml)
+    - [![Test matcutest temporarily](https://github.com/bladesopt/bds/actions/workflows/test_matcutest.yml/badge.svg)](https://github.com/bladesopt/bds/actions/workflows/test_matcutest.yml)
+    - [![Profile cbds and bfgs using optiprofiler, small](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_bfgs_small.yml/badge.svg)](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_bfgs_small.yml)
     - [![Profile original cbds and bfgs using optiprofiler, big](https://github.com/bladesopt/bds/actions/workflows/profile_orig_cbds_bfgs_big.yml/badge.svg)](https://github.com/bladesopt/bds/actions/workflows/profile_orig_cbds_bfgs_big.yml)
     - [![Profile original cbds and bfgs using optiprofiler, small](https://github.com/bladesopt/bds/actions/workflows/profile_orig_cbds_bfgs_small.yml/badge.svg)](https://github.com/bladesopt/bds/actions/workflows/profile_orig_cbds_bfgs_small.yml)
     - [![Profile cbds and newuoa using optiprofiler, big](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_newuoa_big.yml/badge.svg)](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_newuoa_big.yml)

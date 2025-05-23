@@ -1,4 +1,4 @@
-name: Test temporarily
+name: Test matcutest temporarily
 
 on:
   # Trigger the workflow on # push or pull request
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Profile BDS and bfgs, big
+    name: Test matcutest temporarily
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
