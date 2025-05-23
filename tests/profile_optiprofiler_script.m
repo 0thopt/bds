@@ -6,9 +6,11 @@ clear all
 %     options.feature_name = feature{i};
 %     profile_optiprofiler(options);
 % end
-options.dim = 'small';
+% options.dim = 'small';
+options.mindim = 1;
+options.maxdim = 1;
 %options.solver_names = {'rbds-zero-delay', 'rbds-one-delay', 'rbds-eighth-delay', 'rbds-quarter-delay', 'rbds-half-delay', 'rbds-n-minus-one-delay'};
-options.solver_names = {'cbds', 'pbds'};
+options.solver_names = {'cbds', 'ds'};
 options.feature_name = 'linearly_transformed';
 profile_optiprofiler(options);
 

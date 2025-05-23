@@ -8,7 +8,10 @@ function perf = tuning_score(profile_score, tau_weights)
     % For temporary testing purposes, we will use the following code
     % to compute the performance score, which means that we will maximize
     % the difference, not only the score of the tuning solver.
-    perf = sum((profile_score(1, :, 2, 1) - profile_score(2, :, 2, 1)) .* tau_weights(1, :, 2, 1));
+    % The following code is to maximize the output-based performance score.
+    % perf = sum((profile_score(1, :, 2, 1) - profile_score(2, :, 2, 1)) .* tau_weights(1, :, 2, 1));
+    % The following code is to maximize the history-based performance score.
+    perf = sum((profile_score(1, :, 1, 1) - profile_score(2, :, 1, 1)) .* tau_weights(1, :, 1, 1));
     % Compute the weighted sum of the profile scores.
     % perf = sum(profile_score(:) .* tau_weights(:));
     
