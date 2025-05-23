@@ -127,7 +127,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: profile_optiprofiler_${{ matrix.solver }}_${{ matrix.competitor }}_${{ matrix.dim }}_${{ matrix.feature }}_${{ matrix.plibs }}_${{ matrix.run_plain }}
+          name: profile_optiprofiler_${{ matrix.solver }}_${{ matrix.competitor }}_${{ matrix.plibs }}_${{ matrix.dim }}_${{ matrix.feature }}_${{ matrix.run_plain }}
           path: ./tests/testdata/
 
   merge_artifacts:
