@@ -370,6 +370,12 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
     if options.run_plain
         options.benchmark_id = [options.benchmark_id, '_plain'];
     end
+    if isfield(options, 'plibs')
+        options.benchmark_id = [options.benchmark_id, '_', options.plibs];
+    else
+        % If the plibs is not provided, we will use the default value, which is 's2mpj'.
+        options.benchmark_id = [options.benchmark_id, '_s2mpj'];
+    end
     options.benchmark_id = [options.benchmark_id, '_', time_str];
     options.excludelist = {'DIAMON2DLS',...
             'DIAMON2D',...

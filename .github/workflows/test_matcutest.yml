@@ -21,6 +21,7 @@ jobs:
         with_optim_toolbox: [yes]
         solver: [cbds]
         competitor: [fd-bfgs]
+        plibs: [matcutest]
         run_plain: [false]
         summarize_log_ratio_profiles: [false]
         feature: [plain, perturbed_x0_0.001]
@@ -85,7 +86,7 @@ jobs:
               options = rmfield(options, 'dim');
               options.mindim = 1;
               options.maxdim = 1;
-              options.plibs = 'matcutest';
+              options.plibs = '${{ matrix.plibs }}';
               options.run_plain = ${{ matrix.run_plain }};
               options.summarize_log_ratio_profiles = ${{ matrix.summarize_log_ratio_profiles }};
               profile_optiprofiler(options);
@@ -126,7 +127,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: profile_optiprofiler_${{ matrix.solver }}_${{ matrix.competitor }}_${{ matrix.dim }}_${{ matrix.feature }}_${{ matrix.run_plain }}
+          name: profile_optiprofiler_${{ matrix.solver }}_${{ matrix.competitor }}_${{ matrix.dim }}_${{ matrix.feature }}_${{ matrix.plibs }}_${{ matrix.run_plain }}
           path: ./tests/testdata/
 
   merge_artifacts:
