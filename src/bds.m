@@ -436,18 +436,6 @@ for iter = 1:maxit
     % See eval_fun.m for details.
     % assert(fopt == min(fhist));
 
-    % For "parallel", we will update xbase and fbase only after one iteration of the outer loop.
-    % During the inner loop, every block will share the same xbase and fbase.
-    if strcmpi(scheme, "parallel")
-        % Update xbase and fbase. xbase serves as the "base point" for the computation in the
-        % next block, meaning that reduction will be calculated with respect to xbase, as shown above.
-        % Note that their update requires a sufficient decrease if reduction_factor(1) > 0.
-        if (reduction_factor(1) <= 0 && fopt < fbase) || fopt + reduction_factor(1) * forcing_function(min(alpha_all)) < fbase
-            xbase = xopt;
-            fbase = fopt;
-        end
-    end
-
     % Update xopt and fopt. Note that we do this only if the iteration encounters a strictly better point.
     % Make sure that fopt is always the minimum of fhist after the moment we update fopt.
     % The determination between fopt_all and fopt is to avoid the case that fopt_all is
@@ -458,6 +446,18 @@ for iter = 1:maxit
     if fopt_all(index) < fopt
         fopt = fopt_all(index);
         xopt = xopt_all(:, index);
+    end
+
+    % For "parallel", we will update xbase and fbase only after one iteration of the outer loop.
+    % During the inner loop, every block will share the same xbase and fbase.
+    if strcmpi(scheme, "parallel")
+        % Update xbase and fbase. xbase serves as the "base point" for the computation in the
+        % next block, meaning that reduction will be calculated with respect to xbase, as shown above.
+        % Note that their update requires a sufficient decrease if reduction_factor(1) > 0.
+        if (reduction_factor(1) <= 0 && fopt < fbase) || fopt + reduction_factor(1) * forcing_function(min(alpha_all)) < fbase
+            xbase = xopt;
+            fbase = fopt;
+        end
     end
 
     % Terminate the computations if terminate is true.
