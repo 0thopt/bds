@@ -318,6 +318,10 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @cbds_quintic_test;
             case 'sextic'
                 solvers{i} = @cbds_sextic_test;
+            case 'cbds-reduction-factor-3'
+                solvers{i} = @cbds_reduction_factor_3_test;
+            case 'cbds-reduction-factor-4'
+                solvers{i} = @cbds_reduction_factor_4_test;
             case 'cbds-reduction-factor-6'
                 solvers{i} = @cbds_reduction_factor_6_test;
             case 'cbds-reduction-factor-8'
@@ -1302,6 +1306,26 @@ function x = cbds_sextic_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.Algorithm = 'cbds';
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_reduction_factor_3_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.Algorithm = 'cbds';
+    option.reduction_factor = [1e-3, 1e-3, 1e-3];
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_reduction_factor_4_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.Algorithm = 'cbds';
+    option.reduction_factor = [1e-4, 1e-4, 1e-4];
     x = bds(fun, x0, option);
     
 end
