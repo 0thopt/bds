@@ -1,8 +1,8 @@
-name: Profile original lam1 with original lam1 not preserving order, small
+name: Profile lam1 with original lam1 not preserving order, small
 
 on:
   # Trigger the workflow on push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   schedule:
     - cron: '0 3 */11 * *'
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Profile original lam1 with original lam1 not preserving order, small
+    name: Profile lam1 with original lam1 not preserving order, small
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -19,7 +19,7 @@ jobs:
         matlab: [latest]
         dim: [small]
         with_optim_toolbox: [yes]
-        solver: [lam1-orig]
+        solver: [lam1]
         competitor: [lam1-orig-not-preserve-order]
         run_plain: [false]
         summarize_log_ratio_profiles: [false]

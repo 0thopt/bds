@@ -424,6 +424,7 @@ function x = lht1_orig_test(fun, x0)
     options.shrink = 0.5;
     options.stepsize_factor = 1e-10;
     options.reduction_factor = [1e-6, 1e-6, 1e-6];
+    options.preserve_direction_order = false;
     x = bds(fun, x0, options);
     
 end

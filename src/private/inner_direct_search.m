@@ -39,9 +39,6 @@ FunctionEvaluations_exhausted = options.FunctionEvaluations_exhausted;
 % The value of verbose.
 verbose = options.verbose;
 
-% The type of the Algorithm.
-Algorithm = options.Algorithm;
-
 % The value of whether to preserve the order of the direction indices when the Algorithm fails in this block.
 preserve_direction_order = options.preserve_direction_order;
 
