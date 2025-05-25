@@ -1251,6 +1251,7 @@ end
 
 function x = cbds_quadratic_test(fun, x0)
 
+    option.reduction_factor = [1e-3 1e-3, 1e-3];
     option.forcing_function = @(alpha) alpha^2;
     option.expand = 2;
     option.shrink = 0.5;
@@ -1260,6 +1261,7 @@ end
 
 function x = cbds_cubic_test(fun, x0)
 
+    option.reduction_factor = [1e-3 1e-3, 1e-3];
     option.forcing_function = @(alpha) alpha^3;
     option.expand = 2;
     option.shrink = 0.5;
@@ -1270,6 +1272,7 @@ end
 
 function x = cbds_quartic_test(fun, x0)
 
+    option.reduction_factor = [1e-3 1e-3, 1e-3];
     option.forcing_function = @(alpha) alpha^4;
     option.expand = 2;
     option.shrink = 0.5;
@@ -1280,6 +1283,7 @@ end
 
 function x = cbds_quintic_test(fun, x0)
 
+    option.reduction_factor = [1e-3 1e-3, 1e-3];
     option.forcing_function = @(alpha) alpha^5;
     option.expand = 2;
     option.shrink = 0.5;
@@ -1290,6 +1294,7 @@ end
 
 function x = cbds_sextic_test(fun, x0)
 
+    option.reduction_factor = [1e-3 1e-3, 1e-3];
     option.forcing_function = @(alpha) alpha^6;
     option.expand = 2;
     option.shrink = 0.5;
