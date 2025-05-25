@@ -1,12 +1,12 @@
 clear all
 % options.dim = 'big';
-options.solver_names = {'fd-bfgs', 'praxis'};
+options.solver_names = {'fd-bfgs', 'pads'};
 options.mindim = 1;
 options.maxdim = 1;
 % options.feature_name = 'plain';
 % profile_optiprofiler(options);
 
-options.feature_name = 'perturbed_x0_100';
+options.feature_name = 'plain';
 profile_optiprofiler(options);
 
 % options.feature_name = 'noisy_1e-6';

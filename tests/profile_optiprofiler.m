@@ -1132,6 +1132,13 @@ function x = rbds_num_selected_blocks_one_test(fun, x0)
 
 end
 
+function x = pads_test(fun, x0)
+
+    option.Algorithm = 'pads';
+    x = bds(fun, x0, option);
+    
+end
+
 function x = pads_test_noisy(fun, x0, is_noisy)
 
     option.Algorithm = 'pads';
