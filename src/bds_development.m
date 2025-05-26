@@ -730,7 +730,7 @@ for iter = 1:maxit
     % in the objective function values over the last func_window_size iterations. If the change
     % is below a defined threshold, terminate the optimization process.
     if use_function_value_stop && iter > func_window_size
-        func_change = max(fopt_hist(iter-func_window_size:iter-1)) - min(fopt_hist(iter-func_window_size:iter-1));
+        func_change = max(fopt_hist(iter-func_window_size+1:iter)) - min(fopt_hist(iter-func_window_size+1:iter));
         if func_change < func_tol_1 * min(1, abs(fopt_hist(iter))) || ...
                 func_change < func_tol_2 * max(1, abs(fopt_hist(iter)))
             exitflag = get_exitflag("INSUFFICIENT_OBJECTIVE_CHANGE");
