@@ -20,7 +20,7 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               blockwise direct search). If no Algorithm is specified 
 %                               in the options, the default setting will be equivalent to 
 %                               using "cbds" as the input.
-%   Scheme                      Scheme to use. It can be "cyclic", "random", "parallel",
+%   scheme                      scheme to use. It can be "cyclic", "random", "parallel",
 %                               Default: "cyclic".
 %   num_blocks                  Number of blocks. A positive integer. The number of blocks
 %                               should be less than or equal to the dimension of the problem.
@@ -213,30 +213,16 @@ alpha_tol = options.StepTolerance;
 ftarget = options.ftarget;
 
 output_alpha_hist = options.output_alpha_hist;
-% Initialize alpha_hist if output_alpha_hist is true and alpha_hist does not exceed the
-% maximum memory size allowed.
-try
-    alpha_hist = NaN(num_blocks, maxit);
-catch
-    output_alpha_hist = false;
-    warning("alpha_hist will be not included in the output due to the limit of memory." )
-end
-
 alpha_all = options.alpha_init;
 % Record the initial step size into the alpha_hist.
 if  output_alpha_hist
+    alpha_hist = NaN(num_blocks, maxit);
     alpha_hist(:, 1) = alpha_all(:);
 end
 
 output_xhist = options.output_xhist;
-% If xhist exceeds the maximum memory size allowed, then we will not output xhist.
 if output_xhist
-    try
-        xhist = NaN(n, MaxFunctionEvaluations);
-    catch
-        output_xhist = false;
-        warning("xhist will be not included in the output due to the limit of memory.");
-    end
+    xhist = NaN(n, MaxFunctionEvaluations);
 end
 
 % Initialize the history of function values.
@@ -245,8 +231,6 @@ fhist = NaN(1, MaxFunctionEvaluations);
 output_block_hist = options.output_block_hist;
 % Initialize the history of blocks visited.
 block_hist = NaN(1, MaxFunctionEvaluations);
-
-verbose = options.verbose;
 
 % Initialize exitflag. If exitflag is not set elsewhere, then the maximum number of iterations
 % is reached, and hence we initialize exitflag to the corresponding value.
@@ -259,8 +243,17 @@ xbase = x0;
 % fbase_real is the real function value at xbase, which is the value returned by fun
 % (not eval_fun).
 [fbase, fbase_real] = eval_fun(fun, xbase);
+% Initialize nf (the number of function evaluations), xhist (history of points visited), and
+% fhist (history of function values).
+nf = 1;
+if output_xhist
+    xhist(:, nf) = xbase;
+end
+% When we record fhist, we should use the real function value at xbase, which is fbase_real.
+fhist(nf) = fbase_real;
+verbose = options.verbose;
 if verbose
-    fprintf("Function number %d, F = %.8f\n", 1, fbase_real);
+    fprintf("Function number %d, F = %.8f\n", nf, fbase_real);
     fprintf("The corresponding X is:\n");
     fprintf("%.8f  ", xbase(:)');
     fprintf("\n");
@@ -273,26 +266,15 @@ end
 xopt = xbase;
 fopt = fbase;
 
-% Initialize nf (the number of function evaluations), xhist (history of points visited), and
-% fhist (history of function values).
-nf = 1;
-if output_xhist
-    xhist(:, nf) = xbase;
-end
-% When we record fhist, we should use the real function value at xbase, which is fbase_real.
-fhist(nf) = fbase_real;
-
 terminate = false;
-if nf >= MaxFunctionEvaluations || fbase_real <= ftarget
-    % Either MaxFunctionEvaluations has been reached at the very first function evaluation
-    % or FTARGET has been reached at the very first function evaluation.
-    % In this case, no further computation should be entertained, and hence,
-    % no iteration should be run.
-    maxit = 0;
-end
+% If MaxFunctionEvaluations is reached at the very first function evaluation
+% or FTARGET is reached at the very first function evaluation, no further computation 
+% should be entertained, and hence, no iteration should be run.
 if fbase_real <= ftarget
-    exitflag = get_exitflag( "FTARGET_REACHED");
+    maxit = 0;
+    exitflag = get_exitflag("FTARGET_REACHED");
 elseif nf >= MaxFunctionEvaluations
+    maxit = 0;
     exitflag = get_exitflag("MAXFUN_REACHED");
 end
 
@@ -486,13 +468,13 @@ output.fhist = fhist(1:nf);
 
 % Set the message according to exitflag.
 switch exitflag
-    case {get_exitflag("SMALL_ALPHA")}
+    case get_exitflag("SMALL_ALPHA")
         output.message = "The StepTolerance of the step size is reached.";
-    case {get_exitflag("MAXFUN_REACHED")}
+    case get_exitflag("MAXFUN_REACHED")
         output.message = "The maximum number of function evaluations is reached.";
-    case {get_exitflag("FTARGET_REACHED")}
+    case get_exitflag("FTARGET_REACHED")
         output.message = "The target of the objective function is reached.";
-    case {get_exitflag("MAXIT_REACHED")}
+    case get_exitflag("MAXIT_REACHED")
         output.message = "The maximum number of iterations is reached.";
     otherwise
         output.message = "Unknown exitflag";

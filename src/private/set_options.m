@@ -6,7 +6,7 @@ n = numel(x0);
 % Define the list of allowed fields.
 field_list = {
     'Algorithm'
-    'Scheme'
+    'scheme'
     'num_blocks'
     'batch_size'
     'MaxFunctionEvaluations'
@@ -28,6 +28,7 @@ field_list = {
     'output_xhist'
     'output_alpha_hist'
     'output_block_hist'
+    'output_xhist'
     'verbose'
     'debug_flag'
     };
@@ -38,20 +39,15 @@ field_names = fieldnames(options); % Return a cell array of single-quoted string
 % Check for unknown fields.
 unknown_fields = field_names(~ismember(field_names, field_list));
 if ~isempty(unknown_fields)
-    % Print each unknown field.
-    for i = 1:length(unknown_fields)
-        fprintf('Unknown field "%s" is found in options.\n', unknown_fields{i});
-    end
-    % Display an error message.
-    error('There exists unknown field in options.');
+    error('There exists unknown field in options: %s', strjoin(unknown_fields, ', '));
 else
     % Although the field names are valid, conflicts may arise if the user provides values for certain fields simultaneously.
     % We need to resolve such priority issues to avoid ambiguity.
     if isfield(options, 'Algorithm') 
-        if any(isfield(options, {'Scheme', 'num_blocks', 'batch_size'}))
-            warning('Algorithm and Scheme/num_blocks/batch_size are mutually exclusive. Algorithm will be used.');
-            % Remove Scheme, num_blocks, and batch_size from options.
-            options = rmfield(options, intersect(fieldnames(options), {'Scheme', 'num_blocks', 'batch_size'}));
+        if any(isfield(options, {'scheme', 'num_blocks', 'batch_size'}))
+            warning('Algorithm and scheme/num_blocks/batch_size are mutually exclusive. Algorithm will be used.');
+            % Remove scheme, num_blocks, and batch_size from options.
+            options = rmfield(options, intersect(fieldnames(options), {'scheme', 'num_blocks', 'batch_size'}));
         else
             % Algorithm_list = ["ds", "cbds", "pbds", "rbds", "pads"];
             Algorithm_list = {'ds', 'cbds', 'pbds', 'rbds', 'pads'};
@@ -127,8 +123,7 @@ else
     % selected based on the S2MPJ problems (see https://github.com/GrattonToint/S2MPJ).
     % If options contain expand or shrink, then expand or shrink is set to the corresponding value.
     if ~isfield(options, "expand")
-        % n == 1 is treated as a special case, and we can treat the Algorithm as "ds".
-        if n == 1 || options.num_blocks == 1
+        if options.num_blocks == 1
             if n <= 5
                 options.expand = get_default_constant("ds_expand_small");
             else
@@ -155,7 +150,7 @@ else
     end
 
     if ~isfield(options, "shrink")
-        if n == 1 || options.num_blocks == 1
+        if options.num_blocks == 1
             if n <= 5
                 options.shrink = get_default_constant("ds_shrink_small");
             else
@@ -216,22 +211,48 @@ else
         options.alpha_init = ones(options.num_blocks, 1);
     end
 
-    % Remove those fields that will work corporatively with the problem.
-    % The fields are: Algorithm, Scheme, num_blocks, direction_set, batch_size, expand, shrink, 
-    % replacement_delay, MaxFunctionEvaluations, alpha_init.
-    % The above fields are removed from the field_list to avoid setting the default value of them again.
-    field_list = setdiff(field_list, {'Algorithm', 'Scheme', 'num_blocks', 'direction_set', 'batch_size', ...
+    % The above processes are to deal with the fields that are related to the dimension of the problem.
+    % Then remove those fields to avoid setting the default value of them again, including Algorithm, 
+    % scheme, num_blocks, direction_set, batch_size, expand, shrink, replacement_delay, MaxFunctionEvaluations, 
+    % alpha_init.
+    field_list = setdiff(field_list, {'Algorithm', 'scheme', 'num_blocks', 'direction_set', 'batch_size', ...
     'expand', 'shrink', 'replacement_delay', 'MaxFunctionEvaluations', 'alpha_init'});
     
     for i = 1:length(field_list)
         field_name = field_list{i};
         if ~isfield(options, field_name)
-            % Set the default value of the field if it is not provided or set before.
-            % The default value is obtained from the get_default_constant function.
+            % Get the default value of those fields that are not related to the dimension of the problem
+            % from the get_default_constant function.
             options.(field_name) = get_default_constant(field_name);
         end
     end
+
+    % Initialize alpha_hist if output_alpha_hist is true and alpha_hist does not exceed the
+    % maximum memory size allowed.
+    if options.output_alpha_hist
+        try
+            % Test allocation of alpha_hist whether it exceeds the maximum memory size allowed.
+            alpha_hist_test = NaN(options.num_blocks, maxit); %#ok<NASGU>
+            clear alpha_hist_test
+        catch
+            options.output_alpha_hist = false;
+            warning("alpha_hist will not be included in the output due to the limit of memory.")
+        end
+    end
+    % If xhist exceeds the maximum memory size allowed, then we will not output xhist.
+    if  options.output_xhist
+        try
+            % Test allocation of xhist whether it exceeds the maximum memory size allowed.
+            xhist_test = NaN(length(x0), MaxFunctionEvaluations); %#ok<NASGU>
+            clear xhist_test
+        catch
+            options.output_xhist = false;
+            warning("xhist will be not included in the output due to the limit of memory.");
+        end
+    end
 end
+
+
 
 
 
