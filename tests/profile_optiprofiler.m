@@ -1315,7 +1315,7 @@ function x = cbds_reduction_factor_3_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.Algorithm = 'cbds';
-    option.reduction_factor = [1e-3, 1e-3, 1e-3];
+    option.reduction_factor = [0, 1e-3, 1e-3];
     x = bds(fun, x0, option);
     
 end
@@ -1325,7 +1325,7 @@ function x = cbds_reduction_factor_4_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.Algorithm = 'cbds';
-    option.reduction_factor = [1e-4, 1e-4, 1e-4];
+    option.reduction_factor = [0, 1e-4, 1e-4];
     x = bds(fun, x0, option);
     
 end
@@ -1335,7 +1335,7 @@ function x = cbds_reduction_factor_6_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.Algorithm = 'cbds';
-    option.reduction_factor = [1e-6, 1e-6, 1e-6];
+    option.reduction_factor = [0, 1e-6, 1e-6];
     x = bds(fun, x0, option);
     
 end
@@ -1345,7 +1345,7 @@ function x = cbds_reduction_factor_8_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.Algorithm = 'cbds';
-    option.reduction_factor = [1e-8, 1e-8, 1e-8];
+    option.reduction_factor = [0, 1e-8, 1e-8];
     x = bds(fun, x0, option);
     
 end
@@ -1355,7 +1355,7 @@ function x = cbds_reduction_factor_10_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.Algorithm = 'cbds';
-    option.reduction_factor = [1e-10, 1e-10, 1e-10];
+    option.reduction_factor = [0, 1e-10, 1e-10];
     x = bds(fun, x0, option);
     
 end
@@ -1365,7 +1365,7 @@ function x = cbds_reduction_factor_12_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.Algorithm = 'cbds';
-    option.reduction_factor = [1e-12, 1e-12, 1e-12];
+    option.reduction_factor = [0, 1e-12, 1e-12];
     x = bds(fun, x0, option);
     
 end
