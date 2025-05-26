@@ -679,7 +679,7 @@ for iter = 1:maxit
             % matches the order of the divided difference vectors.
             % Notice that the direction_set_indices might be reordered due to some cycling strategies.
             % Thus, we sort the directions visited in the previous iteration and save them in
-            % visited_directions_sorted.Then, we list the fhist and xhist in the same order as
+            % visited_directions_sorted. Then, we list the fhist and xhist in the same order as
             % visited_directions_sorted after sorting. The visited_directions_sorted after sorting
             % is saved in visited_directions_sorted_sorted. The sorted order is saved in sorting_indices.
             [previous_direction_indices_sorted, sorting_indices] = sort(direction_index_hist);
