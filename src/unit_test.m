@@ -227,8 +227,8 @@ constant_name = "output_block_hist";
 constant_value = false;
 verifyEqual(testCase, get_default_constant(constant_name), constant_value)
 
-constant_name = "verbose";
-constant_value = false;
+constant_name = "iprint";
+constant_value = 0;
 verifyEqual(testCase, get_default_constant(constant_name), constant_value)
 
 end
@@ -424,7 +424,7 @@ x0 = zeros(3,1);
 [~, fopt, ~, ~] = bds(@chrosen, x0);
 verifyEqual(testCase, fopt, 0)
 options = struct();
-options.verbose = true;
+options.iprint = true;
 options.MaxFunctionEvaluations = 5000 * length(x0);
 options.ftarget = -inf;
 options.output_alpha_hist = true;

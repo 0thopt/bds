@@ -29,7 +29,7 @@ field_list = {
     'output_alpha_hist'
     'output_block_hist'
     'output_xhist'
-    'verbose'
+    'iprint'
     'debug_flag'
     };
 

@@ -36,8 +36,11 @@ MaxFunctionEvaluations = options.MaxFunctionEvaluations;
 % The number of function evaluations having used in this function.
 FunctionEvaluations_exhausted = options.FunctionEvaluations_exhausted;
 
-% The value of verbose.
-verbose = options.verbose;
+% Index of the current block being processed.
+i_real = options.i_real;
+
+% The value of iprint.
+iprint = options.iprint;
 
 % If terminate is true and the exitflag is NaN, it means that the algorithm terminates
 % not because of the maximum number of function evaluations or the target function value,
@@ -65,13 +68,17 @@ for j = 1 : num_directions
     % Here, we should use fnew_real instead of fnew.
     fhist(nf) = fnew_real;
     xhist(:, nf) = xnew;
-    if verbose
-        fprintf("Function number %d, F = %.8f\n", FunctionEvaluations_exhausted + nf, fnew_real);
-        fprintf("The corresponding X is:\n");
-        fprintf("%.8f  ", xnew(:)');
+    if iprint == 2
+        fprintf("The %d-th block is currently being visited.\n", i_real);
+        fprintf("The corresponding step size is:\n");
+        fprintf("%23.16E ", alpha);
         fprintf("\n");
+        fprintf("Function number %d    F = %23.16E\n", FunctionEvaluations_exhausted + nf, fnew_real);
+        fprintf("The corresponding X is:\n");
+        print_aligned_vector(xnew);
+        fprintf("\n\n\n");
     end
-
+    
     % Update the best point and the best function value.
     if fnew < fopt
         xopt = xnew;
@@ -80,13 +87,6 @@ for j = 1 : num_directions
     
     % Check whether the sufficient decrease condition is achieved.
     sufficient_decrease = (fnew + reduction_factor(3) * forcing_function(alpha)/2 < fbase);
-    if verbose
-        if sufficient_decrease
-            fprintf("%g sufficient decrease is achieved.\n", fbase - fnew);
-        else
-            fprintf("Sufficient decrease is not achieved.\n");
-        end
-    end
 
     % In the opportunistic case, if the current iteration achieves sufficient decrease,
     % stop the computations after cycling the indices of the polling directions. The reason  

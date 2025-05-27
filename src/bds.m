@@ -108,11 +108,16 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               Default: false.
 %   output_block_hist           Whether to output the history of blocks visited.
 %                               Default: false.
-%   verbose                     a flag deciding whether to print during the computation.
-%                               Default: false, which means no printing. If verbose
-%                               is true, then the function values, the corresponding
-%                               point, and the step size will be printed in each
-%                               function evaluation.
+%   iprint                      a flag deciding how much information will be printed during
+%                               the computation. It can be 0, 1, 2.
+%                               0: there will be no printing;
+%                               1: a message will be printed to the screen at the return,
+%                               showing the best vector of variables found and its
+%                               objective function value;
+%                               2: in addition to 1, each function evaluation with its
+%                               variables will be printed to the screen. The step size 
+%                               for each block will also be printed.
+%                               Default: 0.
 %   debug_flag                  A flag deciding whether to check the inputs and outputs
 %                               when the algorithm is running.
 %                               Default: false.
@@ -251,15 +256,14 @@ if output_xhist
 end
 % When we record fhist, we should use the real function value at xbase, which is fbase_real.
 fhist(nf) = fbase_real;
-verbose = options.verbose;
-if verbose
-    fprintf("Function number %d, F = %.8f\n", nf, fbase_real);
+iprint = options.iprint;
+if iprint == 2
+    fprintf("The initial step size is:\n");
+    print_aligned_vector(alpha_all);
+    fprintf("Function number %d    F = %23.16E\n", nf, fbase_real);
     fprintf("The corresponding X is:\n");
-    fprintf("%.8f  ", xbase(:)');
-    fprintf("\n");
-    fprintf("The corresponding alpha is:\n");
-    fprintf("%.10e ", alpha_all);
-    fprintf("\n");
+    print_aligned_vector(xbase);
+    fprintf("\n\n\n");
 end
 % Initialize xopt and fopt. xopt is the best point encountered so far, and fopt is the
 % corresponding function value.
@@ -333,19 +337,13 @@ for iter = 1:maxit
         suboptions.forcing_function = forcing_function;
         suboptions.ftarget = ftarget;
         suboptions.polling_inner = polling_inner;
-        suboptions.verbose = verbose;
+        suboptions.i_real = i_real;
+        suboptions.iprint = iprint;
 
         % Perform the direct search within the i_real-th block.
         [sub_xopt, sub_fopt, sub_exitflag, sub_output] = inner_direct_search(fun, xbase,...
             fbase, D(:, direction_indices), direction_indices,...
             alpha_all(i_real), suboptions);
-
-        if verbose
-            fprintf("The number of the block visited is: %d\n", i_real);
-            fprintf("The corresponding alpha is:\n");
-            fprintf("%.8e ", alpha_all);
-            fprintf("\n");
-        end
 
         % Record the index of the block visited.
         num_visited_blocks = num_visited_blocks + 1;

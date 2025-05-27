@@ -222,9 +222,9 @@ if isfield(options, "output_block_hist")
     end
 end
 
-if isfield(options, "verbose")
-    if ~islogical(options.verbose)
-        error("options.verbose should be a logical value.");
+if isfield(options, "iprint")
+    if  ~(isintegerscalar(options.iprint) && options.iprint > 0 && options.iprint < 3)
+        error("options.iprint should be a nonnegative integer less than or equal to 2.");
     end
 end
 

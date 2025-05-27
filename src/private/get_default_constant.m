@@ -57,8 +57,8 @@ switch constant_name
         constant_value = false;
     case {"output_block_hist"}
         constant_value = false;
-    case {"verbose"}
-        constant_value = false;
+    case {"iprint"}
+        constant_value = 0;
     case {"debug_flag"}
         constant_value = false;
     otherwise
