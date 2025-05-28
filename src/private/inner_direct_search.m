@@ -76,7 +76,7 @@ for j = 1 : num_directions
         fprintf("Function number %d    F = %23.16E\n", FunctionEvaluations_exhausted + nf, fnew_real);
         fprintf("The corresponding X is:\n");
         print_aligned_vector(xnew);
-        fprintf("\n\n\n");
+        fprintf("\n\n");
     end
     
     % Update the best point and the best function value.

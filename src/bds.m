@@ -263,7 +263,7 @@ if iprint == 2
     fprintf("Function number %d    F = %23.16E\n", nf, fbase_real);
     fprintf("The corresponding X is:\n");
     print_aligned_vector(xbase);
-    fprintf("\n\n\n");
+    fprintf("\n\n");
 end
 % Initialize xopt and fopt. xopt is the best point encountered so far, and fopt is the
 % corresponding function value.
@@ -486,4 +486,11 @@ end
 % verify_postconditions is to detect whether the output is valid when debug_flag is true.
 if options.debug_flag
     verify_postconditions(fun_orig, xopt, fopt, exitflag, output);
+end
+
+if iprint > 0
+    fprintf('%s\n', output.message);
+    fprintf("Number of function values = %d    Least value of F is %23.16E\n", nf, fopt);
+    fprintf("The corresponding X is:\n");
+    print_aligned_vector(xopt);
 end
