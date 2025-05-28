@@ -43,7 +43,7 @@ jobs:
           repository: optiprofiler/optiprofiler
           path: optiprofiler
           submodules: recursive
-          ref: e11505025938efea68c65c91ad0bdad52d7146f9
+          ref: 16464bcb27c4aef1130d08519fca4ff64e6c2091
 
       - name: Link gfortran for MATLAB on Linux
         if: startsWith(matrix.os, 'ubuntu')
