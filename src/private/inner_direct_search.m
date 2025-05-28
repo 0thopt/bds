@@ -68,7 +68,7 @@ for j = 1 : num_directions
     % Here, we should use fnew_real instead of fnew.
     fhist(nf) = fnew_real;
     xhist(:, nf) = xnew;
-    if iprint == 2
+    if iprint >= 2
         fprintf("The %d-th block is currently being visited.\n", i_real);
         fprintf("The corresponding step size is:\n");
         fprintf("%23.16E ", alpha);
@@ -76,7 +76,7 @@ for j = 1 : num_directions
         fprintf("Function number %d    F = %23.16E\n", FunctionEvaluations_exhausted + nf, fnew_real);
         fprintf("The corresponding X is:\n");
         print_aligned_vector(xnew);
-        fprintf("\n\n");
+        fprintf("\n");
     end
     
     % Update the best point and the best function value.
@@ -121,11 +121,14 @@ output.xhist = xhist(:, 1:nf);
 output.nf = nf;
 output.direction_indices = direction_indices;
 output.terminate = terminate;
-% if sufficient_decrease
-%     output.sufficient_decrease = true;
-% else
-%     output.sufficient_decrease = false;
-% end
-% output.decrease_value = fbase - min(fhist(1:nf));
+decrease_value = fopt - fbase;
+if iprint == 3
+    if sufficient_decrease
+        fprintf("Sufficient decrease achieved in the %d-th block.\n", i_real);
+    else
+        fprintf("Sufficient decrease not achieved in the %d-th block.\n", i_real);
+    end
+    fprintf("The decrease value of the %d-th block is:%23.16E\n", i_real, decrease_value);
+    fprintf("\n");
 end
-
+end

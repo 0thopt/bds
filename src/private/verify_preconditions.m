@@ -223,8 +223,8 @@ if isfield(options, "output_block_hist")
 end
 
 if isfield(options, "iprint")
-    if  ~(isintegerscalar(options.iprint) && options.iprint > 0 && options.iprint < 3)
-        error("options.iprint should be a nonnegative integer less than or equal to 2.");
+    if  ~(isintegerscalar(options.iprint) && options.iprint > 0 && options.iprint <= 3)
+        error("options.iprint should be a nonnegative integer less than or equal to 3.");
     end
 end
 

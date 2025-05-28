@@ -109,7 +109,7 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %   output_block_hist           Whether to output the history of blocks visited.
 %                               Default: false.
 %   iprint                      a flag deciding how much information will be printed during
-%                               the computation. It can be 0, 1, 2.
+%                               the computation. It can be 0, 1, 2, or 3.
 %                               0: there will be no printing;
 %                               1: a message will be printed to the screen at the return,
 %                               showing the best vector of variables found and its
@@ -117,6 +117,9 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               2: in addition to 1, each function evaluation with its
 %                               variables will be printed to the screen. The step size 
 %                               for each block will also be printed.
+%                               3: in addition to 2, prints whether BDS satisfies the sufficient
+%                               decrease condition in each block, as well as the corresponding
+%                               decrease value for that block.
 %                               Default: 0.
 %   debug_flag                  A flag deciding whether to check the inputs and outputs
 %                               when the algorithm is running.
@@ -257,13 +260,13 @@ end
 % When we record fhist, we should use the real function value at xbase, which is fbase_real.
 fhist(nf) = fbase_real;
 iprint = options.iprint;
-if iprint == 2
+if iprint >= 2
     fprintf("The initial step size is:\n");
     print_aligned_vector(alpha_all);
     fprintf("Function number %d    F = %23.16E\n", nf, fbase_real);
     fprintf("The corresponding X is:\n");
     print_aligned_vector(xbase);
-    fprintf("\n\n");
+    fprintf("\n");
 end
 % Initialize xopt and fopt. xopt is the best point encountered so far, and fopt is the
 % corresponding function value.
@@ -489,8 +492,10 @@ if options.debug_flag
 end
 
 if iprint > 0
+    fprintf("\n");
     fprintf('%s\n', output.message);
     fprintf("Number of function values = %d    Least value of F is %23.16E\n", nf, fopt);
     fprintf("The corresponding X is:\n");
     print_aligned_vector(xopt);
+end
 end
