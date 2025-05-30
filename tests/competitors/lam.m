@@ -1,370 +1,168 @@
-function [xval, fval, exitflag, output] = lam(fun, x0, options)
-%LAM (Linesearch Algorithm Model) solves unconstrained optimization problems without using derivatives. 
-%
+function [x, info, output] = lam(fun, x, lb, ub, options)
 
-% Set options to an empty structure if it is not provided.
-if nargin < 3
-    options = struct();
-end
-% Transpose x0 if it is a row.
-x0 = double(x0(:));
-% Get the dimension of the problem.
-n = length(x0);
-num_blocks = n;
-options.num_blocks = n;
-
-% Set the default value of debug_flag. If options do not contain debug_flag, then
-% debug_flag is set to false.
-if isfield(options, "debug_flag")
-    debug_flag = options.debug_flag;
-else
-    debug_flag = false;
-end
-if debug_flag
-    verify_preconditions(fun, x0, options);
-end
-
-% If FUN is a string, then convert it to a function handle.
-if ischarstr(fun)
-    fun = str2func(fun);
-end
-
-% We set the initial flag to NaN. This value will be modified by procedures.
-% If EXITFLAG is set to NaN on exit, it means that there is a bug.
-exitflag = NaN;
-
-% Get the direction set, the number of directions and blocks respectively.
-%options.direction = "canonical";
-D = get_direction_set(n, options);
-% Decide which polling direction belongs to which block.
-direction_set_indices = divide_direction_set(n, num_blocks);
-
-% Set indices of blocks as 1:num_blocks.
-block_indices = 1:num_blocks;
-
-% Set MAXFUN to the maximum number of function evaluations.
-if isfield(options, "MaxFunctionEvaluations")
-    MaxFunctionEvaluations = options.MaxFunctionEvaluations;
-else
-    MaxFunctionEvaluations = get_default_constant("MaxFunctionEvaluations_dim_factor")*n;
-end
-
-% Each iteration will at least use one function evaluation. We will perform at most MaxFunctionEvaluations iterations.
-% In theory, setting the maximum of function evaluations is not needed. But we do it to avoid infinite 
-% cycling if there is a bug.
-maxit = MaxFunctionEvaluations;
-if isfield(options, "output_alpha_hist")
-    output_alpha_hist = options.output_alpha_hist;
-else
-    output_alpha_hist = false;
-end
-alpha_hist = NaN(num_blocks, maxit);
-
-if isfield(options, "output_block_hist")
-    output_block_hist = options.output_block_hist;
-else
-    output_block_hist = false;
-end
-% Initialize the history of blocks visited.
-block_hist = NaN(1, MaxFunctionEvaluations);
-num_visited_blocks = 0;
-
-% Set the reduction factor. We adopt the reduction factor in the paper Worst case complexity bounds for linesearch-type 
-% derivative-free algorithms, 2024.
-if isfield(options, "reduction_factor")
-    reduction_factor = options.reduction_factor;
-else
-    reduction_factor = 1e-6;
-end
-
-% Set the value of StepTolerance. The algorithm will terminate if the stepsize is less than 
-% the StepTolerance.
-if isfield(options, "StepTolerance")
-    alpha_tol = options.StepTolerance;
-else
-    alpha_tol = get_default_constant("StepTolerance");
-end
-
-if isfield(options, 'Algorithm')
-    % Set the algorithm type. The default value is 'lam'.
-    Algorithm = options.Algorithm;
-else
-    Algorithm = 'lam1';
-end
-lam_list = ['lam', 'lam1', 'fm', 'lht', 'lht1'];
-
-if ~isfield(options, "expand")
-    if any(ismember(lower(options.Algorithm), lam_list))
-        % Set the value of expand factor. Since the expand factor in the paper A derivative-free algorithm for bound 
-        % constrained optimization, G. Liuzzi, and S. Lucidi, Computational Optimization and Applications, 2002 
-        % is set to 2, lam_expand is set to 2.
-        expand = get_default_constant("lam_expand");
+    % initialization
+    n = length(x);
+    nfails = 0;
+    if isfield(options, 'tol')
+        alfa_stop = options.tol;
     else
-        % Since the Algorithm must be input, the default value of expand is set to be the same as the one in BDS when
-        % the algorithm is not lam or lam1.
-        if numel(x0) <= 5
-            expand = get_default_constant("expand_small");
-        else
-            expand = get_default_constant("expand_big");
+        alfa_stop = 1e-6; % default tolerance
+    end
+    bl = lb;
+    bu = ub;
+    if isfield(options, 'nf_max')
+        nf_max = options.nf_max;
+    else
+        nf_max = 500 * n; % default maximum function evaluations
+    end
+    maxiter = nf_max;
+    % Initialize the history of function values.
+    fhist = NaN(1, nf_max);
+    xhist = NaN(n, nf_max);
+    if isfield(options, 'iprint')
+        iprint = options.iprint;
+    else
+        iprint = 0; % default print level
+    end
+    num_fal = 0;
+    flag_fail = zeros(1, n);
+    % fstop = zeros(1, n+1);
+    alfa_d = zeros(1, n);
+    d = ones(1, n);
+    nf = 0;
+
+    if isfield(options, 'Algorithm')
+        Algorithm = options.Algorithm;
+    else
+        Algorithm = 'LAM1'; % default algorithm. It can be 'LAM', 'LAM1', or 'LAM2'.
+    end
+
+    format100 = ' ni=%4d  nf=%5d   f=%12.5e   alfamax=%12.5e\n';
+
+    %---- choice of the starting stepsizes along the directions --------
+    for i = 1:n
+        % alfa_d(i) = max(1e-3, min(1.0, abs(x(i))));
+        % Initialize the step sizes to 1.0 for all directions.
+        alfa_d(i) = 1.0;
+        if iprint >= 1
+            fprintf(' alfainiz(%d)=%e\n', i, alfa_d(i));
         end
     end
-else
-    expand = options.expand;
-end
+    alfa_max = max(alfa_d);
+    f = fun(x);
+    nf = nf + 1;
+    if nf < nf_max
+        fhist(nf) = f;
+        xhist(:, nf) = x;
+    end
+    i_corr = 1;
+    % fstop(i_corr) = f;
 
-if ~isfield(options, "shrink")
-    if any(ismember(lower(options.Algorithm), lam_list))
-        shrink = get_default_constant("lam_shrink");
-    else
-        if numel(x0) <= 5
-            shrink = get_default_constant("shrink_small");
-        else
-            shrink = get_default_constant("shrink_big");
+    if strcmpi(Algorithm, 'LAM2')
+        icorrbest = -1;
+        ficorbest = f;
+        xicorbest = x;
+    end
+
+    % dm = zeros(1, n);
+    xk = x;
+    % xk_1 = x;
+    fk = f;
+    % fk_1 = f;
+
+    %---------------------------
+    %     main loop
+    %---------------------------
+    for ni = 1:maxiter
+        if iprint >= 0
+            fprintf(format100, ni, nf, f, alfa_max);
         end
-    end
-else
-    shrink = options.shrink;
-end
 
-% Set the boolean value of WITH_CYCLING_MEMORY. 
-if isfield(options, "with_cycling_memory")
-    with_cycling_memory = options.with_cycling_memory;
-else
-    with_cycling_memory = get_default_constant("with_cycling_memory");
-end
+        nf_current = nf; % Store the current number of function evaluations
 
-% Set the value of stepsize_factor. We adopt the step selection rule in A. Brilli, M. Kimiaei, G. Liuzzi, and S. Lucidi, Worst case
-% complexity bounds for linesearch-type derivative-free algorithms, 2024. (corresponding to the parameter c)
-if isfield(options, "stepsize_factor")
-    stepsize_factor = options.stepsize_factor;
-else
-    if any(ismember(lower(options.Algorithm), lam_list))
-        stepsize_factor = 1e-10;
-    else
-        stepsize_factor = 0;
-    end
-end
-
-% Set the type of linesearch.
-if isfield(options, "linesearch_type")
-    linesearch_type = options.linesearch_type;
-else
-    linesearch_type = "standard";
-end
-
-% Set the target of the objective function.
-if isfield(options, "ftarget")
-    ftarget = options.ftarget;
-else
-    ftarget = get_default_constant("ftarget");
-end
-
-% Initialize the step sizes. We adopt the step selection rule in G. Liuzzi, and S. Lucidi, A derivative-free
-% algorithm for bound constrained optimization, Computational Optimization and Applications, 2002.
-if isfield(options, "alpha_init")
-    alpha_all = options.alpha_init*ones(num_blocks, 1);
-else
-    alpha_all = ones(num_blocks, 1);
-end
-alpha_hist(:, 1) = alpha_all(:);
-success_all = false(num_blocks, 1);
-LS_stepsize = ones(num_blocks, 1);
-
-% Initialize the history of function values.
-fhist = NaN(1, MaxFunctionEvaluations);
-
-% Initialize the history of points visited.
-if isfield(options, "output_xhist")
-    output_xhist = options.output_xhist;
-else
-    output_xhist = false;
-end
-xhist = NaN(n, MaxFunctionEvaluations); 
-
-xval = x0; 
-[fval, fval_real] = eval_fun(fun, xval);
-% Set the number of function evaluations.
-nf = 1; 
-fhist(nf) = fval_real;
-xhist(:, nf) = xval;
-terminate = false;
-
-% Flag to determine termination timing: after each block update or after full iteration.
-if isfield(options, "terminate_inner")
-    terminate_inner = options.terminate_inner;
-else
-    terminate_inner = true;
-end
-if isfield(options, "Algorithm") && (strcmpi(options.Algorithm, "lam") | ...
-        strcmpi(options.Algorithm, "lht"))
-    terminate_inner = false;
-end
-
-% Stop the loop if no more function evaluations can be performed. 
-% Note that this should be checked before evaluating the objective function.
-if nf >= MaxFunctionEvaluations
-    information = "MAXFUN_REACHED";
-    exitflag = get_exitflag(information);
-
-    % MaxFunctionEvaluations has been reached at the very first function evaluation.
-    % In this case, no further computation should be entertained, and hence,
-    % no iteration should be run.
-    maxit = 0;
-end
-% Check whether FTARGET is reached by fopt. If it is true, then terminate.
-if fval_real <= ftarget
-    information = "FTARGET_REACHED";
-    exitflag = get_exitflag(information);
-
-    % FTARGET has been reached at the very first function evaluation.
-    % In this case, no further computation should be entertained, and hence,
-    % no iteration should be run.
-    maxit = 0;
-end
-
-% Start the actual computations.
-for iter = 1:maxit
-
-    alpha_max = max(alpha_all);
-
-    for i = 1:length(block_indices)
-
-        i_real = block_indices(i);
+        %-------------------------------------
+        %    sampling along coordinate i_corr
+        %-------------------------------------
+        [alfa, fz, nf, i_corr_fall, ls_output] = linesearchbox_cont(fun, nf_max, Algorithm, ...
+    n, x, f, d, alfa_d, i_corr, alfa_max, iprint, bl, bu, nf);
         
-        alpha_bar = max(alpha_all(i_real), stepsize_factor*alpha_max);
+        alfa_d = ls_output.alfa_d;
+        fhist(nf_current+1:nf_current+length(ls_output.fhist)) = ls_output.fhist;
+        xhist(:, nf_current+1:nf_current+length(ls_output.fhist)) = ls_output.xhist;
 
-        % Get indices of directions in the i-th block.
-        direction_indices = direction_set_indices{i_real}; 
-        
-        suboptions.MaxFunctionEvaluations = MaxFunctionEvaluations - nf;
-        suboptions.reduction_factor = reduction_factor;
-        suboptions.with_cycling_memory = with_cycling_memory;
-        suboptions.expand = expand;
-        suboptions.ftarget = ftarget;
-        suboptions.linesearch_type = linesearch_type;
-        suboptions.iter = iter;
-        suboptions.i_real = i_real;
-        suboptions.Algorithm = Algorithm;
-
-        % if iter == 2 && i_real == 2
-        %     keyboard
-        % end
-        [xval, fval, sub_exitflag, suboutput] = linesearch(fun, xval,...
-            fval, D(:, direction_indices), direction_indices,...
-            alpha_bar, suboptions);
-        
-        % if iter == 2 && i_real == 2
-        %     keyboard
-        % end
-
-        success_all(i_real) = suboutput.success;
-        LS_stepsize(i_real) = suboutput.stepsize;
-        
-        % Store the history of the evaluations by inner_direct_search, 
-        % and accumulate the number of function evaluations.
-        fhist((nf+1):(nf+suboutput.nf)) = suboutput.fhist;
-        xhist(:, (nf+1):(nf+suboutput.nf)) = suboutput.xhist;
-        nf = nf+suboutput.nf;
-
-        % Record the index of the block visited.
-        num_visited_blocks = num_visited_blocks + 1;
-        block_hist(num_visited_blocks) = i_real;
-
-        if strcmpi(Algorithm, 'lam1') || strcmpi(Algorithm, 'lht1')
-            if success_all(i_real)
-                % If the linesearch is successful, then we will use the step size
-                % returned by linesearch.
-                alpha_all(i_real) = LS_stepsize(i_real);
+        % If the step size alpha is large enough, update the solution and function value,
+        % and reset the failure flag and counter. For LAM2, also update the best found solution if improved.
+        % If alpha is too small, mark as failure and update counters if failures are below threshold.
+        if abs(alfa) >= 1e-12
+            flag_fail(i_corr) = 0;
+            % The same as our implementation of lam, the Algorithm will update x and f after the linesearch.
+            if strcmpi(Algorithm, 'LAM') || strcmpi(Algorithm, 'LAM1')
+                x(i_corr) = x(i_corr) + alfa * d(i_corr);
+                f = fz;
             else
-                % if alpha_bar ~= alpha_all(i_real) || alpha_bar ~= LS_stepsize(i_real)
-                %     keyboard
-                % end
-                % If the linesearch is not successful, then we shrink the step size.
-                alpha_all(i_real) = shrink * alpha_bar;
+                if fz < ficorbest
+                    icorrbest = i_corr;
+                    ficorbest = fz;
+                    xicorbest = x;
+                    xicorbest(i_corr) = x(i_corr) + alfa * d(i_corr);
+                end
+            end
+            % fstop(i_corr) = f;
+            num_fal = 0;
+            ni = ni + 1;
+        else
+            flag_fail(i_corr) = 1;
+            if i_corr_fall < 2
+                % fstop(i_corr) = fz;
+                num_fal = num_fal + 1;
+                ni = ni + 1;
             end
         end
 
-        if strcmpi(Algorithm, 'cbds')
-            if success_all(i_real)
-                alpha_all(i_real) = expand * alpha_all(i_real);
-            else
-                alpha_all(i_real) = shrink * alpha_all(i_real);
+        % [istop, alfa_max] = stop(obj, n, alfa_d, nf, ni, fstop, f, alfa_stop, nf_max, flag_fail);
+        [istop, alfa_max] = stop(n, alfa_d, nf, alfa_stop, nf_max);
+
+        if istop >= 1
+            if iprint >= 0
+                fprintf(format100, ni, nf, f, alfa_max);
             end
-        end
-
-        % Retrieve the order of the polling directions and check whether a
-        % sufficient decrease has been achieved in inner_direct_search.
-        direction_set_indices{i_real} = suboutput.direction_indices;
-
-        % Terminate the computations if sub_output.terminate is true, which means that inner_direct_search
-        % decides that the algorithm should be terminated for some reason indicated by sub_exitflag.
-        if suboutput.terminate
-            terminate = true;
-            exitflag = sub_exitflag;
             break;
         end
 
-        % Terminate the computations if the largest step size is below StepTolerance.
-        if terminate_inner && max(alpha_all) < alpha_tol
-            terminate = true;
-            exitflag = get_exitflag("SMALL_ALPHA");
-            break;
+        % Different from our implementation, the index of the next coordinate is updated here, where
+        % it is incremented by 1, and wraps around to 1 if it exceeds n.
+        if i_corr < n
+            i_corr = i_corr + 1;
+        else
+            i_corr = 1;
+            if strcmpi(Algorithm, 'LAM')
+                if norm(xk - x) < 1e-16
+                    % the iteration was a failure, reduce the stepsizes
+                    for i = 1:n
+                        alfa_d(i) = 0.5 * alfa_d(i);
+                    end
+                end
+            end
+            if strcmpi(Algorithm, 'LAM2')
+                if icorrbest > -1
+                    x = xicorbest;
+                    f = ficorbest;
+                end
+            end
+            if abs(f - fk) < 1e-5
+                nfails = nfails + 1;
+            end
+            fk = f;
+            xk = x;
         end
-        
     end
 
-    % Terminate the computations if terminate is true.
-    if terminate
-        break;
+    if nf < nf_max
+        bestf = min(fhist(1:nf));
+        fhist(nf+1:nf_max) = bestf;
     end
-
-    % case 'lam1'
-    % alpha_all = success_all .* LS_stepsize + shrink * (~success_all) .* alpha_all;
-    if isfield(options, "Algorithm") && (strcmpi(options.Algorithm, "lam") || ...
-            strcmpi(options.Algorithm, "lht"))
-        alpha_all = (any(success_all) * LS_stepsize) + (~any(success_all) * shrink .* alpha_all);
-    end
-
-    if ~terminate_inner && max(alpha_all) < alpha_tol
-        exitflag = get_exitflag("SMALL_ALPHA");
-        break;
-    end
-
-    % Why iter+1? Because we record the step size for the next iteration.
-    alpha_hist(:, iter+1) = alpha_all;
-
-    % Terminate the computations if the largest component of step size is below a
-    % given StepTolerance.
-    % if max(alpha_all) < alpha_tol
-    %     exitflag = get_exitflag("SMALL_ALPHA");
-    %     break;
-    % end
-    
-end
-
-% Truncate HISTORY into an nf length vector.
-output.funcCount = nf;
-output.fhist = fhist(1:nf);
-if output_xhist
+    info = struct('iters', ni, 'f', f, 'g_norm', max(alfa_d));
+    output.fhist = fhist(1:nf);
     output.xhist = xhist(:, 1:nf);
-end
-if output_alpha_hist
-    output.alpha_hist = alpha_hist(:, 1:iter);
-end
-if output_block_hist
-    output.blocks_hist = block_hist(1:num_visited_blocks);
-end
-
-% Set the message according to exitflag.
-switch exitflag
-    case {get_exitflag("SMALL_ALPHA")}
-        output.message = "The StepTolerance of the step size is reached.";
-    case {get_exitflag("MAXFUN_REACHED")}
-        output.message = "The maximum number of function evaluations is reached.";
-    case {get_exitflag("FTARGET_REACHED")}
-        output.message = "The target of the objective function is reached.";
-    case {get_exitflag("MAXIT_REACHED")}
-        output.message = "The maximum number of iterations is reached.";
-    otherwise
-        output.message = "Unknown exitflag";
+    output.nf = nf;
 end
