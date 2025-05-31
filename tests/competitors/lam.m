@@ -89,18 +89,18 @@ function [x, info, output] = lam(fun, x, lb, ub, options)
         %-------------------------------------
         %    sampling along coordinate i_corr
         %-------------------------------------
-        % if mod(ni, 1) == 0
+        % if ni == 4
         %     keyboard;
         % end
         [alfa, fz, nf, i_corr_fall, ls_output] = linesearchbox_cont(fun, nf_max, Algorithm, ...
     n, x, f, d, alfa_d, i_corr, alfa_max, iprint, bl, bu, nf);
-        fprintf('alfa_d: ');
-        fprintf('%.16E ', ls_output.alfa_d);
-        fprintf('\n');
-        % if mod(ni, 1) == 0
+        % fprintf('alfa_d: ');
+        % fprintf('%.16E ', ls_output.alfa_d);
+        % fprintf('\n');
+        % if ni == 4
         %     keyboard;
         % end 
-        
+        d = ls_output.d;
         alfa_d = ls_output.alfa_d;
         fhist(nf_current+1:nf_current+length(ls_output.fhist)) = ls_output.fhist;
         xhist(:, nf_current+1:nf_current+length(ls_output.fhist)) = ls_output.xhist;
@@ -135,15 +135,18 @@ function [x, info, output] = lam(fun, x, lb, ub, options)
                 ni = ni + 1;
             end
         end
+        % if ni == 3
+        %     keyboard
+        % end
+        % [is_stop, alfa_max] = stop(obj, n, alfa_d, nf, ni, fstop, f, alfa_stop, nf_max, flag_fail);
+        [is_stop, alfa_max] = stop(n, alfa_d, nf, alfa_stop, nf_max);
 
-        % [istop, alfa_max] = stop(obj, n, alfa_d, nf, ni, fstop, f, alfa_stop, nf_max, flag_fail);
-        [istop, alfa_max] = stop(n, alfa_d, nf, alfa_stop, nf_max);
-
-        if istop >= 1
+        if is_stop >= 1
+            % keyboard
             % if iprint >= 0
             %     fprintf(format100, ni, nf, f, alfa_max);
             % end
-            switch istop
+            switch is_stop
                 case 1
                     if iprint >= 0
                         fprintf('Terminate by step size: ni=%4d  nf=%5d   f=%12.5e   alfamax=%12.5e\n', ni, nf, f, alfa_max);

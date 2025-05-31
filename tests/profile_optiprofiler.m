@@ -177,8 +177,6 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
     solvers = cell(1, length(options.solver_names));
     for i = 1:length(options.solver_names)
         switch options.solver_names{i}
-            case 'cbds'
-                solvers{i} = @cbds_test;
             case 'cbds-orig'
                 solvers{i} = @cbds_orig_test;
             case 'cbds-orig-not-preserve-order'
@@ -189,8 +187,6 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @lht1_test;
             case 'lht1-orig'
                 solvers{i} = @lht1_orig_test;
-            case 'lht-terminate-outer'
-                solvers{i} = @lht1_terminate_outer_test;
             case 'lam1'
                 solvers{i} = @lam1_test;
             case 'lam1-orig'
@@ -388,13 +384,6 @@ function [A, b, inv] = perm_affine(rand_stream, problem)
     inv = P;
 end
 
-function x = cbds_test(fun, x0)
-
-    option.Algorithm = 'cbds';
-    x = bds(fun, x0, option);
-    
-end
-
 function x = cbds_orig_test(fun, x0)
 
     option.Algorithm = 'cbds';
@@ -414,6 +403,16 @@ function x = cbds_orig_not_preserve_order_test(fun, x0)
     
 end
 
+function x = cbds_terminate_outer_test(fun, x0)
+
+    options.Algorithm = 'cbds';
+    options.expand = 2;
+    options.shrink = 0.5;
+    options.terminate_inner = false;
+    x = bds(fun, x0, options);
+    
+end
+
 function x = lht1_test(fun, x0)
 
     options.Algorithm = 'lht1';
@@ -429,18 +428,7 @@ function x = lht1_orig_test(fun, x0)
     options.expand = 2;
     options.shrink = 0.5;
     options.stepsize_factor = 1e-10;
-    options.reduction_factor = [1e-6, 1e-6, 1e-6];
-    options.preserve_direction_order = false;
-    x = bds(fun, x0, options);
-    
-end
-
-function x = lht1_terminate_outer_test(fun, x0)
-
-    options.Algorithm = 'lht1';
-    options.expand = 2;
-    options.shrink = 0.5;
-    options.terminate_inner = false;
+    options.reduction_factor = [0, 1e-6, 1e-6];
     x = bds(fun, x0, options);
     
 end
@@ -450,6 +438,7 @@ function x = lam1_test(fun, x0)
     options.Algorithm = 'lam1';
     options.expand = 2;
     options.shrink = 0.5;
+    options.stepsize_factor = 0;
     x = bds(fun, x0, options);
     
 end
@@ -461,7 +450,6 @@ function x = lam1_orig_test(fun, x0)
     options.shrink = 0.5;
     options.stepsize_factor = 1e-10;
     options.reduction_factor = [1e-6, 1e-6, 1e-6];
-    options.preserve_direction_order = false;
     x = bds(fun, x0, options);
     
 end
@@ -471,6 +459,7 @@ function x = lam1_terminate_outer_test(fun, x0)
     options.Algorithm = 'lam1';
     options.expand = 2;
     options.shrink = 0.5;
+    options.stepsize_factor = 0;
     options.terminate_inner = false;
     x = bds(fun, x0, options);
     
@@ -481,18 +470,9 @@ function x = lam1_orig_not_preserve_order_test(fun, x0)
     option.Algorithm = 'lam1';
     option.expand = 2;
     option.shrink = 0.5;
+    option.stepsize_factor = 0;
     option.preserve_direction_order = false;
     x = bds(fun, x0, option);
-    
-end
-
-function x = cbds_terminate_outer_test(fun, x0)
-
-    options.Algorithm = 'cbds';
-    options.expand = 2;
-    options.shrink = 0.5;
-    options.terminate_inner = false;
-    x = bds(fun, x0, options);
     
 end
 
@@ -501,6 +481,7 @@ function x = fm_test(fun, x0)
     options.Algorithm = 'fm';
     options.expand = 1;
     options.shrink = 0.5;
+    options.stepsize_factor = 0;
     x = bds(fun, x0, options);
     
 end

@@ -147,6 +147,7 @@ function [alfa, fz, nf, i_corr_fall, output] = linesearchbox_cont(fun, MaxFuncti
                     if strcmpi(Algorithm, 'LAM1') || strcmpi(Algorithm, 'LAM2')
                         alfa_d(j) = delta * alfa;
                     end
+                    output.d = d;
                     output.alfa_d = alfa_d;
                     output.fhist = fhist(1:nf);
                     output.xhist = xhist(:, 1:nf);
@@ -194,9 +195,14 @@ function [alfa, fz, nf, i_corr_fall, output] = linesearchbox_cont(fun, MaxFuncti
                 if iprint >= 1
                     fprintf(' fzex=%f  alfaex=%f\n', fzdelta, alfaex);
                 end
-
-                fpar = f - gamma * alfaex^2;
-
+                % keyboard
+                % Very important note: the original code has a bug here!!!
+                % Since the Algorithm has already accepted the first trial point,
+                % it should check the sufficient decrease condition with respect to the first trial point,
+                % not the original function value f.
+                % fpar = f - gamma * alfaex^2;
+                fpar = fz - gamma * alfaex^2;
+                % keyboard
                 if fzdelta < fpar
                     fz = fzdelta;
                     alfa = alfaex;
@@ -212,9 +218,10 @@ function [alfa, fz, nf, i_corr_fall, output] = linesearchbox_cont(fun, MaxFuncti
                         % fprintf(' accepted point on the boundary: fz = %f   alfa = %f\n', fz, alfa);
                     end
                     % The following line is important, as the Algorithm will use the latest alfa when it 
-                    % visits the direction j again. The original code does include this line, which may
-                    % be seriously wrong!!!
+                    % visits the direction j again. The original code does include this line, which is a bug
+                    % and will cause the Algorithm to use the wrong step size in the next iteration.
                     alfa_d(j) = alfa;
+                    output.d = d;
                     output.alfa_d = alfa_d;
                     output.fhist = fhist(1:nf);
                     output.xhist = xhist(:, 1:nf);
@@ -249,8 +256,9 @@ function [alfa, fz, nf, i_corr_fall, output] = linesearchbox_cont(fun, MaxFuncti
         fprintf(' failure along the direction\n');
     end
     if strcmpi(Algorithm, 'LAM1') || strcmpi(Algorithm, 'LAM2')
-        alfa_d(j) = delta * alfa;
+        alfa_d(j) = delta * alfa_d(j);
     end
+    output.d = d;
     output.alfa_d = alfa_d;
     output.fhist = fhist(1:nf);
     output.xhist = xhist(:, 1:nf);

@@ -575,7 +575,7 @@ xopt_all = NaN(n, num_blocks);
 if isfield(options, "stepsize_factor")
     stepsize_factor = options.stepsize_factor;
 else
-    stepsize_factor = 0;
+    stepsize_factor = 1e-10;
 end
 
 if isfield(options, "preserve_direction_order")
@@ -646,7 +646,7 @@ for iter = 1:maxit
         [sub_xopt, sub_fopt, sub_exitflag, sub_output] = inner_direct_search(fun, xbase,...
             fbase, D(:, direction_indices), direction_indices,...
             alpha, suboptions);
-
+        
         % Record the index of the block visited.
         num_visited_blocks = num_visited_blocks + 1;
         block_hist(num_visited_blocks) = i_real;
