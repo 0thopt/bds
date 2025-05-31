@@ -150,6 +150,7 @@ function [alfa, fz, nf, i_corr_fall, output] = linesearchbox_cont(fun, MaxFuncti
                     output.alfa_d = alfa_d;
                     output.fhist = fhist(1:nf);
                     output.xhist = xhist(:, 1:nf);
+                    nf = nf + MaxFunctionEvaluations_exhausted; % Update the total number of function evaluations
                     return;
                 end
 
@@ -207,12 +208,17 @@ function [alfa, fz, nf, i_corr_fall, output] = linesearchbox_cont(fun, MaxFuncti
                     end
                     if iprint >= 1
                         % fprintf(' accetta punto fz =%f   alfa =%f\n', fz, alfa);
-                        fprintf(' The second trial point does not satisfy the sufficient decrease condition.\n');
+                        fprintf(' The while loop is exited because the trial point does not satisfy the sufficient decrease condition.\n');
                         % fprintf(' accepted point on the boundary: fz = %f   alfa = %f\n', fz, alfa);
                     end
+                    % The following line is important, as the Algorithm will use the latest alfa when it 
+                    % visits the direction j again. The original code does include this line, which may
+                    % be seriously wrong!!!
+                    alfa_d(j) = alfa;
                     output.alfa_d = alfa_d;
                     output.fhist = fhist(1:nf);
                     output.xhist = xhist(:, 1:nf);
+                    nf = nf + MaxFunctionEvaluations_exhausted; % Update the total number of function evaluations
                     % keyboard
                     return;
                 end
@@ -242,7 +248,9 @@ function [alfa, fz, nf, i_corr_fall, output] = linesearchbox_cont(fun, MaxFuncti
     if iprint >= 1
         fprintf(' failure along the direction\n');
     end
-
+    if strcmpi(Algorithm, 'LAM1') || strcmpi(Algorithm, 'LAM2')
+        alfa_d(j) = delta * alfa;
+    end
     output.alfa_d = alfa_d;
     output.fhist = fhist(1:nf);
     output.xhist = xhist(:, 1:nf);

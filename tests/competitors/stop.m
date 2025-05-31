@@ -30,7 +30,7 @@ function [istop, alfa_max] = stop(n, alfa_d, nf, alfa_stop, nf_max)
     end
 
     % Terminate by number of function evaluations
-    if nf > nf_max
+    if nf >= nf_max
         istop = 2;
     end
 end

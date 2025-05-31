@@ -1,7 +1,10 @@
 function [x, info, output] = lam(fun, x, lb, ub, options)
+    % Notice that the return value x is the last point found by the algorithm, which may not be the best point.
+    % Similarly, f is also the last function value found, which may not be the best function value.
 
     % initialization
     n = length(x);
+    % nfails indicates the number of consecutive failures in the last iteration, which is not used temporarily.
     nfails = 0;
     if isfield(options, 'tol')
         alfa_stop = options.tol;
@@ -24,7 +27,10 @@ function [x, info, output] = lam(fun, x, lb, ub, options)
     else
         iprint = 0; % default print level
     end
+    % In our implementation, num_fal is useless since we do not terminate the algorithm even if
+    % some step size is too relatively small.
     num_fal = 0;
+    % Initialize the failure flag for each coordinate.
     flag_fail = zeros(1, n);
     % fstop = zeros(1, n+1);
     alfa_d = zeros(1, n);
@@ -74,7 +80,7 @@ function [x, info, output] = lam(fun, x, lb, ub, options)
     %     main loop
     %---------------------------
     for ni = 1:maxiter
-        if iprint >= 0
+        if iprint >= 1
             fprintf(format100, ni, nf, f, alfa_max);
         end
 
@@ -83,8 +89,17 @@ function [x, info, output] = lam(fun, x, lb, ub, options)
         %-------------------------------------
         %    sampling along coordinate i_corr
         %-------------------------------------
+        % if mod(ni, 1) == 0
+        %     keyboard;
+        % end
         [alfa, fz, nf, i_corr_fall, ls_output] = linesearchbox_cont(fun, nf_max, Algorithm, ...
     n, x, f, d, alfa_d, i_corr, alfa_max, iprint, bl, bu, nf);
+        fprintf('alfa_d: ');
+        fprintf('%.16E ', ls_output.alfa_d);
+        fprintf('\n');
+        % if mod(ni, 1) == 0
+        %     keyboard;
+        % end 
         
         alfa_d = ls_output.alfa_d;
         fhist(nf_current+1:nf_current+length(ls_output.fhist)) = ls_output.fhist;
@@ -100,6 +115,8 @@ function [x, info, output] = lam(fun, x, lb, ub, options)
                 x(i_corr) = x(i_corr) + alfa * d(i_corr);
                 f = fz;
             else
+                % For LAM2, we only record the best solution found now. We will update x and f
+                % at the end of the iteration.
                 if fz < ficorbest
                     icorrbest = i_corr;
                     ficorbest = fz;
@@ -123,8 +140,18 @@ function [x, info, output] = lam(fun, x, lb, ub, options)
         [istop, alfa_max] = stop(n, alfa_d, nf, alfa_stop, nf_max);
 
         if istop >= 1
-            if iprint >= 0
-                fprintf(format100, ni, nf, f, alfa_max);
+            % if iprint >= 0
+            %     fprintf(format100, ni, nf, f, alfa_max);
+            % end
+            switch istop
+                case 1
+                    if iprint >= 0
+                        fprintf('Terminate by step size: ni=%4d  nf=%5d   f=%12.5e   alfamax=%12.5e\n', ni, nf, f, alfa_max);
+                    end
+                case 2
+                    if iprint >= 0
+                        fprintf('Terminate by function evaluations: ni=%4d  nf=%5d   f=%12.5e   alfamax=%12.5e\n', ni, nf, f, alfa_max);
+                    end
             end
             break;
         end
@@ -135,6 +162,8 @@ function [x, info, output] = lam(fun, x, lb, ub, options)
             i_corr = i_corr + 1;
         else
             i_corr = 1;
+            % If norm(xk - x) is sufficiently small, it means that all the coordinates fail.
+            % Thus, the step size is reduced for all coordinates when Algorithm is 'LAM'.
             if strcmpi(Algorithm, 'LAM')
                 if norm(xk - x) < 1e-16
                     % the iteration was a failure, reduce the stepsizes
@@ -156,11 +185,12 @@ function [x, info, output] = lam(fun, x, lb, ub, options)
             xk = x;
         end
     end
-
-    if nf < nf_max
-        bestf = min(fhist(1:nf));
-        fhist(nf+1:nf_max) = bestf;
-    end
+    
+    % if nf < nf_max
+    %     bestf = min(fhist(1:nf));
+    %     fhist(nf+1:nf_max) = bestf;
+    % end
+    % keyboard
     info = struct('iters', ni, 'f', f, 'g_norm', max(alfa_d));
     output.fhist = fhist(1:nf);
     output.xhist = xhist(:, 1:nf);

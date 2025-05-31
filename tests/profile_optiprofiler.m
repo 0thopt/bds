@@ -201,6 +201,12 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @lam1_terminate_outer_test;
             case 'fm'
                 solvers{i} = @fm_test;
+            case 'sd-box-lam'
+                solvers{i} = @sd_box_lam;
+            case 'sd-box-lam1'
+                solvers{i} = @sd_box_lam1;
+            case 'sd-box-lam2'
+                solvers{i} = @sd_box_lam2;
             otherwise
                 error('Unknown solver');
         end
@@ -497,4 +503,28 @@ function x = fm_test(fun, x0)
     options.shrink = 0.5;
     x = bds(fun, x0, options);
     
+end
+
+function x = sd_box_lam(fun, x0)
+
+    options.Algorithm = 'lam';
+    n = length(x0);
+    x = lam(fun, x0, -inf(n, 1), inf(n, 1), options);
+
+end
+
+function x = sd_box_lam1(fun, x0)
+
+    options.Algorithm = 'lam1';
+    n = length(x0);
+    x = lam(fun, x0, -inf(n, 1), inf(n, 1), options);
+
+end
+
+function x = sd_box_lam2(fun, x0)
+
+    options.Algorithm = 'lam2';
+    n = length(x0);
+    x = lam(fun, x0, -inf(n, 1), inf(n, 1), options);
+
 end
