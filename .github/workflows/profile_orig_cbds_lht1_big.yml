@@ -2,7 +2,7 @@ name: Profile original cbds and lht1, big
 
 on:
   # Trigger the workflow on push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   schedule:
     - cron: '0 8 */10 * *'

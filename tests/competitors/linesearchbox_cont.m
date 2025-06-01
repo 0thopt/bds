@@ -1,5 +1,5 @@
 function [alfa, fz, nf, i_corr_fall, output] = linesearchbox_cont(fun, MaxFunctionEvaluations, Algorithm, ...
-    n, x, f, d, alfa_d, j, alfa_max, iprint, bl, bu, nf)
+    n, x, f, d, alfa_d, j, alfa_max, iprint, bl, bu, nf, ni)
     
     % In python, variables can be modified without returning them,
     % but in MATLAB, we need to return them explicitly. Thus, we introduce the variable output
@@ -121,7 +121,6 @@ function [alfa, fz, nf, i_corr_fall, output] = linesearchbox_cont(fun, MaxFuncti
         if nf >= MaxFunctionEvaluations
             break;
         end
-
         if iprint >= 1
             fprintf(' fz =%f   alfa =%e\n', fz, alfa);
         end
@@ -132,7 +131,9 @@ function [alfa, fz, nf, i_corr_fall, output] = linesearchbox_cont(fun, MaxFuncti
         end
 
         fpar = f - gamma * alfa^2;
-
+        % if ni == 317
+        %     keyboard
+        % end
         if fz < fpar
             % expansion step
             while true
@@ -199,9 +200,17 @@ function [alfa, fz, nf, i_corr_fall, output] = linesearchbox_cont(fun, MaxFuncti
                 % Very important note: the original code has a bug here!!!
                 % Since the Algorithm has already accepted the first trial point,
                 % it should check the sufficient decrease condition with respect to the first trial point,
-                % not the original function value f.
+                % not the original function value f. Another important note is that
+                % the sufficient decrease condition should use the step size alfa, not alfaex. The reason is that
+                % we should use the distance between z and its neighbour point and the distance should be
+                % (expand-1) * alfa, not (expand-1) * alfaex. In the original code, expand is set to be 1, so
+                % the disance is just alfa.
                 % fpar = f - gamma * alfaex^2;
-                fpar = fz - gamma * alfaex^2;
+                % fpar = fz - gamma * alfaex^2;
+                fpar = fz - gamma * alfa^2;
+                % if ni == 129
+                %     keyboard
+                % end
                 % keyboard
                 if fzdelta < fpar
                     fz = fzdelta;

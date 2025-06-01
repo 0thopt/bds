@@ -42,7 +42,7 @@ switch constant_name
     case {"ls_shrink"}
         constant_value = 0.5;
     case {"reduction_factor"}
-        constant_value = [0, 1e-6, 1e-6];
+        constant_value = [1e-6, 1e-6, 1e-6];
     case {"forcing_function"}
         constant_value = @(alpha) alpha^2;
     case {"alpha_init"}

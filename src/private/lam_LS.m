@@ -9,6 +9,9 @@ expand = options.expand;
 % Set ftarget of objective function.
 ftarget = options.ftarget;
 
+iter = options.iter; % The current iteration number.
+i_real = options.i_real; % The real iteration number, which is used for debugging.
+
 % Adjust the maximum number of function evaluations for the inner LS loop.
 MaxFunctionEvaluations = options.MaxFunctionEvaluations - nf;
 % Reset the function evaluation counter for the inner LS loop.
@@ -63,6 +66,9 @@ while sufficient_decrease
     end
 
     sufficient_decrease = fnew + reduction_factor * ((expand-1) * alpha)^2 < fbase;
+    % if iter == 33 && i_real == 2
+    %     keyboard
+    % end
     % The following code is used to check if ((expand - 1) * alpha)^2 
     % is the same as the distance between the neighbour points.
     % if nf == 1

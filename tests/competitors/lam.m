@@ -89,15 +89,16 @@ function [x, info, output] = lam(fun, x, lb, ub, options)
         %-------------------------------------
         %    sampling along coordinate i_corr
         %-------------------------------------
-        % if ni == 4
+        % if ni == 317
         %     keyboard;
         % end
+        % Introduce ni just for debugging purposes.
         [alfa, fz, nf, i_corr_fall, ls_output] = linesearchbox_cont(fun, nf_max, Algorithm, ...
-    n, x, f, d, alfa_d, i_corr, alfa_max, iprint, bl, bu, nf);
+    n, x, f, d, alfa_d, i_corr, alfa_max, iprint, bl, bu, nf, ni);
         % fprintf('alfa_d: ');
         % fprintf('%.16E ', ls_output.alfa_d);
         % fprintf('\n');
-        % if ni == 4
+        % if ni == 316
         %     keyboard;
         % end 
         d = ls_output.d;
@@ -108,7 +109,10 @@ function [x, info, output] = lam(fun, x, lb, ub, options)
         % If the step size alpha is large enough, update the solution and function value,
         % and reset the failure flag and counter. For LAM2, also update the best found solution if improved.
         % If alpha is too small, mark as failure and update counters if failures are below threshold.
-        if abs(alfa) >= 1e-12
+        % To have the same behavior as another implementation, as long as the step size is not zero, 
+        % we will update the solution and function value.
+        % if abs(alfa) >= 1e-12
+        if abs(alfa) > 0
             flag_fail(i_corr) = 0;
             % The same as our implementation of lam, the Algorithm will update x and f after the linesearch.
             if strcmpi(Algorithm, 'LAM') || strcmpi(Algorithm, 'LAM1')

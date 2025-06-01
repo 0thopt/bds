@@ -42,6 +42,9 @@ verbose = options.verbose;
 % The value of whether to preserve the order of the direction indices when the Algorithm fails in this block.
 preserve_direction_order = options.preserve_direction_order;
 
+iter = options.iter; % The current iteration number.
+i_real = options.i_real; % The real iteration number, which is used for debugging.
+
 % If terminate is true and the exitflag is NaN, it means that the algorithm terminates
 % not because of the maximum number of function evaluations or the target function value,
 % which will be a bug.
@@ -57,12 +60,15 @@ fopt = fbase;
 xopt = xbase;
 
 for j = 1 : num_directions
-    
+
     % Evaluate the objective function for the current polling direction.
     xnew = xbase+alpha*D(:, j);
     % fnew_real is the real function value at xnew, which is the value returned by fun 
     % (not fnew).
     [fnew, fnew_real] = eval_fun(fun, xnew);
+    % if iter == 30 && i_real == 3
+    %     keyboard
+    % end
     nf = nf+1;
     % When we record the function value, we use the real function value.
     % Here, we should use fnew_real instead of fnew.
@@ -81,8 +87,8 @@ for j = 1 : num_directions
         fopt = fnew;
     end
     
-    % Check whether the sufficient decrease condition is achieved.
-    sufficient_decrease = (fnew + reduction_factor(3) * forcing_function(alpha)/2 < fbase);
+    % Check whether the sufficient decrease condition is achieved. The original code is alpha^2.
+    sufficient_decrease = (fnew + reduction_factor(3) * forcing_function(alpha) < fbase);
     if verbose
         if sufficient_decrease
             fprintf("%g decrease is achieved.\n", fbase - fnew);

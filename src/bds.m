@@ -641,11 +641,16 @@ for iter = 1:maxit
         else
             alpha = max(alpha_all(i_real), stepsize_factor * max(alpha_all));
         end
-
+        % if iter == 80 && i_real == 1
+        %     keyboard
+        % end
         % Perform the direct search within the i_real-th block.
         [sub_xopt, sub_fopt, sub_exitflag, sub_output] = inner_direct_search(fun, xbase,...
             fbase, D(:, direction_indices), direction_indices,...
             alpha, suboptions);
+        % if iter == 80 && i_real == 1
+        %     keyboard
+        % end
         
         % Record the index of the block visited.
         num_visited_blocks = num_visited_blocks + 1;
@@ -703,6 +708,8 @@ for iter = 1:maxit
                 ls_options.expand = expand;
                 ls_options.forcing_function = forcing_function;
                 ls_options.ftarget = ftarget;
+                ls_options.iter = iter;
+                ls_options.i_real = i_real;
                 % % extract the direction indices of the i_real-th block.
                 % selected_direction = D(:, sub_output.direction_indices);
                 % % Get the first column of selected_direction, which is the direction
@@ -712,7 +719,6 @@ for iter = 1:maxit
                 % if ~all(d_1 == d)
                 %     keyboard;
                 % end
-
                 if strcmpi(options.Algorithm, 'lam1')
                     [ls_xopt, ls_fopt, exitflag, ls_output] = lam_LS(fun, xbase, fbase, d, alpha_all(i_real), nf, ls_options);
                 elseif strcmpi(options.Algorithm, 'lht1')
@@ -737,15 +743,33 @@ for iter = 1:maxit
                 % Update the step size by the linesearch.
                 alpha_all(i_real) = ls_output.alpha;
 
+                % if iter == 36 && i_real == 1
+                %     keyboard
+                % end
+
+                % dist_update_base = norm(sub_xopt - ls_xopt);
                 if ls_fopt < sub_fopt
                     sub_fopt = ls_fopt;
                     sub_xopt = ls_xopt;
                     % Update the xbase and fbase if the reduction is sufficient during the linesearch.
-                    if  (ls_fopt + reduction_factor(1) * forcing_function(alpha_all(i_real)) < fbase)
-                        xbase = ls_xopt;
-                        fbase = ls_fopt;
-                    end
+                    % if  (ls_fopt + reduction_factor(1) * forcing_function(alpha_all(i_real)) < fbase)
+                    % if  (ls_fopt + reduction_factor(1) * forcing_function(norm(dist_update_base)) < fbase)
+                    %     xbase = ls_xopt;
+                    %     fbase = ls_fopt;
+                    % end
+                    
                 end
+
+                % Important: After linesearch, update xbase and fbase to the second-to-last point in the history,
+                % which is the last one meeting the sufficient decrease condition.
+                % If only one point was checked, the starting point of the linesearch should be used as the base point,
+                % which is also the second-to-last point in the history.
+                xbase = xhist(:, nf - 1);
+                fbase = fhist(nf - 1);
+
+                % if iter == 33 && i_real == 2
+                %     keyboard
+                % end
 
             else
                 alpha_all(i_real) = shrink * alpha;

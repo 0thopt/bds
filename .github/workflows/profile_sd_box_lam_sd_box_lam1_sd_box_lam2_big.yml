@@ -125,7 +125,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: profile_optiprofiler_${{ matrix.solver }}_${{ matrix.competitor1 }}_${{ matrix.competitor2 }}_${{ matrix.dim }}_${{ matrix.feature }}_${{ matrix.run_plain }}
+          name: profile_optiprofiler_sd_box_lam_sd_box_lam1_sd_box_lam2_${{ matrix.dim }}_${{ matrix.feature }}
           path: ./tests/testdata/
 
   merge_artifacts:
@@ -177,10 +177,10 @@ jobs:
           cd summary
           ls
           bash ../merge_pdf.sh
-          mv merged.pdf "summary_${BASE_INFO}.pdf"
+          mv merged.pdf "summary_sd_box_lam_sd_box_lam1_sd_box_lam2_big.pdf"
           cd ..
           if [ -d "summary" ]; then
-            mv summary "summary_${BASE_INFO}"
+            mv summary "summary_sd_box_lam_sd_box_lam1_sd_box_lam2_big"
           fi
 
       - name: Upload merged artifact
@@ -188,7 +188,7 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: merged_profiles_${{ env.BASE_INFO }}
+          name: merged_profiles_sd_box_lam_sd_box_lam1_sd_box_lam2_big
           path: tests/testdata/downloaded_artifacts/**
 
       - name: Upload summary files
@@ -197,4 +197,4 @@ jobs:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
           name: summary_files_${{ env.BASE_INFO }}
-          path: tests/testdata/downloaded_artifacts/summary_${{ env.BASE_INFO }}/**
+          path: tests/testdata/downloaded_artifacts/summary_sd_box_lam_sd_box_lam1_sd_box_lam2_big/**
