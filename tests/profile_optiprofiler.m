@@ -389,6 +389,7 @@ function x = cbds_orig_test(fun, x0)
     option.Algorithm = 'cbds';
     option.expand = 2;
     option.shrink = 0.5;
+    option.output_xhist = true;
     x = bds(fun, x0, option);
     
 end
@@ -399,6 +400,7 @@ function x = cbds_orig_not_preserve_order_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.preserve_direction_order = false;
+    option.output_xhist = true;
     x = bds(fun, x0, option);
     
 end
@@ -409,6 +411,7 @@ function x = cbds_terminate_outer_test(fun, x0)
     options.expand = 2;
     options.shrink = 0.5;
     options.terminate_inner = false;
+    options.output_xhist = true;
     x = bds(fun, x0, options);
     
 end
@@ -418,6 +421,7 @@ function x = lht1_test(fun, x0)
     options.Algorithm = 'lht1';
     options.expand = 2;
     options.shrink = 0.5;
+    options.output_xhist = true;
     x = bds(fun, x0, options);
     
 end
@@ -429,6 +433,7 @@ function x = lht1_orig_test(fun, x0)
     options.shrink = 0.5;
     options.stepsize_factor = 1e-10;
     options.reduction_factor = [0, 1e-6, 1e-6];
+    options.output_xhist = true;
     x = bds(fun, x0, options);
     
 end
@@ -439,6 +444,7 @@ function x = lam1_test(fun, x0)
     options.expand = 2;
     options.shrink = 0.5;
     options.stepsize_factor = 0;
+    options.output_xhist = true;
     x = bds(fun, x0, options);
     
 end
@@ -450,6 +456,7 @@ function x = lam1_orig_test(fun, x0)
     options.shrink = 0.5;
     options.stepsize_factor = 1e-10;
     options.reduction_factor = [1e-6, 1e-6, 1e-6];
+    options.output_xhist = true;
     x = bds(fun, x0, options);
     
 end
@@ -461,6 +468,7 @@ function x = lam1_terminate_outer_test(fun, x0)
     options.shrink = 0.5;
     options.stepsize_factor = 0;
     options.terminate_inner = false;
+    options.output_xhist = true;
     x = bds(fun, x0, options);
     
 end
@@ -472,6 +480,7 @@ function x = lam1_orig_not_preserve_order_test(fun, x0)
     option.shrink = 0.5;
     option.stepsize_factor = 0;
     option.preserve_direction_order = false;
+    option.output_xhist = true;
     x = bds(fun, x0, option);
     
 end
@@ -482,6 +491,7 @@ function x = fm_test(fun, x0)
     options.expand = 1;
     options.shrink = 0.5;
     options.stepsize_factor = 0;
+    options.output_xhist = true;
     x = bds(fun, x0, options);
     
 end
