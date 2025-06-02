@@ -636,21 +636,21 @@ for iter = 1:maxit
         suboptions.Algorithm = options.Algorithm;
         suboptions.preserve_direction_order = preserve_direction_order;
 
+        % if iter == 11 && i_real == 1
+        %     keyboard
+        % end
         if strcmpi(options.Algorithm, 'cbds')
             alpha = alpha_all(i_real);
         else
             alpha = max(alpha_all(i_real), stepsize_factor * max(alpha_all));
         end
-        % if iter == 80 && i_real == 1
+        % if iter == 11 && i_real == 1
         %     keyboard
         % end
         % Perform the direct search within the i_real-th block.
         [sub_xopt, sub_fopt, sub_exitflag, sub_output] = inner_direct_search(fun, xbase,...
             fbase, D(:, direction_indices), direction_indices,...
             alpha, suboptions);
-        % if iter == 80 && i_real == 1
-        %     keyboard
-        % end
         
         % Record the index of the block visited.
         num_visited_blocks = num_visited_blocks + 1;
@@ -701,6 +701,9 @@ for iter = 1:maxit
                 xbase = sub_xopt;
                 fbase = sub_fopt;
             end
+            % if iter == 11 && i_real == 1
+            %     keyboard
+            % end
             if sub_output.success
                 % ls_options.MaxFunctionEvaluations = MaxFunctionEvaluations - nf;
                 ls_options.MaxFunctionEvaluations = MaxFunctionEvaluations;
@@ -719,12 +722,15 @@ for iter = 1:maxit
                 % if ~all(d_1 == d)
                 %     keyboard;
                 % end
+                % Improtant change: during the linesearch, we should use alpha, not alpha_all(i_real),
+                % as the initial step size. This is because the step size factor will influence the
+                % selection of the initial step size in the linesearch.
                 if strcmpi(options.Algorithm, 'lam1')
-                    [ls_xopt, ls_fopt, exitflag, ls_output] = lam_LS(fun, xbase, fbase, d, alpha_all(i_real), nf, ls_options);
+                    [ls_xopt, ls_fopt, exitflag, ls_output] = lam_LS(fun, xbase, fbase, d, alpha, nf, ls_options);
                 elseif strcmpi(options.Algorithm, 'lht1')
-                    [ls_xopt, ls_fopt, exitflag, ls_output] = LS(fun, xbase, fbase, d, alpha_all(i_real), nf, ls_options);
+                    [ls_xopt, ls_fopt, exitflag, ls_output] = LS(fun, xbase, fbase, d, alpha, nf, ls_options);
                 elseif strcmpi(options.Algorithm, 'fm')
-                    [ls_xopt, ls_fopt, exitflag, ls_output] = LS(fun, xbase, fbase, d, alpha_all(i_real), nf, ls_options);
+                    [ls_xopt, ls_fopt, exitflag, ls_output] = LS(fun, xbase, fbase, d, alpha, nf, ls_options);
                 else
                     error("The Algorithm input is invalid");
                 end
@@ -743,10 +749,6 @@ for iter = 1:maxit
                 % Update the step size by the linesearch.
                 alpha_all(i_real) = ls_output.alpha;
 
-                % if iter == 36 && i_real == 1
-                %     keyboard
-                % end
-
                 % dist_update_base = norm(sub_xopt - ls_xopt);
                 if ls_fopt < sub_fopt
                     sub_fopt = ls_fopt;
@@ -757,7 +759,6 @@ for iter = 1:maxit
                     %     xbase = ls_xopt;
                     %     fbase = ls_fopt;
                     % end
-                    
                 end
 
                 % Important: After linesearch, update xbase and fbase to the second-to-last point in the history,
@@ -767,12 +768,11 @@ for iter = 1:maxit
                 xbase = xhist(:, nf - 1);
                 fbase = fhist(nf - 1);
 
-                % if iter == 33 && i_real == 2
-                %     keyboard
-                % end
-
             else
                 alpha_all(i_real) = shrink * alpha;
+                % if iter == 10 && i_real == 1
+                %     keyboard
+                % end
             end
         end
 

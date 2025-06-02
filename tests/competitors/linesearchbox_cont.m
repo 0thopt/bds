@@ -131,7 +131,7 @@ function [alfa, fz, nf, i_corr_fall, output] = linesearchbox_cont(fun, MaxFuncti
         end
 
         fpar = f - gamma * alfa^2;
-        % if ni == 317
+        % if ni == 41
         %     keyboard
         % end
         if fz < fpar
@@ -208,7 +208,7 @@ function [alfa, fz, nf, i_corr_fall, output] = linesearchbox_cont(fun, MaxFuncti
                 % fpar = f - gamma * alfaex^2;
                 % fpar = fz - gamma * alfaex^2;
                 fpar = fz - gamma * alfa^2;
-                % if ni == 129
+                % if ni == 41
                 %     keyboard
                 % end
                 % keyboard

@@ -89,7 +89,7 @@ function [x, info, output] = lam(fun, x, lb, ub, options)
         %-------------------------------------
         %    sampling along coordinate i_corr
         %-------------------------------------
-        % if ni == 317
+        % if ni == 41
         %     keyboard;
         % end
         % Introduce ni just for debugging purposes.
@@ -98,7 +98,7 @@ function [x, info, output] = lam(fun, x, lb, ub, options)
         % fprintf('alfa_d: ');
         % fprintf('%.16E ', ls_output.alfa_d);
         % fprintf('\n');
-        % if ni == 316
+        % if ni == 41
         %     keyboard;
         % end 
         d = ls_output.d;
