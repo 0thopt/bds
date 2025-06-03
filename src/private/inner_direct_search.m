@@ -61,6 +61,12 @@ xopt = xbase;
 
 for j = 1 : num_directions
 
+    if nf >= MaxFunctionEvaluations
+        fnew = fbase; % Set fnew to fbase to avoid using an uninitialized variable.
+        sufficient_decrease = false; % Set sufficient_decrease to false to break the loop.
+        break;
+    end
+
     % Evaluate the objective function for the current polling direction.
     xnew = xbase+alpha*D(:, j);
     % fnew_real is the real function value at xnew, which is the value returned by fun 

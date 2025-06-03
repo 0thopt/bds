@@ -1,4 +1,4 @@
-function [x, info, output] = lam(fun, x, lb, ub, options)
+function [xopt, fopt, exitflag, output] = lam(fun, x, lb, ub, options)
     % Notice that the return value x is the last point found by the algorithm, which may not be the best point.
     % Similarly, f is also the last function value found, which may not be the best function value.
 
@@ -13,8 +13,8 @@ function [x, info, output] = lam(fun, x, lb, ub, options)
     end
     bl = lb;
     bu = ub;
-    if isfield(options, 'nf_max')
-        nf_max = options.nf_max;
+    if isfield(options, 'MaxFunctionEvaluations')
+        nf_max = options.MaxFunctionEvaluations;
     else
         nf_max = 500 * n; % default maximum function evaluations
     end
@@ -55,10 +55,10 @@ function [x, info, output] = lam(fun, x, lb, ub, options)
         end
     end
     alfa_max = max(alfa_d);
-    f = fun(x);
+    [f, f_real] = eval_fun(fun, x);
     nf = nf + 1;
     if nf < nf_max
-        fhist(nf) = f;
+        fhist(nf) = f_real;
         xhist(:, nf) = x;
     end
     i_corr = 1;
@@ -89,18 +89,24 @@ function [x, info, output] = lam(fun, x, lb, ub, options)
         %-------------------------------------
         %    sampling along coordinate i_corr
         %-------------------------------------
-        % if ni == 41
-        %     keyboard;
+        % if isfield(options, 'ir') && options.ir == 4 && ni == 11
+        %     keyboard
+        % end
+        % if ni == 6
+        %     keyboard
         % end
         % Introduce ni just for debugging purposes.
         [alfa, fz, nf, i_corr_fall, ls_output] = linesearchbox_cont(fun, nf_max, Algorithm, ...
     n, x, f, d, alfa_d, i_corr, alfa_max, iprint, bl, bu, nf, ni);
+        % if ni == 6
+        %     keyboard
+        % end
         % fprintf('alfa_d: ');
         % fprintf('%.16E ', ls_output.alfa_d);
         % fprintf('\n');
-        % if ni == 41
-        %     keyboard;
-        % end 
+        % if isfield(options, 'ir') && options.ir == 4 && ni == 11
+        %     keyboard
+        % end
         d = ls_output.d;
         alfa_d = ls_output.alfa_d;
         fhist(nf_current+1:nf_current+length(ls_output.fhist)) = ls_output.fhist;
@@ -152,10 +158,13 @@ function [x, info, output] = lam(fun, x, lb, ub, options)
             % end
             switch is_stop
                 case 1
+                    exitflag = 0; % Terminate by step size
                     if iprint >= 0
                         fprintf('Terminate by step size: ni=%4d  nf=%5d   f=%12.5e   alfamax=%12.5e\n', ni, nf, f, alfa_max);
                     end
                 case 2
+                    % We use 2 to have the same behavior as bds framework.
+                    exitflag = 2; % Terminate by function evaluations
                     if iprint >= 0
                         fprintf('Terminate by function evaluations: ni=%4d  nf=%5d   f=%12.5e   alfamax=%12.5e\n', ni, nf, f, alfa_max);
                     end
@@ -198,8 +207,11 @@ function [x, info, output] = lam(fun, x, lb, ub, options)
     %     fhist(nf+1:nf_max) = bestf;
     % end
     % keyboard
-    info = struct('iters', ni, 'f', f, 'g_norm', max(alfa_d));
+    % info = struct('iters', ni, 'f', f, 'g_norm', max(alfa_d));
     output.fhist = fhist(1:nf);
     output.xhist = xhist(:, 1:nf);
     output.nf = nf;
+    [~, index] = min(fhist(1:nf), [], "omitnan");
+    fopt = fhist(index);
+    xopt = xhist(:, index);
 end

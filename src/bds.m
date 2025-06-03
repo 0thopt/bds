@@ -97,7 +97,8 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               It is an optional termination criterion.
 %                               Default: false.
 %   output_xhist                Whether to output the history of points visited.
-%                               Default: false.
+%                               Default: True, which is for setting xbase and fbase
+%                               when linesearch is invoked.
 %   output_alpha_hist           Whether to output the history of step sizes.
 %                               Default: false.
 %   output_block_hist           Whether to output the history of blocks visited.
@@ -476,6 +477,7 @@ if output_xhist
         warning("xhist will be not included in the output due to the limit of memory.");
     end
 end
+output_xhist = true;
 
 % Decide whether to output the history of blocks visited.
 if isfield(options, "output_block_hist")
@@ -636,15 +638,15 @@ for iter = 1:maxit
         suboptions.Algorithm = options.Algorithm;
         suboptions.preserve_direction_order = preserve_direction_order;
 
-        % if iter == 11 && i_real == 1
-        %     keyboard
-        % end
         if strcmpi(options.Algorithm, 'cbds')
             alpha = alpha_all(i_real);
         else
             alpha = max(alpha_all(i_real), stepsize_factor * max(alpha_all));
         end
-        % if iter == 11 && i_real == 1
+        % if iter == 1 && i_real == 4
+        %     keyboard
+        % end
+        % if isfield(options, 'ir') && options.ir == 6 && iter == 1 && i_real == 1
         %     keyboard
         % end
         % Perform the direct search within the i_real-th block.
@@ -682,8 +684,9 @@ for iter = 1:maxit
         % Update xbase and fbase. xbase serves as the "base point" for the computation in the next block,
         % meaning that reduction will be calculated with respect to xbase, as shown above.
         % Note that their update requires a sufficient decrease if reduction_factor(1) > 0.
-        update_base = (reduction_factor(1) <= 0 && sub_fopt < fbase) ...
-            || (sub_fopt + reduction_factor(1) * forcing_function(alpha_all(i_real)) < fbase);
+        % update_base = (reduction_factor(1) <= 0 && sub_fopt < fbase) ...
+        %     || (sub_fopt + reduction_factor(1) * forcing_function(alpha_all(i_real)) < fbase);
+        update_base = (sub_fopt + reduction_factor(1) * forcing_function(alpha_all(i_real)) < fbase);
 
         if strcmpi(options.Algorithm, 'cbds')
             % Update the step size alpha_all according to the reduction achieved.
@@ -697,6 +700,7 @@ for iter = 1:maxit
                 fbase = sub_fopt;
             end
         else
+            x_init = xbase;
             if update_base
                 xbase = sub_xopt;
                 fbase = sub_fopt;
@@ -713,6 +717,7 @@ for iter = 1:maxit
                 ls_options.ftarget = ftarget;
                 ls_options.iter = iter;
                 ls_options.i_real = i_real;
+                ls_options.x_init = x_init;
                 % % extract the direction indices of the i_real-th block.
                 % selected_direction = D(:, sub_output.direction_indices);
                 % % Get the first column of selected_direction, which is the direction
@@ -748,6 +753,10 @@ for iter = 1:maxit
 
                 % Update the step size by the linesearch.
                 alpha_all(i_real) = ls_output.alpha;
+
+                % if iter == 1 && i_real == 4
+                %     keyboard
+                % end
 
                 % dist_update_base = norm(sub_xopt - ls_xopt);
                 if ls_fopt < sub_fopt
@@ -821,6 +830,9 @@ for iter = 1:maxit
         xopt = xopt_all(:, index);
     end
 
+    [~, index] = min(fhist(1:nf), [], "omitnan");
+    fopt = fhist(index);
+    xopt = xhist(:, index);
     % Terminate the computations if terminate is true. If terminate is true, there is no need to
     % continue the iteration.
     if terminate
@@ -845,6 +857,7 @@ end
 
 % Record the number of function evaluations in output.
 output.funcCount = nf;
+output.nf = nf;
 
 % Truncate the histories of the blocks visited, the step sizes, the points visited,
 % and the function values.

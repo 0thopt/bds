@@ -110,11 +110,16 @@ function [alfa, fz, nf, i_corr_fall, output] = linesearchbox_cont(fun, MaxFuncti
         %     continue;
         % end
 
+        % Stop the loop if no more function evaluations can be performed. 
+        % Note that this should be checked after evaluating the objective function immediately.
+        if nf >= MaxFunctionEvaluations
+            break;
+        end
         alfaex = alfa;
         z(j) = x(j) + alfa * d(j);
-        fz = fun(z);
+        [fz, fz_real] = eval_fun(fun, z);
         nf = nf + 1;
-        fhist(nf) = fz;
+        fhist(nf) = fz_real;
         xhist(:, nf) = z;
         % Stop the loop if no more function evaluations can be performed. 
         % Note that this should be checked after evaluating the objective function immediately.
@@ -183,9 +188,9 @@ function [alfa, fz, nf, i_corr_fall, output] = linesearchbox_cont(fun, MaxFuncti
                 end
 
                 z(j) = x(j) + alfaex * d(j);
-                fzdelta = fun(z);
+                [fzdelta, fzdelta_real] = eval_fun(fun, z);
                 nf = nf + 1;
-                fhist(nf) = fzdelta;
+                fhist(nf) = fzdelta_real;
                 xhist(:, nf) = z;
                 % Stop the loop if no more function evaluations can be performed. 
                 % Note that this should be checked after evaluating the objective function immediately.
@@ -219,17 +224,18 @@ function [alfa, fz, nf, i_corr_fall, output] = linesearchbox_cont(fun, MaxFuncti
                     % For LAM1 and LAM2, the step size update for each direction depends only on its own performance,
                     % and is not affected by the performance of other directions.
                     if strcmpi(Algorithm, 'LAM1') || strcmpi(Algorithm, 'LAM2')
-                        alfa_d(j) = delta * alfa;
+                        % alfa_d(j) = delta * alfa;
+                        % The original code has a bug here, it should use alfaex instead of alfa.
+                        % The reason is that alfaex is the last trial step size, which does not
+                        % satisfy the sufficient decrease condition. We should use the last successful step size,
+                        % which is alfa or alfaex * delta1.
+                        alfa_d(j) = delta * alfaex;
                     end
                     if iprint >= 1
                         % fprintf(' accetta punto fz =%f   alfa =%f\n', fz, alfa);
                         fprintf(' The while loop is exited because the trial point does not satisfy the sufficient decrease condition.\n');
                         % fprintf(' accepted point on the boundary: fz = %f   alfa = %f\n', fz, alfa);
                     end
-                    % The following line is important, as the Algorithm will use the latest alfa when it 
-                    % visits the direction j again. The original code does include this line, which is a bug
-                    % and will cause the Algorithm to use the wrong step size in the next iteration.
-                    alfa_d(j) = alfa;
                     output.d = d;
                     output.alfa_d = alfa_d;
                     output.fhist = fhist(1:nf);
@@ -259,13 +265,13 @@ function [alfa, fz, nf, i_corr_fall, output] = linesearchbox_cont(fun, MaxFuncti
     %     end
     % end
 
-    alfa = 0.0;
     fz = f;
-    if iprint >= 1
-        fprintf(' failure along the direction\n');
-    end
     if strcmpi(Algorithm, 'LAM1') || strcmpi(Algorithm, 'LAM2')
         alfa_d(j) = delta * alfa_d(j);
+    end
+    alfa = 0.0;
+    if iprint >= 1
+        fprintf(' failure along the direction\n');
     end
     output.d = d;
     output.alfa_d = alfa_d;

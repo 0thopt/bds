@@ -35,26 +35,30 @@ end
 try
 
     if ~isfield(parameters, "solvers")
-        solvers = {"bds", "bds_norma"};
+        solvers = {"bds", "lam"};
     else
         solvers = parameters.solvers;
         parameters = rmfield(parameters, "solvers");
     end
-    
-    if strcmpi(solvers{1}, "bds") && strcmpi(solvers{2}, "bds_norma")
-        % Compile the version of norma.
-        path_norma = locate_norma();
-        path_verify_bds = fileparts(mfilename('fullpath'));
-        cd(path_norma{1});
-        setup
-        cd(path_verify_bds);
 
-        % Compile the version of modern repository.
-        path_root = fileparts(path_verify_bds);
-        cd(path_root);
-        setup
-        cd(path_verify_bds);
+    if ~isfield(parameters, "Algorithm")
+        parameters.Algorithm = 'lam1';
     end
+    
+    % if strcmpi(solvers{1}, "bds") && strcmpi(solvers{2}, "bds_norma")
+    %     % Compile the version of norma.
+    %     path_norma = locate_norma();
+    %     path_verify_bds = fileparts(mfilename('fullpath'));
+    %     cd(path_norma{1});
+    %     setup
+    %     cd(path_verify_bds);
+
+    %     % Compile the version of modern repository.
+    %     path_root = fileparts(path_verify_bds);
+    %     cd(path_root);
+    %     setup
+    %     cd(path_verify_bds);
+    % end
 
 
     % Get list of problems
@@ -73,7 +77,7 @@ try
     if isfield(parameters, "problem_maxdim")
         options_s2mpj.maxdim = parameters.problem_maxdim;
     else
-        options_s2mpj.maxdim = 10;
+        options_s2mpj.maxdim = 5;
     end
 
     blacklist = ["DIAMON2DLS",...
@@ -114,7 +118,7 @@ try
         "VESUVIOLS",...
         "VESUVIOULS",...
         "YATP1CLS"];
-    problem_names_orig = s_select(options_s2mpj);
+    problem_names_orig = s2mpj_select(options_s2mpj);
     problem_names = [];
     for i = 1:length(problem_names_orig)
         if ~ismember(problem_names_orig(i), blacklist) && ...
@@ -165,7 +169,7 @@ try
     
     if parallel
         parfor i_problem = 1:num_problems
-            problem_info = s_load(char(problem_names(i_problem)));
+            problem_info = s2mpj_load(char(problem_names(i_problem)));
             p = s2mpj_wrapper(problem_info);
             for i_run = n_runs:n_runs+num_random-1
                 fprintf("%d(%d). %s\n", i_problem, i_run, p.name);
@@ -174,7 +178,7 @@ try
         end
     else
         for i_problem = 1:num_problems
-            problem_info = s_load(char(problem_names(i_problem)));
+            problem_info = s2mpj_load(char(problem_names(i_problem)));
             p = s2mpj_wrapper(problem_info);
             for i_run = n_runs:n_runs+num_random-1
                 fprintf("%d(%d). %s\n", i_problem, i_run, p.name);

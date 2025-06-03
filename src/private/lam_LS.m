@@ -25,7 +25,8 @@ exitflag = NaN;
 xopt = xbase;
 fopt = fbase;
 
-x_init = xbase - alpha * d;
+% x_init = xbase - alpha * d;
+x_init = options.x_init; % The initial point for the inner LS loop.
 
 % Initialize some parameters before entering the loop.
 n = length(xbase);
@@ -35,11 +36,18 @@ sufficient_decrease = true;
 
 while sufficient_decrease
 
+    % Stop the loop if no more function evaluations can be performed. 
+    % Note that this should be checked before evaluating the objective function.
+    if nf >= MaxFunctionEvaluations
+        exitflag = get_exitflag("MAXFUN_REACHED");
+        break;
+    end
+
     alpha_tmp = expand * alpha;
     xnew = x_init + alpha_tmp * d;
-    fnew = eval_fun(fun, xnew);
+    [fnew, fnew_real] = eval_fun(fun, xnew);
     nf = nf + 1;
-    fhist(nf) = fnew;
+    fhist(nf) = fnew_real;
     xhist(:, nf) = xnew;
 
     % Stop the computations once the target value of the objective function
