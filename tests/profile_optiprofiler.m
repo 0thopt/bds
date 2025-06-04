@@ -153,7 +153,6 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
     end
     time_str = char(datetime('now', 'Format', 'yy_MM_dd_HH_mm'));
     options.silent = false;
-    options.keep_pool = true;
     options.ptype = 'u';
     if isfield(options, 'dim')
         if strcmpi(options.dim, 'small')
@@ -195,6 +194,38 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @cbds_orig_false_3_test;
             case 'cbds-orig-false-4'
                 solvers{i} = @cbds_orig_false_4_test;
+            case 'cbds-orig-half-true-1'
+                solvers{i} = @cbds_orig_half_true_1_test;
+            case 'cbds-orig-half-false-1'
+                solvers{i} = @cbds_orig_half_false_1_test;
+            case 'cbds-orig-half-true-2'
+                solvers{i} = @cbds_orig_half_true_2_test;
+            case 'cbds-orig-half-false-2'
+                solvers{i} = @cbds_orig_half_false_2_test;
+            case 'cbds-orig-half-true-3'
+                solvers{i} = @cbds_orig_half_true_3_test;
+            case 'cbds-orig-half-false-3'
+                solvers{i} = @cbds_orig_half_false_3_test;
+            case 'cbds-orig-half-true-4'
+                solvers{i} = @cbds_orig_half_true_4_test;
+            case 'cbds-orig-half-false-4'
+                solvers{i} = @cbds_orig_half_false_4_test;
+            case 'cbds-orig-quarter-true-1'
+                solvers{i} = @cbds_orig_quarter_true_1_test;
+            case 'cbds-orig-quarter-false-1'
+                solvers{i} = @cbds_orig_quarter_false_1_test;
+            case 'cbds-orig-quarter-true-2'
+                solvers{i} = @cbds_orig_quarter_true_2_test;
+            case 'cbds-orig-quarter-false-2'
+                solvers{i} = @cbds_orig_quarter_false_2_test;
+            case 'cbds-orig-quarter-true-3'
+                solvers{i} = @cbds_orig_quarter_true_3_test;
+            case 'cbds-orig-quarter-false-3'
+                solvers{i} = @cbds_orig_quarter_false_3_test;
+            case 'cbds-orig-quarter-true-4'
+                solvers{i} = @cbds_orig_quarter_true_4_test;
+            case 'cbds-orig-quarter-false-4'
+                solvers{i} = @cbds_orig_quarter_false_4_test;
             case 'ds-orig-0'
                 solvers{i} = @ds_orig_0_test;
             case 'ds-orig-true-1'
@@ -488,6 +519,198 @@ function x = cbds_orig_false_4_test(fun, x0)
     option.shrink = 0.5;
     option.with_cycling_memory = false;
     option.cycling_inner = 4;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_orig_half_true_1_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = true;
+    option.cycling_inner = 1;
+    option.num_blocks = ceil(length(x0) / 2);
+    option.batch_size = option.num_blocks;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_orig_half_false_1_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = false;
+    option.cycling_inner = 1;
+    option.num_blocks = ceil(length(x0) / 2);
+    option.batch_size = option.num_blocks;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_orig_half_true_2_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = true;
+    option.cycling_inner = 2;
+    option.num_blocks = ceil(length(x0) / 2);
+    option.batch_size = option.num_blocks;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_orig_half_false_2_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = false;
+    option.cycling_inner = 2;
+    option.num_blocks = ceil(length(x0) / 2);
+    option.batch_size = option.num_blocks;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_orig_half_true_3_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = true;
+    option.cycling_inner = 3;
+    option.num_blocks = ceil(length(x0) / 2);
+    option.batch_size = option.num_blocks;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_orig_half_false_3_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = false;
+    option.cycling_inner = 3;
+    option.num_blocks = ceil(length(x0) / 2);
+    option.batch_size = option.num_blocks;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_orig_half_true_4_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = true;
+    option.cycling_inner = 4;
+    option.num_blocks = ceil(length(x0) / 2);
+    option.batch_size = option.num_blocks;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_orig_half_false_4_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = false;
+    option.cycling_inner = 4;
+    option.num_blocks = ceil(length(x0) / 2);
+    option.batch_size = option.num_blocks;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_orig_quarter_true_1_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = true;
+    option.cycling_inner = 1;
+    option.num_blocks = ceil(length(x0) / 4);
+    option.batch_size = option.num_blocks;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_orig_quarter_false_1_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = false;
+    option.cycling_inner = 1;
+    option.num_blocks = ceil(length(x0) / 4);
+    option.batch_size = option.num_blocks;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_orig_quarter_true_2_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = true;
+    option.cycling_inner = 2;
+    option.num_blocks = ceil(length(x0) / 4);
+    option.batch_size = option.num_blocks;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_orig_quarter_false_2_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = false;
+    option.cycling_inner = 2;
+    option.num_blocks = ceil(length(x0) / 4);
+    option.batch_size = option.num_blocks;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_orig_quarter_true_3_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = true;
+    option.cycling_inner = 3;
+    option.num_blocks = ceil(length(x0) / 4);
+    option.batch_size = option.num_blocks;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_orig_quarter_false_3_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = false;
+    option.cycling_inner = 3;
+    option.num_blocks = ceil(length(x0) / 4);
+    option.batch_size = option.num_blocks;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_orig_quarter_true_4_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = true;
+    option.cycling_inner = 4;
+    option.num_blocks = ceil(length(x0) / 4);
+    option.batch_size = option.num_blocks;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_orig_quarter_false_4_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.with_cycling_memory = false;
+    option.cycling_inner = 4;
+    option.num_blocks = ceil(length(x0) / 4);
+    option.batch_size = option.num_blocks;
     x = bds(fun, x0, option);
     
 end

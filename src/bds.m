@@ -202,7 +202,7 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
         fprintf("\n!!! THE NUMBER OF BATCH_SIZE IS SET TO BE THE NUMBER OF BLOCKS !!!\n");
         batch_size = num_blocks;
     end
-    
+
     % Set the default value of scheme if it is not provided.
     if ~isfield(options, "scheme")
         scheme = get_default_constant("scheme");
@@ -588,7 +588,7 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
             otherwise
                 error('Invalid scheme input. The scheme should be one of the following: cyclic, random, parallel.\n');
         end
-    
+        
         for i = 1:length(block_indices)
     
             % i_real = block_indices(i) is the real index of the block to be visited. For example,
