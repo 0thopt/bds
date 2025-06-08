@@ -1,8 +1,8 @@
-name: Profile cbds with grad 6, 3x, 6x, small
+name: Profile cbds with grad 3, 3x, 6x, big
 
 on:
   # Trigger the workflow on # push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   schedule:
   - cron: '0 6 */1 * *'
@@ -10,16 +10,17 @@ on:
 
 jobs:
   test:
-    name: Profile cbds with grad window size 6, tol 03 and 06, small
+    name: Profile cbds with grad window size 3, tol 03 and 06, big
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
         matlab: [latest]
-        dim: [small]
+        dim: [big]
         with_optim_toolbox: [yes]
-        feature: [plain, perturbed_x0_0.001, perturbed_x0_1, perturbed_x0_10, perturbed_x0_100, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, truncated_1, truncated_2, truncated_3, truncated_4, permuted, linearly_transformed, random_nan_5, random_nan_10, random_nan_20, quantized_1, quantized_2, quantized_3, quantized_4, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
+        feature: [plain, perturbed_x0_0.001, perturbed_x0_1, perturbed_x0_10, perturbed_x0_100, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, permuted, linearly_transformed, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
+
 
     steps:
       - name: Check out repository
@@ -33,7 +34,7 @@ jobs:
           repository: optiprofiler/optiprofiler
           path: optiprofiler
           submodules: recursive
-          ref: b112c51c924e157731db6609006ee124c49f0832
+          ref: 1674862c96d79582104c22d6d3d529ac00031b63
 
       - name: Install Texlive
         run: sudo apt-get update && sudo apt-get install texlive
@@ -75,7 +76,7 @@ jobs:
               % profile
               addpath(fullfile(root_dir, 'tests'));
               cd(fullfile(root_dir, 'tests', 'tuning'));
-              parameters.grad_window_size = [6 1e8];
+              parameters.grad_window_size = [3 1e8];
               parameters.grad_tol = [1e-3 1e-30];
               parameters.grad_tol_ratio = 1e-3;
               options = struct();
@@ -118,7 +119,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: profile_optiprofiler_cbds_grad_window_size_06_tol_03_06_${{ matrix.dim }}_${{ matrix.feature }}
+          name: profile_optiprofiler_cbds_grad_window_size_03_tol_03_06_${{ matrix.dim }}_${{ matrix.feature }}
           path: ./tests/tuning/tuning_data/**
 
   merge_artifacts:
@@ -171,10 +172,10 @@ jobs:
           cd summary
           ls
           bash ../merge_pdf.sh
-          mv merged.pdf "summary_cbds_grad_window_size_06_tol_03_06_small.pdf"
+          mv merged.pdf "summary_cbds_grad_window_size_03_tol_03_06_big.pdf"
           cd ..
           if [ -d "summary" ]; then
-            mv summary "summary_cbds_grad_window_size_06_tol_03_06_small"
+            mv summary "summary_cbds_grad_window_size_03_tol_03_06_big"
           fi
 
       - name: Upload merged artifact
@@ -182,7 +183,7 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: merged_profiles_cbds_grad_window_size_06_tol_03_06_small
+          name: merged_profiles_cbds_grad_window_size_03_tol_03_06_big
           path: tests/tuning/tuning_data/downloaded_artifacts/**
 
       - name: Upload summary files
@@ -190,5 +191,5 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: summary_files_cbds_grad_window_size_06_tol_03_06_small
-          path: tests/tuning/tuning_data/downloaded_artifacts/summary_cbds_grad_window_size_06_tol_03_06_small/**
+          name: summary_files_cbds_grad_window_size_03_tol_03_06_big
+          path: tests/tuning/tuning_data/downloaded_artifacts/summary_cbds_grad_window_size_03_tol_03_06_big/**

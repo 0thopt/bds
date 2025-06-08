@@ -54,6 +54,12 @@ fopt = fbase;
 xopt = xbase;
 
 for j = 1 : num_directions
+
+    if nf >= MaxFunctionEvaluations
+        fnew = fbase; % If the number of function evaluations exceeds the limit, we set fnew to fbase.
+        sufficient_decrease = false; % In this case, we set sufficient_decrease to false.
+        break;
+    end
     
     % Evaluate the objective function for the current polling direction.
     xnew = xbase+alpha*D(:, j);
@@ -130,7 +136,11 @@ end
 % Actually, there at lest exist two ways to record the decrease value.
 % One is fbase - min(fhist(1:nf)), and the other is fbase - min(fhist(1:nf), fbase).
 % Here, we choose the first one because it is more reasonable.
-output.decrease_value = fbase - min(fhist(1:nf));
+if nf > 0
+    output.decrease_value = fbase - min(fhist(1:nf));
+else
+    output.decrease_value = 0;
+end
 
 end
 

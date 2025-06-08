@@ -18,7 +18,7 @@ function [xopt, fopt, exitflag, output] = bds_development(fun, x0, options)
 %                               (the classical direct search), "pads" (parallel
 %                               blockwise direct search). "scbds" (symmetric
 %                               blockwise direct search). Default: "cbds".
-%   Scheme                      Scheme to use. It can be "cyclic", "random", "parallel",
+%   scheme                      scheme to use. It can be "cyclic", "random", "parallel",
 %                               Default: "cyclic".
 %   num_blocks                  Number of blocks. A positive integer.
 %                               Default: ceil(num_directions/2), where num_directions
@@ -95,6 +95,12 @@ function [xopt, fopt, exitflag, output] = bds_development(fun, x0, options)
 %                               equal to floor(num_blocks/batch_size)-1.
 %                               Default: floor(num_blocks/batch_size)-1.
 %   seed                        The seed for random number generator. Default: "shuffle".
+%   use_function_value_stop     Whether to use the function value to stop the
+%                               algorithm. If it is true, then the algorithm will
+%                               stop when the function value does not change
+%                               significantly over the last func_window_size iterations.
+%                               It is an optional termination criterion.
+%                               Default: false.
 %   use_estimated_gradient_stop Whether to use the estimated gradient to stop
 %                               the algorithm. If it is true and the problem is
 %                               not noisy and each block will be visited once in
@@ -410,14 +416,6 @@ else
     alpha_tol = get_default_constant("StepTolerance");
 end
 
-% Set the value of alpha_threshold. If the step size is smaller than alpha_threshold, then the step size
-% will be not allowed to shrink below alpha_threshold.
-if isfield(options, "alpha_threshold")
-    alpha_threshold = options.alpha_threshold;
-else
-    alpha_threshold = get_default_constant("alpha_threshold_ratio")*alpha_tol;
-end
-
 % Set the target of the objective function.
 if isfield(options, "ftarget")
     ftarget = options.ftarget;
@@ -457,10 +455,12 @@ if use_function_value_stop
         func_tol_2 = options.func_tol_2;
     end
 end
+
 % Set the boolean value of whether the algorithm should stop when the estimated gradient is sufficiently small.
 if isfield(options, "use_estimated_gradient_stop")
     use_estimated_gradient_stop = options.use_estimated_gradient_stop;
     options.output_xhist = true;
+    nf_iter = NaN(MaxFunctionEvaluations, 1);
 else
     use_estimated_gradient_stop = false;
 end
@@ -557,12 +557,6 @@ else
     output_sufficient_decrease = get_default_constant("output_sufficient_decrease");
 end
 
-if isfield(options, "use_estimated_gradient_stop")
-    use_estimated_gradient_stop = options.use_estimated_gradient_stop;
-else
-    use_estimated_gradient_stop = false;
-end
-
 % Initialize the history of sufficient decrease value and the boolean value of whether the sufficient decrease
 % is achieved or not.
 try
@@ -651,62 +645,31 @@ for iter = 1:maxit
     % condition is not achieved in the previous iteration and the problem is not noisy.
     if use_estimated_gradient_stop
 
-        if iter == 2
-            % Get the points visited in the first iteration.
-            xhist_near_x0 = xhist(:, 2:nf);
-            % Remove duplicate column vectors and get the indices of unique columns
-            [xhist_near_x0, unique_indices] = unique(xhist_near_x0', 'rows', 'stable'); % Transpose to operate on columns
-            % Transpose back to get the result as a matrix with unique columns
-            xhist_near_x0 = xhist_near_x0';
-            % Adjust the indices to match the original xhist indexing
-            unique_indices = unique_indices + 1; % Add 1 because sub_xhist starts from the 2nd column of xhist
+        nf_iter(iter) = nf;
 
-            relative_positions = xhist_near_x0 - x0;
-            function_values_near_x0 = fhist(unique_indices);
-            function_values_near_x0 = function_values_near_x0(:); % Convert to column vector
-            design_matrix = [ones(size(relative_positions, 2), 1), relative_positions'];
-            model_parameters = design_matrix \ function_values_near_x0;
-            grad_init = model_parameters(2:end);
+        if iter == 2
+            f_diff = NaN(nf - 1, 1);
+            x_diff = NaN(n, nf - 1);
+            for i = 2:nf
+                f_diff(i-1) = (fhist(i) - fhist(1));
+                x_diff(:, i-1) = xhist(:, i) - xhist(:, 1);
+            end
+            grad_init = lsqminnorm(x_diff', f_diff);
+            grad_hist = [grad_hist, norm(grad_init)];
 
         elseif iter > 2 && ~any(sufficient_decrease(:, iter-1))
             if verbose
                 fprintf("The Algorithm is %s and failed to achieve sufficient decrease " ...
                     + "in the previous iteration.\n", options.Algorithm);
             end
-
-            % The following part is to estimate the gradient of the function at xopt.
-            % In finite difference, it is essential to ensure that the order of directions
-            % matches the order of the divided difference vectors.
-            % Notice that the direction_set_indices might be reordered due to some cycling strategies.
-            % Thus, we sort the directions visited in the previous iteration and save them in
-            % visited_directions_sorted. Then, we list the fhist and xhist in the same order as
-            % visited_directions_sorted after sorting. The visited_directions_sorted after sorting
-            % is saved in visited_directions_sorted_sorted. The sorted order is saved in sorting_indices.
-            [previous_direction_indices_sorted, sorting_indices] = sort(direction_index_hist);
-            visited_directions_sorted = D(:, previous_direction_indices_sorted);
-            visited_directions_set = visited_directions_sorted(:, 1:2:end-1);
-            % Obtain the function values in the previous iteration and sort them
-            % according to the sorting_indices.
-            previous_fhist = fhist(nf - length(direction_index_hist) + 1 : nf);
-            previous_fhist_sorted = previous_fhist(sorting_indices);
-            % Obtain the points in the previous iteration and sort them
-            % according to the sorting_indices.
-            previous_xhist = xhist(:, nf - length(direction_index_hist) + 1 : nf);
-            previous_xhist_sorted = previous_xhist(:, sorting_indices);
-            % Calculate the difference values for the central difference according to the
-            % sorted function values and points.
-            diff_values = NaN(length(direction_index_hist)/2, 1);
-            for i = 1:length(diff_values)
-                diff_values(i) = (previous_fhist_sorted(2*i-1) - previous_fhist_sorted(2*i)) / norm(previous_xhist_sorted(:, 2*i-1) - previous_xhist_sorted(:, 2*i));
+            f_diff = NaN(nf_iter(iter-1) - nf_iter(iter-2), 1);
+            x_diff = NaN(n, nf_iter(iter-1) - nf_iter(iter-2));
+            for i = nf_iter(iter-2)+1:nf_iter(iter-1)
+                f_diff(i-nf_iter(iter-2)) = (fhist(i) - fopt);
+                x_diff(:, i-nf_iter(iter-2)) = xhist(:, i) - xopt;
             end
-
-            % Consider the least norm solution of estimated gradient.
-            % The least norm solution of the linear system Ax = b is given by x = A^T * (A * A^T)^(-1) * b.
-            % Here, A is the transpose of the visited_directions_set and b is the diff_values vector.
-            % We can use QR decomposition to get the inverse of A * A^T.
-            [Q, R] = qr(visited_directions_set.' * visited_directions_set);
-            g = visited_directions_set * (Q / R) * diff_values;
-            grad_hist = [grad_hist norm(g)];
+            grad = lsqminnorm(x_diff', f_diff);
+            grad_hist = [grad_hist, norm(grad)];
         end
 
         % Check if the estimated gradient is small enough to stop the algorithm.
@@ -924,6 +887,10 @@ end
 if output_sufficient_decrease
     output.sufficient_decrease = sufficient_decrease(:, 1:min(iter, maxit));
     output.decrease_value = decrease_value(:, 1:min(iter, maxit));
+    output.grad_hist = grad_hist;
+end
+if use_estimated_gradient_stop
+    output.nf_iter = nf_iter(1:min(iter, maxit));
     output.grad_hist = grad_hist;
 end
 if output_xhist
