@@ -123,7 +123,6 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
     end
     time_str = char(datetime('now', 'Format', 'yy_MM_dd_HH_mm'));
     options.silent = false;
-    options.keep_pool = true;
     options.ptype = 'u';
     if isfield(options, 'dim')
         if strcmpi(options.dim, 'small')
