@@ -2,7 +2,7 @@ name: Verification, norma
 
 on:
   # Trigger the workflow on push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   # # schedule:
   #  # - cron: '0 22 */7 * *'
@@ -21,7 +21,6 @@ jobs:
         os: [ubuntu-latest]
         matlab: [latest]
         with_optim_toolbox: [yes]
-        Algorithm: [lht1, lht, cbds]
 
     steps:
 
@@ -42,6 +41,7 @@ jobs:
           repository: optiprofiler/optiprofiler
           path: optiprofiler
           submodules: recursive
+          ref: b112c51c924e157731db6609006ee124c49f0832
 
       - name: Link gfortran for MATLAB on Linux
         if: startsWith(matrix.os, 'ubuntu')
@@ -96,7 +96,5 @@ jobs:
             
             % Run test
             cd(fullfile(root_dir, 'tests'))
-            parameters.solvers = {"bds", "lam"};
-            parameters.Algorithm = '${{ matrix.Algorithm }}';
-            verify_bds(parameters);
+            verify_bds;
             

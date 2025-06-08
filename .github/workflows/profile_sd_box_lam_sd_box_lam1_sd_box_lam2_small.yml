@@ -1,7 +1,7 @@
 name: Profile sd box including lam, lam1, and lam2, small
 
 on:
-  # Trigger the workflow on push or pull request
+  # Trigger the workflow on # push or pull request
   push:
   # Trigger the workflow manually
   schedule:
@@ -196,5 +196,5 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: summary_files_${{ env.BASE_INFO }}
+          name: summary_files_sd_box_lam_sd_box_lam1_sd_box_lam2_small
           path: tests/testdata/downloaded_artifacts/summary_sd_box_lam_sd_box_lam1_sd_box_lam2_small/**

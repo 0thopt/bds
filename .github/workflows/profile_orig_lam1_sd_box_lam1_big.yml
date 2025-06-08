@@ -1,8 +1,8 @@
 name: Profile original lam1 and sd box lam1, big
 
 on:
-  # Trigger the workflow on push or pull request
-  push:
+  # Trigger the workflow on # push or pull request
+  # push:
   # Trigger the workflow manually
   schedule:
     - cron: '0 3 */9 * *'
