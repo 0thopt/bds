@@ -62,8 +62,8 @@ function [alfa, fz, nf, i_corr_fall, output] = linesearchbox_cont(fun, MaxFuncti
             % If verbose output is enabled, print a message indicating that the point is on the boundary.
             if (alfa_d(j) - (bu(j) - x(j))) < -1e-6
                 % alfa = max(1e-24, alfa_d(j));
-                % 1e-10 is corrsponding to the c in the paper: << Worst Case Complexity Bounds for Linesearch-Type
-                % Derivative-Free Optimization Algorithms >>.
+                % 1e-10 is corrsponding to the c in the paper:  Worst Case Complexity Bounds for Linesearch-Type
+                % Derivative-Free Optimization Algorithms.
                 alfa = max(1e-10 * alfa_max, alfa_d(j));
             else
                 alfa = bu(j) - x(j);
@@ -79,8 +79,8 @@ function [alfa, fz, nf, i_corr_fall, output] = linesearchbox_cont(fun, MaxFuncti
             % is reached. If verbose output is enabled, print a message indicating that the point is on the boundary.
             if (alfa_d(j) - (x(j) - bl(j))) < -1e-6
                 % alfa = max(1e-24, alfa_d(j));
-                % 1e-10 is corrsponding to the c in the paper: << Worst Case Complexity Bounds for Linesearch-Type
-                % Derivative-Free Optimization Algorithms >>.
+                % 1e-10 is corrsponding to the c in the paper: Worst Case Complexity Bounds for Linesearch-Type
+                % Derivative-Free Optimization Algorithms.
                 alfa = max(1e-10 * alfa_max, alfa_d(j));
             else
                 alfa = x(j) - bl(j);
