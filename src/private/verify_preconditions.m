@@ -181,8 +181,8 @@ if isfield(options, "polling_inner")
 end
 
 if isfield(options, "cycling_inner")
-    if ~(isintegerscalar(options.cycling_inner) && options.cycling_inner >= 0 && options.cycling_inner <= 4)
-        error("options.cycling_inner should be a nonnegative integer less than or equal to 4.");
+    if ~(isintegerscalar(options.cycling_inner) && options.cycling_inner >= 0 && options.cycling_inner <= 3)
+        error("options.cycling_inner should be a nonnegative integer less than or equal to 3.");
     end
 end
 
@@ -217,7 +217,7 @@ if isfield(options, "output_block_hist")
 end
 
 if isfield(options, "iprint")
-    if  ~(isintegerscalar(options.iprint) && options.iprint > 0 && options.iprint <= 3)
+    if  ~(isintegerscalar(options.iprint) && options.iprint >= 0 && options.iprint <= 3)
         error("options.iprint should be a nonnegative integer less than or equal to 3.");
     end
 end

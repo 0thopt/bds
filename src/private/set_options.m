@@ -231,7 +231,7 @@ else
     if options.output_alpha_hist
         try
             % Test allocation of alpha_hist whether it exceeds the maximum memory size allowed.
-            alpha_hist_test = NaN(options.num_blocks, maxit); %#ok<NASGU>
+            alpha_hist_test = NaN(options.num_blocks, 500*length(x0)); %#ok<NASGU>
             clear alpha_hist_test
         catch
             options.output_alpha_hist = false;
@@ -242,7 +242,7 @@ else
     if  options.output_xhist
         try
             % Test allocation of xhist whether it exceeds the maximum memory size allowed.
-            xhist_test = NaN(length(x0), MaxFunctionEvaluations); %#ok<NASGU>
+            xhist_test = NaN(length(x0), 500*length(x0)); %#ok<NASGU>
             clear xhist_test
         catch
             options.output_xhist = false;

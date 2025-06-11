@@ -15,35 +15,23 @@ function cycling_test(testCase)
 
 % The following must not cycle the array.
 array = [1, 2, 3, 4, 5];
-for memory = [true, false]
-    for strategy = 0:4
-        verifyEqual(testCase, cycling(array, -1, strategy, memory), array)
-    end
-    for index = 1:length(array)
-        verifyEqual(testCase, cycling(array, index, 0, memory), array)
-    end
+for strategy = 0:4
+    verifyEqual(testCase, cycling(array, -1, strategy), array)
+end
+for index = 1:length(array)
+    verifyEqual(testCase, cycling(array, index, 0), array)
 end
 
 % The following are the ones commented on cycling.m.
 array = [1, 2, 3, 4, 5];
-for memory = [true, false]
-    verifyEqual(testCase, cycling(array, 3, 1, memory), [3, 1, 2, 4, 5])
-    verifyEqual(testCase, cycling(array, 3, 2, memory), [3, 4, 5, 1, 2])
-    verifyEqual(testCase, cycling(array, 3, 3, memory), [4, 5, 1, 2, 3])
-    verifyEqual(testCase, cycling(array, 3, 4, memory), [4, 1, 2, 3, 5])
-end
+verifyEqual(testCase, cycling(array, 3, 1), [3, 1, 2, 4, 5])
+verifyEqual(testCase, cycling(array, 3, 2), [3, 4, 5, 1, 2])
+verifyEqual(testCase, cycling(array, 3, 3), [4, 5, 1, 2, 3])
 
-% The following tests the memory argument
-% Interestingly, these tests show that the comment in cycling.m stating
-% that the strategy 2 and 3 are not influenced by the value of memory is
-% wrong!!
 array = [2, 1, 4, 5, 3];
-verifyEqual(testCase, cycling(array, 3, 1, true), [4, 2, 1, 5, 3])
-verifyEqual(testCase, cycling(array, 3, 1, false), [4, 1, 2, 3, 5])
-verifyEqual(testCase, cycling(array, 3, 2, true), [4, 5, 3, 2, 1])
-verifyEqual(testCase, cycling(array, 3, 2, false), [4, 5, 1, 2, 3])
-verifyEqual(testCase, cycling(array, 3, 3, true), [5, 3, 2, 1, 4])
-verifyEqual(testCase, cycling(array, 3, 3, false), [5, 1, 2, 3, 4])
+verifyEqual(testCase, cycling(array, 3, 1), [4, 2, 1, 5, 3])
+verifyEqual(testCase, cycling(array, 3, 2), [4, 5, 3, 2, 1])
+verifyEqual(testCase, cycling(array, 3, 3), [5, 3, 2, 1, 4])
 
 end
 
@@ -420,7 +408,7 @@ x0 = zeros(3,1);
 [~, fopt, ~, ~] = bds(@chrosen, x0);
 verifyEqual(testCase, fopt, 0)
 options = struct();
-options.iprint = 3;
+options.iprint = 0;
 options.MaxFunctionEvaluations = 5000 * length(x0);
 options.ftarget = -inf;
 options.output_alpha_hist = true;
