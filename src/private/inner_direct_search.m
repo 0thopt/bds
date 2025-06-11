@@ -92,6 +92,12 @@ for j = 1 : num_directions
         xopt = xnew;
         fopt = fnew;
     end
+
+    % Check if the function value meets the target after updating the best value and the corresponding 
+    % point.
+    if fnew <= ftarget
+        break;
+    end
     
     % Check whether the sufficient decrease condition is achieved.
     sufficient_decrease = (fnew + reduction_factor(3) * forcing_function(alpha)/2 < fbase);
@@ -102,10 +108,6 @@ for j = 1 : num_directions
     % in outer_direct_search. 
     if sufficient_decrease && ~strcmpi(polling_inner, "complete")
         direction_indices = cycling(direction_indices, j, cycling_strategy, with_cycling_memory);
-        break;
-    end
-
-    if nf >= MaxFunctionEvaluations || fnew <= ftarget
         break;
     end
 

@@ -424,7 +424,7 @@ x0 = zeros(3,1);
 [~, fopt, ~, ~] = bds(@chrosen, x0);
 verifyEqual(testCase, fopt, 0)
 options = struct();
-options.iprint = true;
+options.iprint = 3;
 options.MaxFunctionEvaluations = 5000 * length(x0);
 options.ftarget = -inf;
 options.output_alpha_hist = true;
