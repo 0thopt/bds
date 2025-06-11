@@ -199,10 +199,6 @@ constant_name = "polling_inner";
 constant_value = "opportunistic";
 verifyEqual(testCase, get_default_constant(constant_name), constant_value)
 
-constant_name = "with_cycling_memory";
-constant_value = true;
-verifyEqual(testCase, get_default_constant(constant_name), constant_value)
-
 constant_name = "alpha_init";
 constant_value = 1;
 verifyEqual(testCase, get_default_constant(constant_name), constant_value)

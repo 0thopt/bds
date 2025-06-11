@@ -6,8 +6,7 @@ function [xopt, fopt, exitflag, output] = inner_direct_search(fun, ...
 %   [xopt, fopt, EXITFLAG, OUTPUT] = INNER_DIRECT_SEARCH(FUN, xbase, fbase, D, ...
 %   DIRECTION_INDICES, ALPHA, OPTIONS) returns a structure OUTPUT including
 %   funcCount, fhist, xhist, success, terminate, and direction_indices, working with the 
-%   structure OPTIONS, which includes reduction_factor, ftarget, polling, 
-%   with_cycling_memory, cycling.
+%   structure OPTIONS, which includes reduction_factor, ftarget, polling, cycling.
 %
 %   DIRECTION_INDICES is the indices of directions of the current block in D.
 %
@@ -23,9 +22,6 @@ polling_inner = options.polling_inner;
 
 % Set the value of cycling_inner, which represents the cycling strategy inside each block.
 cycling_strategy = options.cycling_inner;
-
-% Set the boolean value of WITH_CYCLING_MEMORY. 
-with_cycling_memory = options.with_cycling_memory;
 
 % Set the forcing function, which is a function handle.
 forcing_function = options.forcing_function;
@@ -107,7 +103,7 @@ for j = 1 : num_directions
     % that we cycle indices here is because inner_direct_search is called in a loop 
     % in outer_direct_search. 
     if sufficient_decrease && ~strcmpi(polling_inner, "complete")
-        direction_indices = cycling(direction_indices, j, cycling_strategy, with_cycling_memory);
+        direction_indices = cycling(direction_indices, j, cycling_strategy);
         break;
     end
 

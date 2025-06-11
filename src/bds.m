@@ -88,9 +88,6 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               is used only when polling_inner is "opportunistic".
 %                               It can be 0, 1, 2, 3, 4. See cycling.m for details.
 %                               Default: 3.
-%   with_cycling_memory         Whether the cycling strategy within each block memorizes
-%                               the history or not. It is used only when polling_inner
-%                               is "opportunistic". Default: true.
 %   batch_size                  Suppose that batch_size is k. In each iteration,
 %                               k blocks are randomly selected to visit. A positive
 %                               integer less than or equal to num_blocks.
@@ -205,7 +202,6 @@ reduction_factor = options.reduction_factor;
 forcing_function = options.forcing_function;
 polling_inner = options.polling_inner;
 cycling_inner = options.cycling_inner;
-with_cycling_memory = options.with_cycling_memory;
 replacement_delay = options.replacement_delay;
 
 MaxFunctionEvaluations = options.MaxFunctionEvaluations;
@@ -335,7 +331,6 @@ for iter = 1:maxit
         suboptions.FunctionEvaluations_exhausted = nf;
         suboptions.MaxFunctionEvaluations = MaxFunctionEvaluations - nf;
         suboptions.cycling_inner = cycling_inner;
-        suboptions.with_cycling_memory = with_cycling_memory;
         suboptions.reduction_factor = reduction_factor;
         suboptions.forcing_function = forcing_function;
         suboptions.ftarget = ftarget;

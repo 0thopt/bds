@@ -45,8 +45,6 @@ switch constant_name
         constant_value = "opportunistic";
     case {"cycling_inner"}
         constant_value = 1;
-    case {"with_cycling_memory"}
-        constant_value = true;
     case {"seed"}
         constant_value = "shuffle";
     case {"ftarget"}

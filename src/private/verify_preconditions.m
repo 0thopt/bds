@@ -186,12 +186,6 @@ if isfield(options, "cycling_inner")
     end
 end
 
-if isfield(options, "with_cycling_memory")
-    if ~islogical(options.with_cycling_memory)
-        error("options.with_cycling_memory should be a logical value.");
-    end
-end
-
 if isfield(options, "batch_size")
     if ~(isintegerscalar(options.batch_size) && options.batch_size > 0)
         error("options.batch_size should be a positive integer.");

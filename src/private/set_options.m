@@ -21,7 +21,6 @@ field_list = {
     'ftarget'
     'polling_inner'
     'cycling_inner'
-    'with_cycling_memory'
     'batch_size'
     'replacement_delay'
     'seed'
