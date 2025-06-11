@@ -18,6 +18,7 @@ jobs:
         os: [ubuntu-latest]
         matlab: [latest]
         dim: [big]
+        plibs: [matcutest]
         with_optim_toolbox: [yes]
         feature: [plain, perturbed_x0_0.001, perturbed_x0_1, perturbed_x0_10, perturbed_x0_100, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, permuted, linearly_transformed, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
 
@@ -80,6 +81,7 @@ jobs:
               parameters.grad_tol = [1e-3 1e-30];
               parameters.grad_tol_ratio = 1e-3;
               options = struct();
+              options.plibs = '${{ matrix.plibs }}';
               options.dim = '${{ matrix.dim }}';
               options.feature_name = '${{ matrix.feature }}';
               tuning_optiprofiler(parameters, options);
