@@ -1,8 +1,8 @@
-name: Profile original cbds, half, true, 1 with original cbds, half, false, 1, big
+name: Profile original ds, true, 2 with original ds, 0, big
 
 on:
   # Trigger the workflow on # push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   # schedule:
   #   - cron: '0 3 */7 * *'
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Profile original cbds, half, true, 1 with original cbds, half, false, 1, big
+    name: Profile original ds, true, 2 with original ds, 0, big
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -19,8 +19,8 @@ jobs:
         matlab: [latest]
         dim: [big]
         with_optim_toolbox: [yes]
-        solver: [cbds-orig-half-true-1]
-        competitor: [cbds-orig-half-false-1]
+        solver: [ds-orig-true-2]
+        competitor: [ds-orig-0]
         run_plain: [false]
         summarize_log_ratio_profiles: [false]
         feature: [plain, perturbed_x0_0.001, perturbed_x0_1, perturbed_x0_10, perturbed_x0_100, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, permuted, linearly_transformed, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]

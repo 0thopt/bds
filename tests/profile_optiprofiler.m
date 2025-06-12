@@ -178,6 +178,8 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
         switch options.solver_names{i}
             case 'cbds-orig'
                 solvers{i} = @cbds_orig_test;
+            case 'cbds-orig-0'
+                solvers{i} = @cbds_orig_0_test;
             case 'cbds-orig-true-1'
                 solvers{i} = @cbds_orig_true_1_test;
             case 'cbds-orig-true-2'
@@ -194,6 +196,8 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @cbds_orig_false_3_test;
             case 'cbds-orig-false-4'
                 solvers{i} = @cbds_orig_false_4_test;
+            case 'cbds-orig-half-0'
+                solvers{i} = @cbds_orig_half_0_test;
             case 'cbds-orig-half-true-1'
                 solvers{i} = @cbds_orig_half_true_1_test;
             case 'cbds-orig-half-false-1'
@@ -210,6 +214,8 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @cbds_orig_half_true_4_test;
             case 'cbds-orig-half-false-4'
                 solvers{i} = @cbds_orig_half_false_4_test;
+            case 'cbds-orig-quarter-0'
+                solvers{i} = @cbds_orig_quarter_0_test;
             case 'cbds-orig-quarter-true-1'
                 solvers{i} = @cbds_orig_quarter_true_1_test;
             case 'cbds-orig-quarter-false-1'
@@ -435,6 +441,16 @@ function x = cbds_orig_test(fun, x0)
     
 end
 
+function x = cbds_orig_0_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.cycling_inner = 0;
+    x = bds(fun, x0, option);
+    
+end
+
 function x = cbds_orig_true_1_test(fun, x0)
 
     option.Algorithm = 'cbds';
@@ -519,6 +535,17 @@ function x = cbds_orig_false_4_test(fun, x0)
     option.shrink = 0.5;
     option.with_cycling_memory = false;
     option.cycling_inner = 4;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_orig_half_0_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.cycling_inner = 0;
+    option.num_blocks = ceil(length(x0) / 2);
+    option.batch_size = option.num_blocks;
     x = bds(fun, x0, option);
     
 end
@@ -614,6 +641,17 @@ function x = cbds_orig_half_false_4_test(fun, x0)
     option.with_cycling_memory = false;
     option.cycling_inner = 4;
     option.num_blocks = ceil(length(x0) / 2);
+    option.batch_size = option.num_blocks;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_orig_quarter_0_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.cycling_inner = 0;
+    option.num_blocks = ceil(length(x0) / 4);
     option.batch_size = option.num_blocks;
     x = bds(fun, x0, option);
     
@@ -720,7 +758,6 @@ function x = ds_orig_0_test(fun, x0)
     option.Algorithm = 'ds';
     option.expand = 2;
     option.shrink = 0.5;
-    option.with_cycling_memory = true;
     option.cycling_inner = 0;
     x = bds(fun, x0, option);
     

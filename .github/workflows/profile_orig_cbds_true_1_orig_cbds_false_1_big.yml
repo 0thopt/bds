@@ -2,10 +2,10 @@ name: Profile original cbds, true, 1 with original cbds, false, 1, big
 
 on:
   # Trigger the workflow on # push or pull request
-  # # push:
+  # push:
   # Trigger the workflow manually
-  schedule:
-    - cron: '0 3 */7 * *'
+  # schedule:
+  #   - cron: '0 3 */7 * *'
   workflow_dispatch:
 
 jobs:
