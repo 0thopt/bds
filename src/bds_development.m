@@ -641,20 +641,22 @@ fopt_all = NaN(1, num_blocks);
 xopt_all = NaN(n, num_blocks);
 
 for iter = 1:maxit
-    % Use central difference to estimate the gradient of the function at xopt if the sufficient decrease
-    % condition is not achieved in the previous iteration and the problem is not noisy.
+
     if use_estimated_gradient_stop
 
         nf_iter(iter) = nf;
 
         if iter == 2
-            f_diff = NaN(nf - 1, 1);
-            x_diff = NaN(n, nf - 1);
-            for i = 2:nf
-                f_diff(i-1) = (fhist(i) - fhist(1));
-                x_diff(:, i-1) = xhist(:, i) - xhist(:, 1);
-            end
-            grad_init = lsqminnorm(x_diff', f_diff);
+            % f_diff = NaN(nf - 1, 1);
+            % x_diff = NaN(n, nf - 1);
+            % for i = 2:nf
+            %     f_diff(i-1) = (fhist(i) - fhist(1));
+            %     x_diff(:, i-1) = xhist(:, i) - xhist(:, 1);
+            % end
+            f_diff = fhist(2:nf) - fhist(1);
+            x_diff = xhist(:, 2:nf) - xhist(:, 1);
+            % Why 1e-10? To keep the same behavior as the get_direction_set.m.
+            grad_init = lsqminnorm(x_diff', f_diff', 1e-10);
             grad_hist = [grad_hist, norm(grad_init)];
 
         elseif iter > 2 && ~any(sufficient_decrease(:, iter-1))
@@ -662,13 +664,16 @@ for iter = 1:maxit
                 fprintf("The Algorithm is %s and failed to achieve sufficient decrease " ...
                     + "in the previous iteration.\n", options.Algorithm);
             end
-            f_diff = NaN(nf_iter(iter-1) - nf_iter(iter-2), 1);
-            x_diff = NaN(n, nf_iter(iter-1) - nf_iter(iter-2));
-            for i = nf_iter(iter-2)+1:nf_iter(iter-1)
-                f_diff(i-nf_iter(iter-2)) = (fhist(i) - fopt);
-                x_diff(:, i-nf_iter(iter-2)) = xhist(:, i) - xopt;
-            end
-            grad = lsqminnorm(x_diff', f_diff);
+            % f_diff = NaN(nf_iter(iter-1) - nf_iter(iter-2), 1);
+            % x_diff = NaN(n, nf_iter(iter-1) - nf_iter(iter-2));
+            % for i = nf_iter(iter-2)+1:nf_iter(iter-1)
+            %     f_diff(i-nf_iter(iter-2)) = (fhist(i) - fopt);
+            %     x_diff(:, i-nf_iter(iter-2)) = xhist(:, i) - xopt;
+            % end
+            idx = (nf_iter(iter-1)+1):nf_iter(iter);
+            f_diff = fhist(idx) - fopt;
+            x_diff = xhist(:, idx) - xopt;
+            grad = lsqminnorm(x_diff', f_diff', 1e-10);
             grad_hist = [grad_hist, norm(grad)];
         end
 
