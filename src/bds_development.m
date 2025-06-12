@@ -655,8 +655,7 @@ for iter = 1:maxit
             % end
             f_diff = fhist(2:nf) - fhist(1);
             x_diff = xhist(:, 2:nf) - xhist(:, 1);
-            % Why 1e-10? To keep the same behavior as the get_direction_set.m.
-            grad_init = lsqminnorm(x_diff', f_diff', 1e-10);
+            grad_init = lsqminnorm(x_diff', f_diff');
             grad_hist = [grad_hist, norm(grad_init)];
 
         elseif iter > 2 && ~any(sufficient_decrease(:, iter-1))
@@ -673,7 +672,7 @@ for iter = 1:maxit
             idx = (nf_iter(iter-1)+1):nf_iter(iter);
             f_diff = fhist(idx) - fopt;
             x_diff = xhist(:, idx) - xopt;
-            grad = lsqminnorm(x_diff', f_diff', 1e-10);
+            grad = lsqminnorm(x_diff', f_diff');
             grad_hist = [grad_hist, norm(grad)];
         end
 
