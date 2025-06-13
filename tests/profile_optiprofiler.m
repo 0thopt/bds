@@ -203,6 +203,10 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @sd_box_lam1;
             case 'sd-box-lam2'
                 solvers{i} = @sd_box_lam2;
+            case 'sd-box-lam1-orig'
+                solvers{i} = @sd_box_lam1_orig;
+            case 'sd-box-lam2-orig'
+                solvers{i} = @sd_box_lam2_orig;
             otherwise
                 error('Unknown solver');
         end
@@ -514,5 +518,21 @@ function x = sd_box_lam2(fun, x0)
     options.Algorithm = 'lam2';
     n = length(x0);
     x = lam(fun, x0, -inf(n, 1), inf(n, 1), options);
+
+end
+
+function x = sd_box_lam1_orig(fun, x0)
+
+    options.Algorithm = 'lam1';
+    n = length(x0);
+    x = lam_orig(fun, x0, -inf(n, 1), inf(n, 1), options);
+
+end
+
+function x = sd_box_lam2_orig(fun, x0)
+
+    options.Algorithm = 'lam2';
+    n = length(x0);
+    x = lam_orig(fun, x0, -inf(n, 1), inf(n, 1), options);
 
 end
