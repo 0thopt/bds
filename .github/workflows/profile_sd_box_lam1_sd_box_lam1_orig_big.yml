@@ -1,4 +1,4 @@
-name: Profile sd box lam1 and original sd box lam1, small
+name: Profile sd box lam1 and original sd box lam1, big
 
 on:
   # Trigger the workflow on # push or pull request
@@ -10,14 +10,14 @@ on:
 
 jobs:
   test:
-    name: Profile sd box lam1 and original sd box lam1, small
+    name: Profile sd box lam1 and original sd box lam1,  big
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
         matlab: [latest]
-        dim: [small]
+        dim: [big]
         with_optim_toolbox: [yes]
         solver: [sd-box-lam1]
         competitor: [sd-box-lam1-orig]
