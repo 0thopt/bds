@@ -1,5 +1,5 @@
 function [alfa, fz, nf, i_corr_fall, output] = linesearchbox_cont(fun, MaxFunctionEvaluations, Algorithm, ...
-    n, x, f, d, alfa_d, j, alfa_max, iprint, bl, bu, nf, ni)
+    n, x, f, d, alfa_d, j, alfa_max, iprint, bl, bu, nf, ni, allow_small_step)
     
     % In python, variables can be modified without returning them,
     % but in MATLAB, we need to return them explicitly. Thus, we introduce the variable output
@@ -35,21 +35,23 @@ function [alfa, fz, nf, i_corr_fall, output] = linesearchbox_cont(fun, MaxFuncti
 
     % Check if the step size is too relatively small. If so, we set alfa to zero
     % and return the current function value. We want to see the real performance of the algorithm
-    % in the case of small step sizes, so we do not stop the algorithm here.
-    % if abs(alfa_d(j)) <= 1e-3 * min(1.0, alfa_max)
-    %     alfa = 0.0;
-    %     if iprint >= 1
-    %         fprintf('  alfa piccolo\n');
-    %         fprintf(' alfa_d(j)=%e    alfamax=%e\n', alfa_d(j), alfa_max);
-    %     end
-    %     fz = f;
-    %     output.alfa_d = alfa_d;
-    %     output.d = d;
-    %     output.fhist = fhist(1:nf);
-    %     output.xhist = xhist(:, 1:nf);
-    %     output.x = z;
-    %     return;
-    % end
+    % in the case of small step sizes, so the default value of allow_small_step is true.
+    if ~allow_small_step
+        if abs(alfa_d(j)) <= 1e-3 * min(1.0, alfa_max)
+            alfa = 0.0;
+            if iprint >= 1
+                fprintf('  small alpha\n');
+                fprintf(' alfa_d(j)=%e    alfamax=%e\n', alfa_d(j), alfa_max);
+            end
+            fz = f;
+            output.alfa_d = alfa_d;
+            output.d = d;
+            output.fhist = [];
+            output.xhist = [];
+            nf = MaxFunctionEvaluations_exhausted  + nf; % Restore the function evaluation counter
+            return;
+        end
+    end
 
     for ielle = 1:2
         % d is a vector of dimension n, and we are interested in the j-th component here.
@@ -92,23 +94,27 @@ function [alfa, fz, nf, i_corr_fall, output] = linesearchbox_cont(fun, MaxFuncti
             end
         end
 
+        % After revising the step size under the constraints, we check whether the step size is too small.
         % If the step size alpha is too small, reverse the direction, increment the small step counter,
         % and set alpha to zero. If verbose output is enabled, print information about the direction 
         % reversal and alpha. Then continue to the next iteration. We want to see the real performance of 
         % the algorithm in the case of small step sizes, so we do not stop the algorithm here.
-        % if abs(alfa) <= 1e-3 * min(1.0, alfa_max)
-        %     d(j) = -d(j);
-        %     i_corr_fall = i_corr_fall + 1;
-        %     ifront = 0;
-        %     if iprint >= 1
-        %         % fprintf(' direzione opposta per alfa piccolo\n');
-        %         fprintf(' opposite direction due to small alpha\n');
-        %         fprintf(' j =%d    d(j) =%f\n', j, d(j));
-        %         fprintf(' alfa=%e    alfamax=%e\n', alfa, alfa_max);
-        %     end
-        %     alfa = 0.0;
-        %     continue;
-        % end
+        if ~allow_small_step
+            if abs(alfa) <= 1e-3 * min(1.0, alfa_max)
+                d(j) = -d(j);
+                i_corr_fall = i_corr_fall + 1;
+                ifront = 0;
+                if iprint >= 1
+                    fprintf(' opposite direction due to small alpha\n');
+                    fprintf(' j =%d    d(j) =%f\n', j, d(j));
+                    fprintf(' alfa=%e    alfamax=%e\n', alfa, alfa_max);
+                end
+                % In the original code, the step size is set to zero, but in our implementation,
+                % we set it in the part after ending the for loop and the program still continues.
+                % alfa = 0.0;
+                continue;
+            end
+        end
 
         % Stop the loop if no more function evaluations can be performed. 
         % Note that this should be checked after evaluating the objective function immediately.
@@ -257,13 +263,26 @@ function [alfa, fz, nf, i_corr_fall, output] = linesearchbox_cont(fun, MaxFuncti
         end
     end
 
-    % 
-    % if strcmpi(Algorithm, 'LAM1') || strcmpi(Algorithm, 'LAM2')
-    %     % If the step size is too small, reverse the direction, increment
-    %     if i_corr_fall ~= 2
-    %         alfa_d(j) = delta * alfa_d(j);
-    %     end
-    % end
+    if ~allow_small_step 
+        if strcmpi(Algorithm, 'LAM1') || strcmpi(Algorithm, 'LAM2')
+            % If i_corr_fall is not equal to 2, it means that the step size is already too small for both d(j) and -d(j),
+            % we will not shrink the step size again. Otherwise, we will shrink the step size by multiplying
+            % it with delta.
+            if i_corr_fall ~= 2
+                alfa = 0.0;
+                alfa_d(j) = delta * alfa_d(j);
+                output.d = d;
+                output.alfa_d = alfa_d;
+                output.fhist = [];
+                output.xhist = [];
+                if iprint >= 1
+                    fprintf(' The step size is already too small for both d(j) and -d(j), so we will not shrink the step size again.\n');
+                end
+                nf = MaxFunctionEvaluations_exhausted + nf; % Restore the function evaluation counter
+                return;
+            end
+        end
+    end
 
     fz = f;
     if strcmpi(Algorithm, 'LAM1') || strcmpi(Algorithm, 'LAM2')

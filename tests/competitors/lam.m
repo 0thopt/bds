@@ -27,6 +27,11 @@ function [xopt, fopt, exitflag, output] = lam(fun, x, lb, ub, options)
     else
         iprint = 0; % default print level
     end
+    if isfield(options, 'allow_small_step')
+        allow_small_step = options.allow_small_step; % whether to allow small step sizes
+    else
+        allow_small_step = true;
+    end
     % In our implementation, num_fal is useless since we do not terminate the algorithm even if
     % some step size is too relatively small.
     num_fal = 0;
@@ -97,7 +102,7 @@ function [xopt, fopt, exitflag, output] = lam(fun, x, lb, ub, options)
         % end
         % Introduce ni just for debugging purposes.
         [alfa, fz, nf, i_corr_fall, ls_output] = linesearchbox_cont(fun, nf_max, Algorithm, ...
-    n, x, f, d, alfa_d, i_corr, alfa_max, iprint, bl, bu, nf, ni);
+    n, x, f, d, alfa_d, i_corr, alfa_max, iprint, bl, bu, nf, ni, allow_small_step);
         % if ni == 6
         %     keyboard
         % end
@@ -109,8 +114,12 @@ function [xopt, fopt, exitflag, output] = lam(fun, x, lb, ub, options)
         % end
         d = ls_output.d;
         alfa_d = ls_output.alfa_d;
-        fhist(nf_current+1:nf_current+length(ls_output.fhist)) = ls_output.fhist;
-        xhist(:, nf_current+1:nf_current+length(ls_output.fhist)) = ls_output.xhist;
+        if ~isempty(ls_output.fhist)
+            fhist(nf_current+1:nf_current+length(ls_output.fhist)) = ls_output.fhist;    
+        end
+        if ~isempty(ls_output.xhist)
+            xhist(:, nf_current+1:nf_current+length(ls_output.fhist)) = ls_output.xhist;
+        end
 
         % If the step size alpha is large enough, update the solution and function value,
         % and reset the failure flag and counter. For LAM2, also update the best found solution if improved.
@@ -139,11 +148,11 @@ function [xopt, fopt, exitflag, output] = lam(fun, x, lb, ub, options)
             ni = ni + 1;
         else
             flag_fail(i_corr) = 1;
-            if i_corr_fall < 2
-                % fstop(i_corr) = fz;
-                num_fal = num_fal + 1;
-                ni = ni + 1;
-            end
+            % if i_corr_fall < 2
+            %     % fstop(i_corr) = fz;
+            %     num_fal = num_fal + 1;
+            %     ni = ni + 1;
+            % end
         end
         % if ni == 3
         %     keyboard
@@ -201,7 +210,6 @@ function [xopt, fopt, exitflag, output] = lam(fun, x, lb, ub, options)
             xk = x;
         end
     end
-    
     % if nf < nf_max
     %     bestf = min(fhist(1:nf));
     %     fhist(nf+1:nf_max) = bestf;

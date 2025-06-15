@@ -207,6 +207,10 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @sd_box_lam1_orig;
             case 'sd-box-lam2-orig'
                 solvers{i} = @sd_box_lam2_orig;
+            case 'sd-box-lam1-not-allow-small-step'
+                solvers{i} = @sd_box_lam1_not_allow_small_step;
+            case 'sd-box-lam2-not-allow-small-step'
+                solvers{i} = @sd_box_lam2_not_allow_small_step;
             otherwise
                 error('Unknown solver');
         end
@@ -534,5 +538,23 @@ function x = sd_box_lam2_orig(fun, x0)
     options.Algorithm = 'lam2';
     n = length(x0);
     x = lam_orig(fun, x0, -inf(n, 1), inf(n, 1), options);
+
+end
+
+function x = sd_box_lam1_not_allow_small_step(fun, x0)
+
+    options.Algorithm = 'lam1';
+    options.allow_small_step = false;
+    n = length(x0);
+    x = lam(fun, x0, -inf(n, 1), inf(n, 1), options);
+
+end
+
+function x = sd_box_lam2_not_allow_small_step(fun, x0)
+
+    options.Algorithm = 'lam2';
+    options.allow_small_step = false;
+    n = length(x0);
+    x = lam(fun, x0, -inf(n, 1), inf(n, 1), options);
 
 end
