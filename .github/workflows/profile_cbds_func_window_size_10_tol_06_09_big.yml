@@ -80,6 +80,7 @@ jobs:
               parameters.func_tol = [1e-6 1e-30];
               parameters.func_tol_ratio = 1e-3;
               options = struct();
+              options.solver_names = {'cbds-tuning-func', 'cbds-default'};
               options.plibs = '${{ matrix.plibs }}';
               options.dim = '${{ matrix.dim }}';
               options.feature_name = '${{ matrix.feature }}';

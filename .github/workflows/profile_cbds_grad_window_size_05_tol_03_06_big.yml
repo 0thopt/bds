@@ -2,7 +2,7 @@ name: Profile cbds with grad 5, 3x, 6x, big
 
 on:
   # Trigger the workflow on # push or pull request
-  push:
+  # push:
   # Trigger the workflow manually
   schedule:
   - cron: '0 6 */1 * *'
@@ -81,6 +81,7 @@ jobs:
               parameters.grad_tol = [1e-3 1e-30];
               parameters.grad_tol_ratio = 1e-3;
               options = struct();
+              options.solver_names = {'cbds-tuning-grad', 'cbds-default'};
               options.dim = '${{ matrix.dim }}';
               options.plibs = '${{ matrix.plibs }}';
               options.feature_name = '${{ matrix.feature }}';

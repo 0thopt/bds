@@ -640,43 +640,57 @@ grad_hist = [];
 fopt_all = NaN(1, num_blocks);
 xopt_all = NaN(n, num_blocks);
 
+% Initialize an empty vector to store the points visited in the last iteration.
+x_last_iter = [];
+% Initialize an empty vector to store the function values in the last iteration.
+f_last_iter = [];
+
 for iter = 1:maxit
+
+    % Initialize an empty vector to store the points visited in this iteration.
+    x_visited_this_iter = [];
+    % Initialize an empty vector to store the function values in this iteration.
+    f_visited_this_iter = [];
+
 
     if use_estimated_gradient_stop
 
         nf_iter(iter) = nf;
 
         if iter == 2
-            % f_diff = NaN(nf - 1, 1);
-            % x_diff = NaN(n, nf - 1);
-            % for i = 2:nf
-            %     f_diff(i-1) = (fhist(i) - fhist(1));
-            %     x_diff(:, i-1) = xhist(:, i) - xhist(:, 1);
-            % end
-            f_diff = fhist(2:nf) - fhist(1);
-            x_diff = xhist(:, 2:nf) - xhist(:, 1);
-            grad_init = lsqminnorm(x_diff', f_diff');
+            % Since MATLAB R2016b, implicit expansion can be used. See Nick Higham's blog for details:
+            % https://nhigham.com/2016/09/20/implicit-expansion-matlab-r2016b/.
+            f_diff = f_last_iter - fbase;
+            f_diff = f_diff(:);
+            x_diff = x_last_iter - x0;
+            grad_init = lsqminnorm(x_diff', f_diff);
             grad_hist = [grad_hist, norm(grad_init)];
 
         elseif iter > 2 && ~any(sufficient_decrease(:, iter-1))
-            if verbose
-                fprintf("The Algorithm is %s and failed to achieve sufficient decrease " ...
-                    + "in the previous iteration.\n", options.Algorithm);
+            % idx = (nf_iter(iter-1)+1):nf_iter(iter);
+            % f_diff = fhist(idx) - fopt;
+            % x_diff = xhist(:, idx) - xopt;
+            % grad_tmp = lsqminnorm(x_diff', f_diff');
+            % grad_hist = [grad_hist, norm(grad)];
+            if ~(isfield(options, 'cd') && options.cd)
+                f_diff = f_last_iter - fopt;
+                f_diff = f_diff(:);
+                x_diff = x_last_iter - xopt;
+                grad = lsqminnorm(x_diff', f_diff);
+            else
+                directional_derivative = nan(n, 1);
+                directional_matrix = nan(n, n);
+                for i = 1:n
+                    % Compute the directional derivative in the i-th direction.
+                    directional_derivative(i) = (f_last_iter(2*i) - f_last_iter(2*i-1)) / norm(x_last_iter(2*i) - x_last_iter(2*i-1));
+                    directional_matrix(:, i) = (x_last_iter(2*i) - x_last_iter(2*i-1)) / norm(x_last_iter(2*i) - x_last_iter(2*i-1));
+                end
+                grad = lsqminnorm(directional_matrix', directional_derivative);
             end
-            % f_diff = NaN(nf_iter(iter-1) - nf_iter(iter-2), 1);
-            % x_diff = NaN(n, nf_iter(iter-1) - nf_iter(iter-2));
-            % for i = nf_iter(iter-2)+1:nf_iter(iter-1)
-            %     f_diff(i-nf_iter(iter-2)) = (fhist(i) - fopt);
-            %     x_diff(:, i-nf_iter(iter-2)) = xhist(:, i) - xopt;
-            % end
-            idx = (nf_iter(iter-1)+1):nf_iter(iter);
-            f_diff = fhist(idx) - fopt;
-            x_diff = xhist(:, idx) - xopt;
-            grad = lsqminnorm(x_diff', f_diff');
             grad_hist = [grad_hist, norm(grad)];
         end
 
-        % Check if the estimated gradient is small enough to stop the algorithm.
+        % Check whether the consecutive grad_window_size gradients are sufficiently small.
         if length(grad_hist) > grad_window_size
             grad_window_size_hist = grad_hist(end-grad_window_size+1:end);
             if all(grad_window_size_hist < grad_tol_1 * min(1, norm(grad_init)) | grad_window_size_hist < grad_tol_2 * max(1, norm(grad_init)))
@@ -729,15 +743,6 @@ for iter = 1:maxit
             error('Invalid scheme input. The scheme should be one of the following: cyclic, random, parallel.\n');
     end
 
-    % Actually, the way of recording direction_index_hist is not quite reasonable, since the directions may
-    % not be visited fully in each block. However, when we use estimated gradient to stop the algorithm,
-    % we only consider the case where all the directions in each block are visited all. We will try to
-    % improve this in the future.
-    direction_index_hist = [];
-    for i = 1:length(block_indices)
-        direction_index_hist  = [direction_index_hist, direction_set_indices{block_indices(i)}];
-    end
-
     for i = 1:length(block_indices)
 
         % i_real = block_indices(i) is the real index of the block to be visited. For example,
@@ -786,6 +791,9 @@ for iter = 1:maxit
 
         % Record the function values calculated by inner_direct_search,
         fhist((nf+1):(nf+sub_output.nf)) = sub_output.fhist;
+
+        x_visited_this_iter = [x_visited_this_iter, sub_output.xhist];
+        f_visited_this_iter = [f_visited_this_iter, sub_output.fhist];
 
         % Update the number of function evaluations.
         nf = nf+sub_output.nf;
@@ -836,6 +844,12 @@ for iter = 1:maxit
             break;
         end
     end
+
+    % After the calulation of all blocks in this iteration, we will update
+    % x_last_iter to be the points visited in this iteration.
+    x_last_iter = x_visited_this_iter;
+    % Update f_last_iter to be the function values in this iteration.
+    f_last_iter = f_visited_this_iter;
 
     % Record the step size for every iteration if output_alpha_hist is true.
     % Why iter+1? Because we record the step size for the next iteration.

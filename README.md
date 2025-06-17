@@ -32,7 +32,16 @@ The following tests are implemented by [Optiprofiler](https://github.com/optipro
 - [Tests](https://github.com/dfopt/bds/actions) at [dfopt/bds](https://github.com/dfopt/bds)
 
     - [![Profile cbds with func window size 10, tol 06 and 09, big](https://github.com/dfopt/bds/actions/workflows/profile_cbds_func_window_size_10_tol_06_09_big.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_func_window_size_10_tol_06_09_big.yml)
+
+    - [![Profile cbds with grad window size 01, tol 03 and 06, cd, big](https://github.com/dfopt/bds/actions/workflows/profile_cbds_grad_window_size_01_tol_03_06_cd_big.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_grad_window_size_01_tol_03_06_cd_big.yml)
+    - [![Profile cbds with grad window size 01, tol 06 and 09, cd, big](https://github.com/dfopt/bds/actions/workflows/profile_cbds_grad_window_size_01_tol_06_09_cd_big.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_grad_window_size_01_tol_06_09_cd_big.yml)
+
     - [![Profile cbds with grad window size 01, tol 03 and 06, big](https://github.com/dfopt/bds/actions/workflows/profile_cbds_grad_window_size_01_tol_03_06_big.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_grad_window_size_01_tol_03_06_big.yml)
     - [![Profile cbds with grad window size 02, tol 03 and 06, big](https://github.com/dfopt/bds/actions/workflows/profile_cbds_grad_window_size_02_tol_03_06_big.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_grad_window_size_02_tol_03_06_big.yml)
     - [![Profile cbds with grad window size 03, tol 03 and 06, big](https://github.com/dfopt/bds/actions/workflows/profile_cbds_grad_window_size_03_tol_03_06_big.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_grad_window_size_03_tol_03_06_big.yml)
     - [![Profile cbds with grad window size 05, tol 03 and 06, big](https://github.com/dfopt/bds/actions/workflows/profile_cbds_grad_window_size_05_tol_03_06_big.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_grad_window_size_05_tol_03_06_big.yml)
+
+    - [![Profile cbds with grad window size 01, tol 06 and 09, big](https://github.com/dfopt/bds/actions/workflows/profile_cbds_grad_window_size_01_tol_06_09_big.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_grad_window_size_01_tol_06_09_big.yml)
+    - [![Profile cbds with grad window size 02, tol 06 and 09, big](https://github.com/dfopt/bds/actions/workflows/profile_cbds_grad_window_size_02_tol_06_09_big.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_grad_window_size_02_tol_06_09_big.yml)
+    - [![Profile cbds with grad window size 03, tol 06 and 09, big](https://github.com/dfopt/bds/actions/workflows/profile_cbds_grad_window_size_03_tol_06_09_big.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_grad_window_size_03_tol_06_09_big.yml)
+    - [![Profile cbds with grad window size 05, tol 06 and 09, big](https://github.com/dfopt/bds/actions/workflows/profile_cbds_grad_window_size_05_tol_06_09_big.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_grad_window_size_05_tol_06_09_big.yml)
