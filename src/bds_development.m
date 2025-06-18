@@ -682,8 +682,8 @@ for iter = 1:maxit
                 directional_matrix = nan(n, n);
                 for i = 1:n
                     % Compute the directional derivative in the i-th direction.
-                    directional_derivative(i) = (f_last_iter(2*i) - f_last_iter(2*i-1)) / norm(x_last_iter(2*i) - x_last_iter(2*i-1));
-                    directional_matrix(:, i) = (x_last_iter(2*i) - x_last_iter(2*i-1)) / norm(x_last_iter(2*i) - x_last_iter(2*i-1));
+                    directional_derivative(i) = (f_last_iter(2*i) - f_last_iter(2*i-1)) / norm(x_last_iter(:, 2*i) - x_last_iter(:, 2*i-1));
+                    directional_matrix(:, i) = (x_last_iter(:, 2*i) - x_last_iter(:, 2*i-1)) / norm(x_last_iter(:, 2*i) - x_last_iter(:, 2*i-1));
                 end
                 grad = lsqminnorm(directional_matrix', directional_derivative);
             end
