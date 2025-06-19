@@ -700,24 +700,6 @@ for iter = 1:maxit
 
     end
 
-    % Track the best function value observed so far. Although fopt could be used for this purpose,
-    % we use min(fhist(1:nf)) for enhanced reliability, as it directly reflects the minimum among
-    % all evaluated function values. Also track the corresponding point xopt.
-    fopt_hist(iter) = fopt;
-    xopt_hist(:, iter) = xopt;
-
-    % Check if the optimization process should stop due to insufficient change
-    % in the objective function values over the last func_window_size iterations. If the change
-    % is below a defined threshold, terminate the optimization process.
-    if use_function_value_stop && iter > func_window_size
-        func_change = max(fopt_hist(iter-func_window_size+1:iter)) - min(fopt_hist(iter-func_window_size+1:iter));
-        if func_change < func_tol_1 * min(1, abs(fopt_hist(iter))) || ...
-                func_change < func_tol_2 * max(1, abs(fopt_hist(iter)))
-            exitflag = get_exitflag("INSUFFICIENT_OBJECTIVE_CHANGE");
-            break;
-        end
-    end
-
     % Define block_indices, a vector that specifies both the indices of the blocks
     % and the order in which they will be visited during the current iteration.
     % The length of block_indices is equal to batch_size.
@@ -881,6 +863,25 @@ for iter = 1:maxit
     if fopt_all(index) < fopt
         fopt = fopt_all(index);
         xopt = xopt_all(:, index);
+    end
+
+    % Track the best function value observed so far. Although fopt could be used for this purpose,
+    % we use min(fhist(1:nf)) for enhanced reliability, as it directly reflects the minimum among
+    % all evaluated function values. Also track the corresponding point xopt.
+    fopt_hist(iter) = fopt;
+    xopt_hist(:, iter) = xopt;
+
+    % Check if the optimization should stop due to insufficient change in the objective function
+    % over the last func_window_size iterations. If the change is below a specified threshold,
+    % terminate the optimization. This check is performed after the current iteration is complete,
+    % ensuring fopt_hist includes the latest function value.
+    if use_function_value_stop && iter > func_window_size
+        func_change = max(fopt_hist(iter-func_window_size+1:iter)) - min(fopt_hist(iter-func_window_size+1:iter));
+        if func_change < func_tol_1 * min(1, abs(fopt_hist(iter))) || ...
+                func_change < func_tol_2 * max(1, abs(fopt_hist(iter)))
+            exitflag = get_exitflag("INSUFFICIENT_OBJECTIVE_CHANGE");
+            break;
+        end
     end
 
     % Terminate the computations if terminate is true.
