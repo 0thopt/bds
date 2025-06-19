@@ -11,17 +11,20 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %   XOPT = BDS(FUN, X0, OPTIONS) performs the computations with the options in
 %   OPTIONS. OPTIONS should be a structure with the following fields.
 %
-%   Algorithm                   Algorithm to use. It can be "cbds" (cyclic 
-%                               blockwise direct search) "pbds" (randomly 
-%                               permuted blockwise direct search), "rbds" 
-%                               (randomized blockwise direct search), "ds"
-%                               (the classical direct search), "pads" (parallel 
-%                               blockwise direct search). "scbds" (symmetric
+%   Algorithm                   Algorithm to use. It can be 'cbds' (sorted 
+%                               blockwise direct search) 'pbds' (randomly 
+%                               permuted blockwise direct search), 'rbds' 
+%                               (randomized blockwise direct search), 'ds'
+%                               (the classical direct search), 'pads' (parallel 
+%                               blockwise direct search). 'scbds' (symmetric
 %                               blockwise direct search). If no Algorithm is specified 
 %                               in the options, the default setting will be equivalent to 
-%                               using "cbds" as the input.
-%   scheme                      scheme to use. It can be "cyclic", "random", "parallel",
-%                               Default: "cyclic".
+%                               using 'cbds' as the input.
+%   block_visiting_pattern      block_visiting_pattern to use. It can be 'sorted' (The selected
+%                               blocks will be visited in the order of their indices),
+%                               'random' (The selected blocks will be visited in a random order),
+%                               'parallel' (The selected blocks will be visited in parallel).
+%                               Default: 'sorted'.
 %   num_blocks                  Number of blocks. A positive integer. The number of blocks
 %                               should be less than or equal to the dimension of the problem.
 %                               Default: n.
@@ -186,7 +189,7 @@ end
 % Get the direction set.
 D = get_direction_set(n, options);
 
-scheme = options.scheme;
+block_visiting_pattern = options.block_visiting_pattern;
 num_blocks = options.num_blocks;
 batch_size = options.batch_size;
 % Determine the indices of directions in each block.
@@ -308,9 +311,9 @@ for iter = 1:maxit
     % will be visited in this iteration.
     block_indices = available_block_indices(random_stream.randperm(length(available_block_indices), batch_size));
     
-    % Choose the block visiting scheme based on options.scheme.
-    switch scheme
-        case "cyclic"
+    % Choose the block visiting block_visiting_pattern based on options.block_visiting_pattern.
+    switch block_visiting_pattern
+        case "sorted"
             block_indices = sort(block_indices);
         case "random"
             % block_indices = block_indices(random_stream.randperm(length(block_indices)));
@@ -379,10 +382,10 @@ for iter = 1:maxit
             alpha_all(i_real) = shrink * alpha_all(i_real);
         end
 
-        % If the scheme is not "parallel", then we will update xbase and fbase after finishing the
+        % If the block_visiting_pattern is not "parallel", then we will update xbase and fbase after finishing the
         % direct search in the i_real-th block. For "parallel", we will update xbase and fbase after
         % one iteration of the outer loop.
-        if ~strcmpi(scheme, "parallel")
+        if ~strcmpi(block_visiting_pattern, "parallel")
             if update_base
                 xbase = sub_xopt;
                 fbase = sub_fopt;
@@ -428,7 +431,7 @@ for iter = 1:maxit
 
     % For "parallel", we will update xbase and fbase only after one iteration of the outer loop.
     % During the inner loop, every block will share the same xbase and fbase.
-    if strcmpi(scheme, "parallel")
+    if strcmpi(block_visiting_pattern, "parallel")
         % Update xbase and fbase. xbase serves as the "base point" for the computation in the
         % next block, meaning that reduction will be calculated with respect to xbase, as shown above.
         % Note that their update requires a sufficient decrease if reduction_factor(1) > 0.

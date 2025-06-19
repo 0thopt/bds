@@ -6,7 +6,7 @@ n = numel(x0);
 % Define the list of allowed fields.
 field_list = {
     'Algorithm'
-    'scheme'
+    'block_visiting_pattern'
     'num_blocks'
     'batch_size'
     'MaxFunctionEvaluations'
@@ -42,17 +42,16 @@ if ~isempty(unknown_fields)
 else
     % Although the field names are valid, conflicts may arise if the user provides values for certain fields simultaneously.
     % We need to resolve such priority issues to avoid ambiguity.
-    if isfield(options, 'Algorithm') 
-        if any(isfield(options, {'scheme', 'num_blocks', 'batch_size'}))
-            warning('Algorithm and scheme/num_blocks/batch_size are mutually exclusive. Algorithm will be used.');
-            % Remove scheme, num_blocks, and batch_size from options.
-            options = rmfield(options, intersect(fieldnames(options), {'scheme', 'num_blocks', 'batch_size'}));
+    if isfield(options, 'Algorithm')
+        Algorithm_list = {'ds', 'cbds', 'pbds', 'rbds', 'pads'};
+        if isfield(options, 'Algorithm') && ~ismember(lower(options.Algorithm), Algorithm_list)
+            error('The Algorithm input is invalid');
+        end
+        if any(isfield(options, {'block_visiting_pattern', 'num_blocks', 'batch_size'}))
+            warning('Algorithm and block_visiting_pattern/num_blocks/batch_size are mutually exclusive. Algorithm will be used.');
+            % Remove block_visiting_pattern, num_blocks, and batch_size from options.
+            options = rmfield(options, intersect(fieldnames(options), {'block_visiting_pattern', 'num_blocks', 'batch_size'}));
         else
-            % Algorithm_list = ["ds", "cbds", "pbds", "rbds", "pads"];
-            Algorithm_list = {'ds', 'cbds', 'pbds', 'rbds', 'pads'};
-            if isfield(options, 'Algorithm') && ~ismember(lower(options.Algorithm), Algorithm_list)
-                error('The Algorithm input is invalid');
-            end
             if isfield(options, 'Algorithm')
                 options.Algorithm = lower(options.Algorithm);
                 switch lower(options.Algorithm)
@@ -62,20 +61,20 @@ else
                     case 'cbds'
                         options.num_blocks = n;
                         options.batch_size = n;
-                        options.scheme = 'cyclic';
+                        options.block_visiting_pattern = 'sorted';
                     case 'pbds'
                         options.num_blocks = n;
                         options.batch_size = n;
-                        options.scheme = 'random';
+                        options.block_visiting_pattern = 'random';
                     case 'rbds'
                         options.num_blocks = n;
                         options.batch_size = 1;
                         options.replacement_delay = n - 1;
-                        options.scheme = 'cyclic';
+                        options.block_visiting_pattern = 'sorted';
                     case 'pads'
                         options.num_blocks = n;
                         options.batch_size = n;
-                        options.scheme = 'parallel';
+                        options.block_visiting_pattern = 'parallel';
                 end
             end
         end
@@ -107,9 +106,9 @@ else
        options.batch_size = options.num_blocks;
     end
 
-    % Set the default value of scheme if it is not provided.
-    if ~isfield(options, 'scheme')
-        options.scheme = 'cyclic';
+    % Set the default value of block_visiting_pattern if it is not provided.
+    if ~isfield(options, 'block_visiting_pattern')
+        options.block_visiting_pattern = 'sorted';
     end
 
     % Set the default value of is_noisy if it is not provided.
@@ -212,9 +211,9 @@ else
 
     % The above processes are to deal with the fields that are related to the dimension of the problem.
     % Then remove those fields to avoid setting the default value of them again, including Algorithm, 
-    % scheme, num_blocks, direction_set, batch_size, expand, shrink, replacement_delay, MaxFunctionEvaluations, 
+    % block_visiting_pattern, num_blocks, direction_set, batch_size, expand, shrink, replacement_delay, MaxFunctionEvaluations, 
     % alpha_init.
-    field_list = setdiff(field_list, {'Algorithm', 'scheme', 'num_blocks', 'direction_set', 'batch_size', ...
+    field_list = setdiff(field_list, {'Algorithm', 'block_visiting_pattern', 'num_blocks', 'direction_set', 'batch_size', ...
     'expand', 'shrink', 'replacement_delay', 'MaxFunctionEvaluations', 'alpha_init'});
     
     for i = 1:length(field_list)

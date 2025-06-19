@@ -16,10 +16,10 @@ if isfield(options, "num_blocks")
     end
 end
 
-scheme_list = ["cyclic", "random", "parallel"];
-if isfield(options, "scheme")
-    if ~(ischarstr(options.scheme) && any(ismember(lower(options.scheme), lower(scheme_list))))
-        error("options.scheme should be a string in the scheme_list");
+block_visiting_pattern_list = ["sorted", "random", "parallel"];
+if isfield(options, "block_visiting_pattern")
+    if ~(ischarstr(options.block_visiting_pattern) && any(ismember(lower(options.block_visiting_pattern), lower(block_visiting_pattern_list))))
+        error("options.block_visiting_pattern should be a string in the block_visiting_pattern_list");
     end
 end
 

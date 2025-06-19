@@ -416,13 +416,13 @@ options.output_xhist = true;
 options.debug_flag = true;
 [~, fopt, ~, ~] = bds(@chrosen, x0, options);
 verifyEqual(testCase, fopt, 0)
-options.scheme = "parallel";
+options.block_visiting_pattern = "parallel";
 [~, fopt, ~, ~] = bds(@chrosen, x0, options);
 if abs(fopt) > 1e-3
     error('The function value is not close to 0.');
 end
 
-options.scheme = "random";
+options.block_visiting_pattern = "random";
 [~, fopt, ~, ~] = bds(@chrosen, x0, options);
 if abs(fopt) > 1e-8
     error('The function value is not close to 0.');
@@ -459,7 +459,7 @@ end
 options = rmfield(options, 'replacement_delay');
 options = rmfield(options, 'batch_size');
 
-options.scheme = "parallel";
+options.block_visiting_pattern = "parallel";
 options.batch_size = numel(x0);
 [~, fopt, ~, ~] = bds(@chrosen, x0, options);
 if abs(fopt) > 1e-3
@@ -472,12 +472,12 @@ options.num_blocks = 1;
 if abs(fopt) > 1e-6
     error('The function value is not close to 0.');
 end
-options.scheme = "random";
+options.block_visiting_pattern = "random";
 [~, fopt, ~, ~] = bds(@chrosen, x0, options);
 if abs(fopt) > 1e-6
     error('The function value is not close to 0.');
 end
-options.scheme = "cyclic";
+options.block_visiting_pattern = "sorted";
 [~, fopt, ~, ~] = bds(@chrosen, x0, options);
 if abs(fopt) > 1e-6
     error('The function value is not close to 0.');
