@@ -47,7 +47,7 @@ function index_direction_set = divide_direction_set(n, num_blocks)
     % We use cumsum function to get the initial index of each block.
     initial_index_each_block = cumsum([1; num_directions_block(1:end-1)]);
     for i = 1:num_blocks
-        index_direction_set(:, i) = {initial_index_each_block(i) : 1 : initial_index_each_block(i) + num_directions_block(i) - 1};
+        index_direction_set(:, i) = {initial_index_each_block(i) : 1 : (initial_index_each_block(i) + num_directions_block(i) - 1)};
     end
     
     % Check whether the output is in the right type when debug_flag is true.

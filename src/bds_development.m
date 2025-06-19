@@ -652,7 +652,6 @@ for iter = 1:maxit
     % Initialize an empty vector to store the function values in this iteration.
     f_visited_this_iter = [];
 
-
     if use_estimated_gradient_stop
 
         nf_iter(iter) = nf;
