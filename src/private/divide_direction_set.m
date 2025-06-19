@@ -5,7 +5,7 @@ function index_direction_set = divide_direction_set(n, num_blocks)
 %   In our implementation, the direction set is in the form of [d_1, -d_1, d_2, -d_2, ..., d_n, -d_n], 
 %   containing 2n directions. We divide the direction set into num_blocks blocks, with the first 
 %   mod(n, num_blocks) blocks containing 2*(floor(n/num_blocks) + 1) directions and the rest 
-%   containing 2*floor(n/num_blocks) directions. 
+%   containing 2*floor(n/num_blocks) directions. We also point out that d_i and -d_i will be in the same block.
 %
 %   Example
 %     n = 11, num_blocks = 3.
@@ -37,17 +37,18 @@ end
 % We try to make the number of directions in each block as even as possible. In specific, the first
 % mod(n, num_blocks) blocks contain 2*(floor(n/num_blocks) + 1) directions and the rest contain 
 % 2*floor(n/num_blocks) directions.
-num_directions_block = ones(num_blocks, 1)*floor(n/num_blocks);
-num_directions_block(1:mod(n, num_blocks)) = num_directions_block(1:mod(n, num_blocks)) + 1;
-num_directions_block = num_directions_block*2;
+num_directions_each_block = ones(num_blocks, 1)*floor(n/num_blocks);
+num_directions_each_block(1:mod(n, num_blocks)) = num_directions_each_block(1:mod(n, num_blocks)) + 1;
+% To ensure that d_i and -d_i are assigned to the same block, we double the number of directions in each block.
+num_directions_each_block = num_directions_each_block*2;
 
 % Get the indices of directions in each block.
 % The number of directions in each block might be different. Thus we use cell rather than matrix.
 index_direction_set = cell(1, num_blocks);
 % We use cumsum function to get the initial index of each block.
-initial_index_each_block = cumsum([1; num_directions_block(1:end-1)]);
+initial_index_each_block = cumsum([1; num_directions_each_block(1:end-1)]);
 for i = 1:num_blocks
-    index_direction_set(:, i) = {initial_index_each_block(i) : 1 : initial_index_each_block(i) + num_directions_block(i) - 1};
+    index_direction_set(:, i) = {initial_index_each_block(i) : 1 : (initial_index_each_block(i) + num_directions_each_block(i) - 1)};
 end
 
 % Check whether the output is in the right type when debug_flag is true.
