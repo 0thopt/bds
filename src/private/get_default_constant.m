@@ -77,6 +77,8 @@ switch constant_name
         constant_value = false;
     case {"verbose"}
         constant_value = false;
+    case {"finite_difference_mode"}
+        constant_value = "central_difference_mode";
     otherwise
         error("Unknown constant name")
 end

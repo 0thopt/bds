@@ -459,12 +459,26 @@ end
 % Set the boolean value of whether the algorithm should stop when the estimated gradient is sufficiently small.
 if isfield(options, "use_estimated_gradient_stop")
     use_estimated_gradient_stop = options.use_estimated_gradient_stop;
-    options.output_xhist = true;
-    nf_iter = NaN(MaxFunctionEvaluations, 1);
 else
     use_estimated_gradient_stop = false;
 end
 if use_estimated_gradient_stop
+    grad_info = struct();
+    grad_info.step_size_each_block = NaN(num_blocks, 1);
+    grad_info.sufficient_decrease_each_block = false(num_blocks, 1);
+    grad_info.direction_set_indices_current_iteration = cell(num_blocks, 1);
+    grad_info.fhist_each_block = cell(num_blocks, 1);
+    grad_info.fbase_each_block = NaN(num_blocks, 1);
+    grad_info.num_blocks = num_blocks;
+    grad_info.n = n;
+    grad_info.batch_size = batch_size;
+    grad_info.direction_set = D(: , 1 : 2 : 2*n-1);
+    if isfield(options, "finite_difference_mode")
+        grad_info.finite_difference_mode = options.finite_difference_mode;
+        options = rmfield(options, "finite_difference_mode");
+    else
+        grad_info.finite_difference_mode = get_default_constant("finite_difference_mode");
+    end
     if isfield(options, "grad_window_size")
         grad_window_size = options.grad_window_size;
     end
@@ -640,65 +654,7 @@ grad_hist = [];
 fopt_all = NaN(1, num_blocks);
 xopt_all = NaN(n, num_blocks);
 
-% Initialize an empty vector to store the points visited in the last iteration.
-x_last_iter = [];
-% Initialize an empty vector to store the function values in the last iteration.
-f_last_iter = [];
-
 for iter = 1:maxit
-
-    % Initialize an empty vector to store the points visited in this iteration.
-    x_visited_this_iter = [];
-    % Initialize an empty vector to store the function values in this iteration.
-    f_visited_this_iter = [];
-
-    if use_estimated_gradient_stop
-
-        nf_iter(iter) = nf;
-
-        if iter == 2
-            % Since MATLAB R2016b, implicit expansion can be used. See Nick Higham's blog for details:
-            % https://nhigham.com/2016/09/20/implicit-expansion-matlab-r2016b/.
-            f_diff = f_last_iter - fbase;
-            f_diff = f_diff(:);
-            x_diff = x_last_iter - x0;
-            grad_init = lsqminnorm(x_diff', f_diff);
-            grad_hist = [grad_hist, norm(grad_init)];
-
-        elseif iter > 2 && ~any(sufficient_decrease(:, iter-1))
-            % idx = (nf_iter(iter-1)+1):nf_iter(iter);
-            % f_diff = fhist(idx) - fopt;
-            % x_diff = xhist(:, idx) - xopt;
-            % grad_tmp = lsqminnorm(x_diff', f_diff');
-            % grad_hist = [grad_hist, norm(grad)];
-            if ~(isfield(options, 'cd') && options.cd)
-                f_diff = f_last_iter - fopt;
-                f_diff = f_diff(:);
-                x_diff = x_last_iter - xopt;
-                grad = lsqminnorm(x_diff', f_diff);
-            else
-                directional_derivative = nan(n, 1);
-                directional_matrix = nan(n, n);
-                for i = 1:n
-                    % Compute the directional derivative in the i-th direction.
-                    directional_derivative(i) = (f_last_iter(2*i) - f_last_iter(2*i-1)) / norm(x_last_iter(:, 2*i) - x_last_iter(:, 2*i-1));
-                    directional_matrix(:, i) = (x_last_iter(:, 2*i) - x_last_iter(:, 2*i-1)) / norm(x_last_iter(:, 2*i) - x_last_iter(:, 2*i-1));
-                end
-                grad = lsqminnorm(directional_matrix', directional_derivative);
-            end
-            grad_hist = [grad_hist, norm(grad)];
-        end
-
-        % Check whether the consecutive grad_window_size gradients are sufficiently small.
-        if length(grad_hist) > grad_window_size
-            grad_window_size_hist = grad_hist(end-grad_window_size+1:end);
-            if all(grad_window_size_hist < grad_tol_1 * min(1, norm(grad_init)) | grad_window_size_hist < grad_tol_2 * max(1, norm(grad_init)))
-                exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
-                break;
-            end
-        end
-
-    end
 
     % Define block_indices, a vector that specifies both the indices of the blocks
     % and the order in which they will be visited during the current iteration.
@@ -732,6 +688,8 @@ for iter = 1:maxit
 
         % Get indices of directions in the i_real-th block.
         direction_indices = direction_set_indices{i_real};
+        grad_info.direction_set_indices_current_iteration{i_real} = direction_indices;
+        grad_info.fbase_each_block(i_real) = fbase;
 
         % Set the options for the direct search within the i_real-th block.
         suboptions.FunctionEvaluations_exhausted = nf;
@@ -753,6 +711,9 @@ for iter = 1:maxit
         % is achieved or not if use_estimated_gradient_stop is true.
         decrease_value(i_real, iter) = sub_output.decrease_value;
         sufficient_decrease(i_real, iter) = sub_output.sufficient_decrease;
+        grad_info.step_size_each_block(i_real) = alpha_all(i_real);
+        grad_info.sufficient_decrease_each_block(i_real) = sub_output.sufficient_decrease;
+        grad_info.fhist_each_block{i_real} = sub_output.fhist;
 
         if verbose
             fprintf("The number of the block visited is: %d\n", i_real);
@@ -772,9 +733,6 @@ for iter = 1:maxit
 
         % Record the function values calculated by inner_direct_search,
         fhist((nf+1):(nf+sub_output.nf)) = sub_output.fhist;
-
-        x_visited_this_iter = [x_visited_this_iter, sub_output.xhist];
-        f_visited_this_iter = [f_visited_this_iter, sub_output.fhist];
 
         % Update the number of function evaluations.
         nf = nf+sub_output.nf;
@@ -825,12 +783,6 @@ for iter = 1:maxit
             break;
         end
     end
-
-    % After the calulation of all blocks in this iteration, we will update
-    % x_last_iter to be the points visited in this iteration.
-    x_last_iter = x_visited_this_iter;
-    % Update f_last_iter to be the function values in this iteration.
-    f_last_iter = f_visited_this_iter;
 
     % Record the step size for every iteration if output_alpha_hist is true.
     % Why iter+1? Because we record the step size for the next iteration.
@@ -884,6 +836,32 @@ for iter = 1:maxit
         end
     end
 
+    if use_estimated_gradient_stop
+        grad_info.fopt = fopt;
+        [grad, is_grad_returned]  = estimate_gradient(grad_info);
+        if is_grad_returned
+            % keyboard
+            grad_hist = [grad_hist, norm(grad)];
+        end
+
+        % Check whether the consecutive grad_window_size gradients are sufficiently small.
+        if length(grad_hist) > grad_window_size
+            grad_window_size_hist = grad_hist(end-grad_window_size+1:end);
+            grad_change = max(grad_window_size_hist) - min(grad_window_size_hist);
+            % keyboard
+            if grad_change < grad_tol_1 * min(1, grad_hist(end)) || ...
+                    grad_change < grad_tol_2 * max(1, grad_hist(end))
+                exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
+                break;
+            end
+            % if all(grad_window_size_hist < grad_tol_1 * min(1, grad_hist(1)) | grad_window_size_hist < grad_tol_2 * max(1, grad_hist(1)))
+            %     exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
+            %     break;
+            % end
+        end
+
+    end
+
     % Terminate the computations if terminate is true.
     if terminate
         break;
@@ -908,7 +886,6 @@ if output_sufficient_decrease
     output.grad_hist = grad_hist;
 end
 if use_estimated_gradient_stop
-    output.nf_iter = nf_iter(1:min(iter, maxit));
     output.grad_hist = grad_hist;
 end
 if output_xhist
