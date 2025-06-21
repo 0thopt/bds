@@ -81,7 +81,7 @@ jobs:
               parameters.grad_tol = [1e-6 1e-30];
               parameters.grad_tol_ratio = 1e-9;
               options = struct();
-              options.solver_names = {'cbds-tuning-grad', 'cbds-default'};
+              options.solver_names = {'cbds-tuning-grad-cd', 'cbds-default'};
               options.plibs = '${{ matrix.plibs }}';
               options.dim = '${{ matrix.dim }}';
               options.feature_name = '${{ matrix.feature }}';

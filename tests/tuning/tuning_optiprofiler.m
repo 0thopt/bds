@@ -440,7 +440,11 @@ function x = cbds_window_size_grad_tol_cd(fun, x0, grad_window_size, grad_tol, g
         option.grad_tol_ratio = grad_tol_ratio; 
         option.use_estimated_gradient_stop = true;
     end
-    option.cd = cd; % Use central difference
+    if cd
+        option.finite_difference_mode = 'central_difference_mode';
+    else
+        option.finite_difference_mode = 'mixed_difference_mode';
+    end
     x = bds_development(fun, x0, option);
     
 end
