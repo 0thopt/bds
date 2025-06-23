@@ -39,46 +39,59 @@ for i = 1:grad_info.n
         % is_sampled_positive_negative_direction is a boolean array of size 2 indicating whether the positive and negative 
         % directions have been sampled. If both are sampled, we will use the central difference to compute the directional derivative.
         % If only one direction is sampled, we will use the forward or backward difference accordingly.
-        if all(is_sampled_positive_negative_direction)
-            % Both positive and negative directions are sampled. Use central difference to compute the directional derivative.
-            directional_derivative(i) = (grad_info.fhist_each_block{block_index}(direction_position(1)) - grad_info.fhist_each_block{block_index}(direction_position(2))) / (2 * grad_info.step_size_each_block(block_index));
-        else
-            if any(is_sampled_positive_negative_direction)
+        if any(is_sampled_positive_negative_direction)
+            if all(is_sampled_positive_negative_direction)
+                % Both positive and negative directions are sampled. Use central difference to compute the directional derivative.
+                directional_derivative(i) = (grad_info.fhist_each_block{block_index}(direction_position(1)) - grad_info.fhist_each_block{block_index}(direction_position(2))) / (2 * grad_info.step_size_each_block(block_index));
+            else
                 % Only one of the positive or negative directions is sampled. If the positive direction is sampled, we use forward 
                 % difference. If the negative direction is sampled, we use backward difference.
                 if is_sampled_positive_negative_direction(1)
                     directional_derivative(i) = (grad_info.fhist_each_block{block_index}(direction_position(1)) - grad_info.fbase_each_block(block_index)) / grad_info.step_size_each_block(block_index);
                 else
-                    directional_derivative(i) = (grad_info.fbase_each_block(block_index) - grad_info.fhist_each_block{block_index}(direction_position(1))) / grad_info.step_size_each_block(block_index);
+                    directional_derivative(i) = (grad_info.fbase_each_block(block_index) - grad_info.fhist_each_block{block_index}(direction_position(2))) / grad_info.step_size_each_block(block_index);
                 end
             end
         end
     end
 end
 
-% if ~any(grad_info.sufficient_decrease_each_block)
-%     keyboard
-% end
-
-% Check if all directions have been sampled. If there are some directions that have not been sampled, 
-% we will not compute the gradient.
-if all(is_sampled_direction)
-    % If the finite difference mode is 'central_difference_mode', we will only return the gradient if there 
-    % are no blocks reaching sufficient decrease.
-    if strcmpi(grad_info.finite_difference_mode, 'central_difference_mode')
-        if ~any(grad_info.sufficient_decrease_each_block)
+if grad_info.num_blocks == grad_info.batch_size
+    % When the number of blocks is equal to the batch size, we will only compute the gradient if all directions have been sampled.
+    % Check if all directions have been sampled. If there are some directions that have not been sampled, 
+    % we will not compute the gradient.
+    if all(is_sampled_direction)
+        % If the finite difference mode is 'central_difference_mode', we will only return the gradient if there 
+        % are no blocks reaching sufficient decrease.
+        if strcmpi(grad_info.finite_difference_mode, 'central_difference_mode')
+            if ~any(grad_info.sufficient_decrease_each_block)
+                is_gradient_returned = true;
+            end
+        elseif strcmpi(grad_info.finite_difference_mode, 'mixed_difference_mode')
             is_gradient_returned = true;
         end
-    elseif strcmpi(grad_info.finite_difference_mode, 'mixed_difference_mode')
+    end
+else
+    % When the number of blocks is not equal to the batch size (i.e., num_blocks > batch_size), 
+    % the gradient will be estimated as long as at least one direction has been sampled. 
+    if any(is_sampled_direction)
+        % If at least one direction has been sampled, we will compute the gradient.
         is_gradient_returned = true;
     end
 end
 
-% If is_gradient_returned is true, we compute the gradient using the least-squares minimum norm solution.
 if is_gradient_returned
-    gradient = lsqminnorm(grad_info.direction_set', directional_derivative(:));
+    % Find the indices of the sampled directions.
+    sampled_direction_indices = find(is_sampled_direction);
+    % Extract the sampled directions from the direction set.
+    sampled_direction_set = grad_info.direction_set(:, sampled_direction_indices);
+    % Compute the gradient using the least-squares minimum norm solution.
+    gradient = lsqminnorm(sampled_direction_set', directional_derivative(sampled_direction_indices));
+    % Scale the gradient by the ratio of num_blocks to batch_size to ensure unbiasedness. If num_blocks is equal to batch_size, 
+    % this scaling will not change the gradient. If num_blocks is greater than batch_size, this scaling will ensure that the
+    % estimated gradient is unbiased.
+    gradient = gradient * (grad_info.num_blocks / grad_info.batch_size);
 end
-
 
 function [is_sampled_each_direction, block_index_each_direction, direction_position_in_block, is_sampled_positive_negative_direction] = is_direction_sampled(direction_index, num_blocks, fhist_each_block, direction_set_indices_current_iteration)
 % is_direction_sampled checks if a specific direction has been sampled in any block.
@@ -90,13 +103,14 @@ function [is_sampled_each_direction, block_index_each_direction, direction_posit
 % Outputs:
 %   - is_sampled_each_direction: Boolean indicating if the direction has been sampled in any block.
 %   - block_index_each_direction: Index of the block where the direction was sampled.
-%   - direction_position_in_block: Position of the direction in the sampled block.
+%   - direction_position_in_block: Position of the direction in the sampled block. If the direction is not sampled, it will be NaN.
 %   - is_sampled_positive_negative_direction: Boolean array indicating if the positive and negative directions have been sampled.
 
 % Initialize variables to store the results.
 is_sampled_each_direction = false;
 block_index_each_direction = 0;
-direction_position_in_block = [];
+% Initialize to NaN for two positions (positive and negative directions).
+direction_position_in_block = NaN(2, 1);
 is_sampled_positive_negative_direction = false(2, 1);
 
 for block_id = 1:num_blocks
@@ -122,13 +136,13 @@ for block_id = 1:num_blocks
         % If the positive direction is sampled, we store its position in direction_position_in_block first.
         % We also set the is_sampled_positive_negative_direction array accordingly.
         if ~isempty(positive_direction_position_in_block)
-            direction_position_in_block = [direction_position_in_block; positive_direction_position_in_block];
+            direction_position_in_block(1) = positive_direction_position_in_block;
             is_sampled_positive_negative_direction(1) = true;
         end
         % If the negative direction is sampled, we append its position to direction_position_in_block.
         % We also set the is_sampled_positive_negative_direction array accordingly.
         if ~isempty(negative_direction_position_in_block)
-            direction_position_in_block = [direction_position_in_block; negative_direction_position_in_block];
+            direction_position_in_block(2) = negative_direction_position_in_block;
             is_sampled_positive_negative_direction(2) = true;
         end
         % If we have found the direction in the current block, we can break the loop.
