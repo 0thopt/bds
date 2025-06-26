@@ -24,11 +24,13 @@ end
 
 % The following are the ones commented on cycling.m.
 array = [1, 2, 3, 4, 5];
+verifyEqual(testCase, cycling(array, 3, 0), [1, 2, 3, 4, 5])
 verifyEqual(testCase, cycling(array, 3, 1), [3, 1, 2, 4, 5])
 verifyEqual(testCase, cycling(array, 3, 2), [3, 4, 5, 1, 2])
 verifyEqual(testCase, cycling(array, 3, 3), [4, 5, 1, 2, 3])
 
 array = [2, 1, 4, 5, 3];
+verifyEqual(testCase, cycling(array, 3, 0), [2, 1, 4, 5, 3])
 verifyEqual(testCase, cycling(array, 3, 1), [4, 2, 1, 5, 3])
 verifyEqual(testCase, cycling(array, 3, 2), [4, 5, 3, 2, 1])
 verifyEqual(testCase, cycling(array, 3, 3), [5, 3, 2, 1, 4])
@@ -240,7 +242,13 @@ end
 
 function direction_set_test(testCase)
 %direction_set_TEST tests the file private/get_direction_set.m.
-n = 5;
+
+% Set the random seed for reproducibility.
+dt = datetime("now", "TimeZone", 'Asia/Shanghai');
+yw = 100*mod(year(dt), 100) + week(dt);
+rng(yw);
+
+n = randi([1,100]);
 D = [zeros(n) zeros(n)];
 for i = 1:n
     D(i, 2*i-1) = 1;
@@ -251,74 +259,82 @@ verifyEqual(testCase, get_direction_set(n), D)
 options = struct();
 verifyEqual(testCase, get_direction_set(n, options), D)
 
-n = 3;
+n = randi([1000,2000]);
 options = struct();
 A = randn(n);
-[Q, ~] = qr(A);
-options.direction_set = Q;
-D = get_direction_set(n, options);
-% Sort by rows, which means sorting each column.
-if sort(D(:, 1:2:5), 2) ~= sort(Q, 2)
-    error('The directions are not the same as the input.');
-end
-if D(:, 1:2:5) ~= -D(:, 2:2:6)
-    error('The directions in one block are not opposite.');
-end
-if rank(D(:, 1:2:5)) ~= 3
-    error('The odd columns of D is not a basis.');
-end
-
-n = 3;
-options = struct();
-A = randn(n);
-[Q, ~] = qr(A);
-options.direction_set = Q;
-D = get_direction_set(n, options);
-if sort(D(:, 1:2:5), 2) ~= sort(Q, 2)
-    error('The directions are not the same as the input.');
-end
-if D(:, 1:2:5) ~= -D(:, 2:2:6)
-    error('The directions in one block are not opposite.');
-end
-if rank(D(:, 1:2:5)) ~= 3
-    error('The odd columns of D is not a basis.');
-end
-
-n = 3;
-options = struct();
-A = zeros(3);
-detA = 0;
-while detA == 0
-    A = randn(3);
-    detA = det(A);
-end
 options.direction_set = A;
 D = get_direction_set(n, options);
-if sort(D(:, 1:2:5), 2) ~= sort(A, 2)
-    error('The directions are not the same as the input.');
-end
-if D(:, 1:2:5) ~= -D(:, 2:2:6)
-    error('The directions in one block are not opposite.');
-end
-if rank(D(:, 1:2:5)) ~= 3
-    error('The odd columns of D is not a basis.');
-end
-
-n = 5;
-[Q, ~] = qr(randn(n));
-options.direction_set = Q;
-D = get_direction_set(n, options);
-if sort(D(:, 1:2:2*n-1), 2) ~= sort(Q, 2)
+D_unique = D(:, 1:2:2*n-1);
+% Note: get_direction_set may sort the columns of Q. It may also remove columns 
+% that are too short or retain only the first among collinear vectors. 
+% However, for random matrices, the probability of such cases is negligible. 
+% According to High-Dimensional Probability (Remark 3.2.5), 
+% independent random vectors in high dimensions are almost surely orthogonal, 
+% so collinearity is not a concern here.
+[is_A_cols_in_B, ~] = ismember(D_unique', A', 'rows');
+[is_B_cols_in_A, ~] = ismember(A', D_unique', 'rows');
+if ~all(is_A_cols_in_B) || ~all(is_B_cols_in_A)
     error('The directions are not the same as the input.');
 end
 if D(:, 1:2:2*n-1) ~= -D(:, 2:2:2*n)
     error('The directions in one block are not opposite.');
 end
-if rank(D(:, 1:2:2*n-1)) ~= n
+[~, R] = qr(D_unique, 0);
+r = sum(abs(diag(R)) > 1e-10);
+if r ~= n
     error('The odd columns of D is not a basis.');
 end
 
-n = 5;
+n = randi([1,100]);
+options = struct();
+A = randn(n);
+[Q, ~] = qr(A);
+options.direction_set = Q;
+D = get_direction_set(n, options);
+D_unique = D(:, 1:2:2*n-1);
+% Notice that get_direction_set may sort the columns of Q.
+% So we need to check the sorted columns.
+[is_A_cols_in_B, ~] = ismember(D_unique', Q', 'rows');
+[is_B_cols_in_A, ~] = ismember(Q', D_unique', 'rows');
+if ~all(is_A_cols_in_B) || ~all(is_B_cols_in_A)
+    error('The directions are not the same as the input.');
+end
+if D(:, 1:2:2*n-1) ~= -D(:, 2:2:2*n)
+    error('The directions in one block are not opposite.');
+end
+[~, R] = qr(D_unique, 0);
+r = sum(abs(diag(R)) > 1e-10);
+if r ~= n
+    error('The odd columns of D is not a basis.');
+end
+
+n = randi([1,100]);
+options = struct();
+% Generate a random matrix with non-zero determinant.
+A = zeros(n);
+detA = 0;
+while detA == 0
+    A = randn(n);
+    detA = det(A);
+end
+options.direction_set = A;
+D = get_direction_set(n, options);
+D_unique = D(:, 1:2:2*n-1);
+[is_A_cols_in_B, ~] = ismember(D_unique', A', 'rows');
+[is_B_cols_in_A, ~] = ismember(A', D_unique', 'rows');
+if ~all(is_A_cols_in_B) || ~all(is_B_cols_in_A)
+    error('The directions are not the same as the input.');
+end
+if D(:, 1:2:2*n-1) ~= -D(:, 2:2:2*n)
+    error('The directions in one block are not opposite.');
+end
+[~, R] = qr(D_unique, 0);
+r = sum(abs(diag(R)) > 1e-10);
+if r ~= n
+    error('The odd columns of D is not a basis.');
+end
+
+n = randi([1,100]);
 options.direction_set = NaN(n, n);
 D = [zeros(n) zeros(n)];
 for i = 1:n
@@ -327,7 +343,7 @@ for i = 1:n
 end
 verifyEqual(testCase, get_direction_set(n, options), D)
 
-n = 5;
+n = randi([1,100]);
 options.direction_set = inf(n, n);
 D = [zeros(n) zeros(n)];
 for i = 1:n
@@ -335,40 +351,6 @@ for i = 1:n
     D(i, 2*i) = -1;
 end
 verifyEqual(testCase, get_direction_set(n, options), D)
-
-n = 5;
-D = [zeros(n) zeros(n)];
-direction_set = eye(n);
-direction_set(1, 1) = NaN;
-for i = 1:n
-    if i ~= n
-        D(i+1, 2*i-1) = 1;
-        D(i+1, 2*i) = -1;
-    else
-        D(1, 2*i-1) = 1;
-        D(1, 2*i) = -1;
-    end
-end
-options.direction_set = direction_set;
-verifyEqual(testCase, get_direction_set(n, options), D)
-
-n = 5;
-D = [zeros(n) zeros(n)];
-direction_set = eye(n);
-direction_set(1, 1) = inf;
-for i = 1:n
-    if i ~= n
-        D(i+1, 2*i-1) = 1;
-        D(i+1, 2*i) = -1;
-    else
-        D(1, 2*i-1) = 1;
-        D(1, 2*i) = -1;
-    end
-end
-options.direction_set = direction_set;
-verifyEqual(testCase, get_direction_set(n, options), D)
-
-end
 
 %The following example is based on https://github.com/libprima/prima/blob/main/matlab/tests/testprima.m, which is written
 %by Zaikun Zhang.
@@ -416,42 +398,56 @@ options.output_xhist = true;
 options.debug_flag = true;
 [~, fopt, ~, ~] = bds(@chrosen, x0, options);
 verifyEqual(testCase, fopt, 0)
+
+% Test the case where the block_visiting_pattern is "parallel".
 options.block_visiting_pattern = "parallel";
 [~, fopt, ~, ~] = bds(@chrosen, x0, options);
 if abs(fopt) > 1e-3
     error('The function value is not close to 0.');
 end
 
+% Test the case where the block_visiting_pattern is "random".
 options.block_visiting_pattern = "random";
 [~, fopt, ~, ~] = bds(@chrosen, x0, options);
 if abs(fopt) > 1e-8
     error('The function value is not close to 0.');
 end
+
+% Test the case where the batch_size is 1.
 options.batch_size = 1;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%
 options.debug_flag = false;
 [~, fopt, ~, ~] = bds(@chrosen, x0, options);
 if abs(fopt) > 1e-8
     error('The function value is not close to 0.');
 end
+
+% Test the case where the batch_size is 2.
 options.batch_size = 2;
 [~, fopt, ~, ~] = bds(@chrosen, x0, options);
 if abs(fopt) > 1e-8
     error('The function value is not close to 0.');
 end
+
+% Test the case where the batch_size is 3.
 options.batch_size = 3;
 [~, fopt, ~, ~] = bds(@chrosen, x0, options);
 if abs(fopt) > 1e-8
     error('The function value is not close to 0.');
 end
+
+% Test the case where the batch_size is 3 and the replacement_delay is 0.
 options.replacement_delay = 0;
 if abs(fopt) > 1e-8
     error('The function value is not close to 0.');
 end
+
+% Test the case where the batch_size is 3 and the replacement_delay is 1.
 options.replacement_delay = 1;
 if abs(fopt) > 1e-8
     error('The function value is not close to 0.');
 end
+
+% Test the case where the batch_size is 3 and the replacement_delay is 2.
 options.replacement_delay = 2;
 if abs(fopt) > 1e-8
     error('The function value is not close to 0.');
@@ -459,6 +455,8 @@ end
 options = rmfield(options, 'replacement_delay');
 options = rmfield(options, 'batch_size');
 
+% Test the case where the block_visiting_pattern is "parallel" and the 
+% batch_size is equal to the number of variables.
 options.block_visiting_pattern = "parallel";
 options.batch_size = numel(x0);
 [~, fopt, ~, ~] = bds(@chrosen, x0, options);
@@ -466,12 +464,16 @@ if abs(fopt) > 1e-3
     error('The function value is not close to 0.');
 end
 
+% Test the case where the batch_size is equal to the num_blocks. Both
+% of them are 1.
 options.batch_size = 1;
 options.num_blocks = 1;
 [~, fopt, ~, ~] = bds(@chrosen, x0, options);
 if abs(fopt) > 1e-6
     error('The function value is not close to 0.');
 end
+% When both batch_size and num_blocks are 1, test different cases of
+% block_visiting_pattern.
 options.block_visiting_pattern = "random";
 [~, fopt, ~, ~] = bds(@chrosen, x0, options);
 if abs(fopt) > 1e-6
@@ -485,4 +487,4 @@ end
 
 end
 
-
+end

@@ -121,6 +121,8 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               decrease condition in each block, as well as the corresponding
 %                               decrease value for that block.
 %                               Default: 0.
+%                               This option is cited from 
+%                               https://github.com/libprima/prima/blob/main/matlab/interfaces/newuoa.m.
 %   debug_flag                  A flag deciding whether to check the inputs and outputs
 %                               when the algorithm is running.
 %                               Default: false.

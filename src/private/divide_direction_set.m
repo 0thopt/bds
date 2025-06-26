@@ -5,7 +5,8 @@ function index_direction_set = divide_direction_set(n, num_blocks)
 %   In our implementation, the direction set is in the form of [d_1, -d_1, d_2, -d_2, ..., d_n, -d_n], 
 %   containing 2n directions. We divide the direction set into num_blocks blocks, with the first 
 %   mod(n, num_blocks) blocks containing 2*(floor(n/num_blocks) + 1) directions and the rest 
-%   containing 2*floor(n/num_blocks) directions. We also point out that d_i and -d_i will be in the same block.
+%   containing 2*floor(n/num_blocks) directions. We also point out that d_i and -d_i will be in the same block
+%   in our implementation.
 %
 %   Example
 %     n = 11, num_blocks = 3.
