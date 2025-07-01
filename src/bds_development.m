@@ -690,6 +690,7 @@ for iter = 1:maxit
         direction_indices = direction_set_indices{i_real};
         grad_info.direction_set_indices_current_iteration{i_real} = direction_indices;
         grad_info.fbase_each_block(i_real) = fbase;
+        grad_info.step_size_each_block(i_real) = alpha_all(i_real);
 
         % Set the options for the direct search within the i_real-th block.
         suboptions.FunctionEvaluations_exhausted = nf;
@@ -711,7 +712,6 @@ for iter = 1:maxit
         % is achieved or not if use_estimated_gradient_stop is true.
         decrease_value(i_real, iter) = sub_output.decrease_value;
         sufficient_decrease(i_real, iter) = sub_output.sufficient_decrease;
-        grad_info.step_size_each_block(i_real) = alpha_all(i_real);
         grad_info.sufficient_decrease_each_block(i_real) = sub_output.sufficient_decrease;
         grad_info.fhist_each_block{i_real} = sub_output.fhist;
 
