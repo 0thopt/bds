@@ -2,8 +2,8 @@ function [gradient, is_gradient_returned] = estimate_gradient(grad_info)
 % estimate_gradient estimates the gradient using finite difference methods.
 % The gradient is computed under the following cases:
 % 1. If the number of blocks equals the batch size, the gradient is computed only if all directions have been sampled.
-%    - For 'central_difference_mode', the gradient is returned only if no block has achieved sufficient decrease.
-%    - For 'mixed_difference_mode', the gradient is always returned if all directions are sampled.
+%    - For "central_difference_mode", the gradient is returned only if no block has achieved sufficient decrease.
+%    - For "mixed_difference_mode", the gradient is always returned if all directions are sampled.
 % 2. If the number of blocks does not equal the batch size, the gradient is computed as long as at least one direction has been sampled.
 % Inputs:
 %   grad_info: A structure containing the following fields:
@@ -18,7 +18,7 @@ function [gradient, is_gradient_returned] = estimate_gradient(grad_info)
 %       - fbase_each_block: Base function values for each block, recorded at the start of each block.
 %       - step_size_each_block: Step size used for each block, recorded before updating step sizes.
 %       - direction_set_indices_current_iteration: Cell array containing indices of sampled directions for the current iteration.
-%       - finite_difference_mode: Mode of finite difference estimation ('central_difference_mode' or 'mixed_difference_mode').
+%       - finite_difference_mode: Mode of finite difference estimation ("central_difference_mode" or "mixed_difference_mode").
 % Outputs:
 %   - gradient: Estimated gradient vector. If the gradient cannot be estimated, it will be NaN.
 %   - is_gradient_returned: Boolean indicating if the gradient was successfully estimated. If the gradient is estimated, 
@@ -70,15 +70,15 @@ if grad_info.num_blocks == grad_info.batch_size
     % Check if all directions have been sampled. If there are some directions that have not been sampled, 
     % we will not compute the gradient.
     if all(is_sampled_direction)
-        % If the finite difference mode is 'central_difference_mode', we will only return the gradient if there 
+        % If the finite difference mode is "central_difference_mode", we will only return the gradient if there 
         % are no blocks reaching sufficient decrease.
-        if strcmpi(grad_info.finite_difference_mode, 'central_difference_mode')
+        if strcmpi(grad_info.finite_difference_mode, "central_difference_mode")
             if ~any(grad_info.sufficient_decrease_each_block)
                 is_gradient_returned = true;
             end
-        % If the finite difference mode is 'mixed_difference_mode', we will return the gradient as long as all directions have been sampled.
+        % If the finite difference mode is "mixed_difference_mode", we will return the gradient as long as all directions have been sampled.
         % In this case, we do not check for sufficient decrease.
-        elseif strcmpi(grad_info.finite_difference_mode, 'mixed_difference_mode')
+        elseif strcmpi(grad_info.finite_difference_mode, "mixed_difference_mode")
             is_gradient_returned = true;
         end
     end
