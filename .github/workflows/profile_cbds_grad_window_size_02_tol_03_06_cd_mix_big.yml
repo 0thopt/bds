@@ -2,7 +2,7 @@ name: Profile cbds with grad 2, 3x, 6x, cd, mix, big
 
 on:
   # Trigger the workflow on # push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   schedule:
   - cron: '0 6 */1 * *'
@@ -77,12 +77,12 @@ jobs:
               % profile
               addpath(fullfile(root_dir, 'tests'));
               cd(fullfile(root_dir, 'tests', 'tuning'));
-              parameters.grad_window_size = [2 2];
-              parameters.grad_tol = [1e-3 1e-3];
+              parameters.grad_window_size = [2 2 1e8];
+              parameters.grad_tol = [1e-3 1e-3 1e-30];
               parameters.grad_tol_ratio = 1e-3;
-              parameters.cd = [true, false];
+              parameters.cd = [true, false, true];
               options = struct();
-              options.solver_names = {'cbds-tuning-grad-cd', 'cbds-tuning-grad-mix'};
+              options.solver_names = {'cbds-grad-cd', 'cbds-grad-mix', 'cbds'};
               options.plibs = '${{ matrix.plibs }}';
               options.dim = '${{ matrix.dim }}';
               options.feature_name = '${{ matrix.feature }}';

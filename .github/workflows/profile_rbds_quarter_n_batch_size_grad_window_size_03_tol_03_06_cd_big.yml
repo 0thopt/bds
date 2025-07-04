@@ -2,7 +2,7 @@ name: Profile rbds with quarter n batch size, grad 3, 3x, 6x, cd, big
 
 on:
   # Trigger the workflow on # push or pull request
-  push:
+  # push:
   # Trigger the workflow manually
   schedule:
   - cron: '0 6 */1 * *'
@@ -79,8 +79,8 @@ jobs:
               cd(fullfile(root_dir, 'tests', 'tuning'));
               parameters.grad_window_size = [3 1e8];
               parameters.grad_tol = [1e-3 1e-30];
-              parameters.batch_size = ["quarter-n", "quarter-n"];
               parameters.grad_tol_ratio = 1e-3;
+              parameters.batch_size = ["quarter-n", "quarter-n"];
               options = struct();
               options.solver_names = {'rbds-quarter-n-batch-size-tuning', 'rbds-quarter-n-batch-size-default'};
               options.plibs = '${{ matrix.plibs }}';

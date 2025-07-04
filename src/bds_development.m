@@ -679,7 +679,7 @@ for iter = 1:maxit
         otherwise
             error('Invalid scheme input. The scheme should be one of the following: cyclic, random, parallel.\n');
     end
-    
+        
     for i = 1:length(block_indices)
 
         % i_real = block_indices(i) is the real index of the block to be visited. For example,

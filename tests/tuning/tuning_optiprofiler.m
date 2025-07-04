@@ -16,21 +16,23 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
             for i_solver = 1:n_solvers
                 solvers{i_solver} = @(fun, x0) cbds_window_size_fun_tol(fun, x0, parameters.func_window_size(i_solver), parameters.func_tol(i_solver), parameters.func_tol_ratio);
             end
-        case ismember('grad_tol', param_fields) && ismember('grad_window_size', param_fields) && ismember('grad_tol_ratio', param_fields) && ~ismember('cd', param_fields)
+        case ismember('grad_tol', param_fields) && ismember('grad_window_size', param_fields) && ismember('grad_tol_ratio', param_fields) && ~ismember('cd', param_fields) && ~ismember('batch_size', param_fields)
             for i_solver = 1:n_solvers
                 solvers{i_solver} = @(fun, x0) cbds_window_size_grad_tol(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol(i_solver), parameters.grad_tol_ratio);
             end
-        case ismember('grad_tol', param_fields) && ismember('grad_window_size', param_fields) && ismember('grad_tol_ratio', param_fields) && ismember('batch_size', param_fields)
-            for i_solver = 1:n_solvers
-                solvers{i_solver} = @(fun, x0) cbds_batch_size_window_size_grad_tol(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol(i_solver), parameters.grad_tol_ratio, parameters.batch_size(i_solver));
-            end
-        case ismember('grad_tol', param_fields) && ismember('grad_window_size', param_fields) && ismember('grad_tol_ratio', param_fields) && ismember('cd', param_fields)
+        case ismember('grad_tol', param_fields) && ismember('grad_window_size', param_fields) && ismember('grad_tol_ratio', param_fields) && ismember('cd', param_fields) && ~ismember('batch_size', param_fields)
             for i_solver = 1:n_solvers
                 solvers{i_solver} = @(fun, x0) cbds_window_size_grad_tol_cd(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol(i_solver), parameters.grad_tol_ratio, parameters.cd(i_solver));
             end
+        case ismember('grad_tol', param_fields) && ismember('grad_window_size', param_fields) && ismember('grad_tol_ratio', param_fields) && ~ismember('cd', param_fields) && ismember('batch_size', param_fields)
+            for i_solver = 1:n_solvers
+                solvers{i_solver} = @(fun, x0) cbds_window_size_grad_tol_batch_size(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol(i_solver), parameters.grad_tol_ratio, parameters.batch_size(i_solver));
+            end
+        case ismember('grad_tol', param_fields) && ismember('grad_window_size', param_fields) && ismember('grad_tol_ratio', param_fields) && ismember('cd', param_fields) && ismember('batch_size', param_fields)
+            for i_solver = 1:n_solvers
+                solvers{i_solver} = @(fun, x0) cbds_window_size_grad_tol_cd_batch_size(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol(i_solver), parameters.grad_tol_ratio, parameters.batch_size(i_solver), parameters.cd(i_solver));
+            end
     end
-    % solver_names = {'cbds_tuned', 'cbds'};
-    % options.solver_names = solver_names;
 
     if ~isfield(options, 'feature_name')
         error('Please provide the feature name');
@@ -445,15 +447,16 @@ function x = cbds_window_size_grad_tol_cd(fun, x0, grad_window_size, grad_tol, g
         option.use_estimated_gradient_stop = true;
     end
     if cd
-        option.finite_difference_mode = 'central_difference_mode';
+        option.finite_difference_mode = "central_difference_mode";
     else
-        option.finite_difference_mode = 'mixed_difference_mode';
+        option.finite_difference_mode = "mixed_difference_mode";
     end
+    
     x = bds_development(fun, x0, option);
     
 end
 
-function x = cbds_batch_size_window_size_grad_tol(fun, x0, grad_window_size, grad_tol, grad_tol_ratio, batch_size)
+function x = cbds_window_size_grad_tol_batch_size(fun, x0, grad_window_size, grad_tol, grad_tol_ratio, batch_size)
 
     option.expand = 2;
     option.shrink = 0.5;
@@ -475,6 +478,45 @@ function x = cbds_batch_size_window_size_grad_tol(fun, x0, grad_window_size, gra
         otherwise
             error('Unknown batch size');
     end
+    % Use the seed to make sure that the only difference between the comparison is the parameters related to the
+    % gradient computation.
+    seed = round(1e4 * option.expand) + round(1e6 * option.shrink) + option.batch_size;
+    option.seed = seed;
+    x = bds_development(fun, x0, option);
+    
+end
+
+function x = cbds_window_size_grad_tol_cd_batch_size(fun, x0, grad_window_size, grad_tol, grad_tol_ratio, batch_size, cd)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    if grad_window_size > 1e5 || (grad_tol == 1e-30 && grad_tol_ratio == 1e-30)
+        option.use_estimated_gradient_stop = false;
+    else
+        option.grad_window_size = grad_window_size;
+        option.grad_tol = grad_tol;
+        option.grad_tol_ratio = grad_tol_ratio; 
+        option.use_estimated_gradient_stop = true;
+    end
+    switch batch_size
+        case "one"
+            option.batch_size = 1;
+        case "quarter-n"
+            option.batch_size = ceil(numel(x0)/4);
+        case "half-n"
+            option.batch_size = ceil(numel(x0)/2);
+        otherwise
+            error('Unknown batch size');
+    end
+    if cd
+        option.finite_difference_mode = "central_difference_mode";
+    else
+        option.finite_difference_mode = "mixed_difference_mode";
+    end
+    % Use the seed to make sure that the only difference between the comparison is the parameters related to the
+    % gradient computation.
+    seed = round(1e4 * option.expand) + round(1e6 * option.shrink) + option.batch_size;
+    option.seed = seed;
     x = bds_development(fun, x0, option);
     
 end
