@@ -3,8 +3,9 @@ function [gradient, is_gradient_returned] = estimate_gradient(grad_info)
 % The gradient is computed under the following cases:
 % 1. If the number of blocks equals the batch size, the gradient is computed only if all directions have been sampled.
 %    - For "central_difference_mode", the gradient is returned only if no block has achieved sufficient decrease.
-%    - For "mixed_difference_mode", the gradient is always returned if all directions are sampled.
-% 2. If the number of blocks does not equal the batch size, the gradient is computed as long as at least one direction has been sampled.
+%    - For "mixed_difference_mode", the gradient is always returned as long as all directions are sampled.
+% 2. If the number of blocks does not equal the batch size, the gradient is computed as long as at least one direction 
+%    has been sampled.
 % Inputs:
 %   grad_info: A structure containing the following fields:
 %       - n: Number of variables.

@@ -1,4 +1,4 @@
-name: Profile cbds with grad 5, 3x, 6x, cd, mix, big
+name: cbds with grad 5, 3x, 6x, cd, mix, big
 
 on:
   # Trigger the workflow on # push or pull request
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Profile cbds with grad window size 5, tol 03 and 06, cd, mix, big
+    name: cbds with grad window size 5, tol 03 and 06, cd, mix, big
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -77,12 +77,12 @@ jobs:
               % profile
               addpath(fullfile(root_dir, 'tests'));
               cd(fullfile(root_dir, 'tests', 'tuning'));
-              parameters.grad_window_size = [5 5 1e8];
-              parameters.grad_tol = [1e-3 1e-3 1e-30];
+              parameters.grad_window_size = [5 5];
+              parameters.grad_tol = [1e-3 1e-3];
               parameters.grad_tol_ratio = 1e-3;
-              parameters.cd = [true, false, true];
+              parameters.cd = [true, false];
               options = struct();
-              options.solver_names = {'cbds-grad-cd', 'cbds-grad-mix', 'cbds'};
+              options.solver_names = {'cbds-grad-cd', 'cbds-grad-mix'};
               options.plibs = '${{ matrix.plibs }}';
               options.dim = '${{ matrix.dim }}';
               options.feature_name = '${{ matrix.feature }}';

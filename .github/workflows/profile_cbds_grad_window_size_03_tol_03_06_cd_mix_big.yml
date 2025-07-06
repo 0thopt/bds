@@ -1,4 +1,4 @@
-name: Profile cbds with grad 3, 3x, 6x, cd, mix, big
+name: cbds with grad 3, 3x, 6x, cd, mix, big
 
 on:
   # Trigger the workflow on # push or pull request
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Profile cbds with grad window size 3, tol 03 and 06, cd, mix, big
+    name: cbds with grad window size 3, tol 03 and 06, cd, mix, big
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
