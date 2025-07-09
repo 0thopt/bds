@@ -831,8 +831,8 @@ for iter = 1:maxit
         func_change = max(fopt_hist(iter-func_window_size+1:iter)) - min(fopt_hist(iter-func_window_size+1:iter));
         if func_change < func_tol_1 * min(1, abs(fopt_hist(iter))) || ...
                 func_change < func_tol_2 * max(1, abs(fopt_hist(iter)))
+            terminate = true;
             exitflag = get_exitflag("INSUFFICIENT_OBJECTIVE_CHANGE");
-            break;
         end
     end
 
@@ -847,22 +847,16 @@ for iter = 1:maxit
         % Check whether the consecutive grad_window_size gradients are sufficiently small.
         if length(grad_hist) > grad_window_size
             grad_window_size_hist = grad_hist(end-grad_window_size+1:end);
-            % grad_change = max(grad_window_size_hist) - min(grad_window_size_hist);
-            % % keyboard
-            % if grad_change < grad_tol_1 * min(1, grad_hist(end)) || ...
-            %         grad_change < grad_tol_2 * max(1, grad_hist(end))
-            %     exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
-            %     break;
-            % end
             if all(grad_window_size_hist < grad_tol_1 * min(1, grad_hist(1)) | grad_window_size_hist < grad_tol_2 * max(1, grad_hist(1)))
+                terminate = true;
                 exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
-                break;
             end
         end
 
     end
 
-    % Terminate the computations if terminate is true.
+    % Since function evaluations are the most expensive operation in derivative-free optimization,
+    % all possible termination conditions are checked at each iteration. The exitflag is set to the last condition triggered.
     if terminate
         break;
     end

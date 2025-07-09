@@ -2,7 +2,7 @@ name: rbds with quarter n batch size, grad 3, 3x, 6x, cd, mix, default, big
 
 on:
   # Trigger the workflow on # push or pull request
-  push:
+  # push:
   # Trigger the workflow manually
   schedule:
   - cron: '0 6 */1 * *'
