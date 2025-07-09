@@ -1,8 +1,8 @@
-name: Profile rbds with different numbers of selected blocks, big
+name: Profile rbds with different number of batch size, small
 
 on:
   # Trigger the workflow on # push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   schedule:
   - cron: '0 14 */1 * *'
@@ -10,14 +10,14 @@ on:
 
 jobs:
   test:
-    name: Profile RBDS with different numbers of selected blocks, big
+    name: Profile RBDS with different number of batch size, small
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
         matlab: [latest]
-        dim: [big]
+        dim: [small]
         with_optim_toolbox: [yes]
         solver: [rnb]
         competitor_1: [rhnb]

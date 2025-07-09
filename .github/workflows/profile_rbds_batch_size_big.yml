@@ -1,16 +1,16 @@
-name: Profile rbds with different replacement delays, big
+name: Profile rbds with different number of batch size, big
 
 on:
   # Trigger the workflow on # push or pull request
   push:
   # Trigger the workflow manually
   schedule:
-  - cron: '0 6 */1 * *'
+  - cron: '0 14 */1 * *'
   workflow_dispatch:
 
 jobs:
   test:
-    name: Profile RBDS with different replacement delays, big
+    name: Profile RBDS with different number of batch size, big
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -19,11 +19,11 @@ jobs:
         matlab: [latest]
         dim: [big]
         with_optim_toolbox: [yes]
-        solver: [rnm1d]
-        competitor_1: [rhnd]
-        competitor_2: [rqnd]
-        competitor_3: [rend]
-        competitor_4: [r1d]
+        solver: [rnb]
+        competitor_1: [rhnb]
+        competitor_2: [rqnb]
+        competitor_3: [renb]
+        competitor_4: [r1b]
         run_plain: [false]
         summarize_log_ratio_profiles: [false]
         feature: [plain, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, linearly_transformed, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
@@ -72,9 +72,9 @@ jobs:
               % Setup optiprofiler
               cd(fullfile(root_dir, 'optiprofiler'));
               setup
-
-              % Setup bds
               cd(root_dir);
+  
+              % Setup bds
               setup
               cd(fullfile(root_dir, 'tests', 'competitors'));
               addpath(pwd);
@@ -128,7 +128,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: profile_optiprofiler_${{ matrix.solver }}_${{ matrix.competitor_1 }}_${{ matrix.competitor_2 }}_${{ matrix.competitor_3 }}_${{ matrix.competitor_4 }}_${{ matrix.feature }}_${{ matrix.dim }}
+          name: profile_optiprofiler_${{ matrix.solver }}_${{ matrix.competitor_1 }}_${{ matrix.competitor_2 }}_${{ matrix.competitor_3 }}_${{ matrix.competitor_4 }}_${{ matrix.dim }}_${{ matrix.feature }}
           path: ./tests/testdata/
 
   merge_artifacts:
@@ -181,7 +181,7 @@ jobs:
           cd summary
           ls
           bash ../merge_pdf.sh
-          mv merged.pdf "summary_rbds_replacement_delay_big.pdf"
+          mv merged.pdf "summary_rbds_num_selected_blocks_big.pdf"
           cd ..
           if [ -d "summary" ]; then
             mv summary "summary_${BASE_INFO}"
@@ -192,7 +192,7 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: merged_profiles_rbds_replacement_delay_big
+          name: merged_profiles_rbds_num_selected_blocks_big
           path: tests/testdata/downloaded_artifacts/**
 
       - name: Upload summary files
@@ -200,5 +200,5 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: summary_files_rbds_replacement_delay_big
+          name: summary_files_rbds_num_selected_blocks_big
           path: tests/testdata/downloaded_artifacts/summary_${{ env.BASE_INFO }}/**

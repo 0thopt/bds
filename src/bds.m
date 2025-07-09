@@ -16,7 +16,6 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               permuted blockwise direct search), 'rbds' 
 %                               (randomized blockwise direct search), 'ds'
 %                               (the classical direct search), 'pads' (parallel 
-%                               blockwise direct search). 'scbds' (symmetric
 %                               blockwise direct search). If no Algorithm is specified 
 %                               in the options, the default setting will be equivalent to 
 %                               using 'cbds' as the input.
