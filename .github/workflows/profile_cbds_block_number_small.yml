@@ -200,4 +200,4 @@ jobs:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
           name: summary_files_cbds_num_blocks_small
-          path: tests/testdata/downloaded_artifacts/summary_${{ env.BASE_INFO }}/**
+          path: tests/testdata/downloaded_artifacts/summary_cbds_num_blocks_small/**

@@ -1053,7 +1053,6 @@ end
 
 function x = rbds_zero_delay_test(fun, x0)
 
-    option.Algorithm = 'rbds';
     option.batch_size = 1;
     option.expand = 2;
     option.shrink = 0.5;
@@ -1064,7 +1063,6 @@ end
 
 function x = rbds_one_delay_test(fun, x0)
 
-    option.Algorithm = 'rbds';
     option.batch_size = 1;
     option.expand = 2;
     option.shrink = 0.5;
@@ -1075,7 +1073,6 @@ end
 
 function x = rbds_eighth_delay_test(fun, x0)
 
-    option.Algorithm = 'rbds';
     option.batch_size = 1;
     option.expand = 2;
     option.shrink = 0.5;
@@ -1086,7 +1083,6 @@ end
 
 function x = rbds_quarter_delay_test(fun, x0)
 
-    option.Algorithm = 'rbds';
     option.batch_size = 1;
     option.expand = 2;
     option.shrink = 0.5;
@@ -1097,7 +1093,6 @@ end
 
 function x = rbds_half_delay_test(fun, x0)
 
-    option.Algorithm = 'rbds';
     option.batch_size = 1;
     option.expand = 2;
     option.shrink = 0.5;
@@ -1108,7 +1103,6 @@ end
 
 function x = rbds_n_minus_1_delay_test(fun, x0)
 
-    option.Algorithm = 'rbds';
     option.batch_size = 1;
     option.expand = 2;
     option.shrink = 0.5;
@@ -1119,7 +1113,6 @@ end
 
 function x = rbds_batch_size_n_test(fun, x0)
 
-    option.Algorithm = 'rbds';
     option.expand = 2;
     option.shrink = 0.5;
     option.batch_size = numel(x0);
@@ -1130,7 +1123,6 @@ end
 
 function x = rbds_batch_size_half_n_test(fun, x0)
 
-    option.Algorithm = 'rbds';
     option.expand = 2;
     option.shrink = 0.5;
     option.batch_size = ceil(numel(x0)/2);
@@ -1141,7 +1133,6 @@ end
 
 function x = rbds_batch_size_quarter_n_test(fun, x0)
 
-    option.Algorithm = 'rbds';
     option.expand = 2;
     option.shrink = 0.5;
     option.batch_size = ceil(numel(x0)/4);
@@ -1152,7 +1143,6 @@ end
 
 function x = rbds_batch_size_eighth_n_test(fun, x0)
 
-    option.Algorithm = 'rbds';
     option.expand = 2;
     option.shrink = 0.5;
     option.batch_size = ceil(numel(x0)/8);
@@ -1163,7 +1153,6 @@ end
 
 function x = rbds_batch_size_one_test(fun, x0)
 
-    option.Algorithm = 'rbds';
     option.expand = 2;
     option.shrink = 0.5;
     option.batch_size = 1;
