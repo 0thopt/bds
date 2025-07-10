@@ -133,7 +133,7 @@ maxit = MaxFunctionEvaluations;
 if isfield(options, "reduction_factor")
     reduction_factor = options.reduction_factor;
 else
-    reduction_factor = [0, 1e-3, 1e-3];
+    reduction_factor = get_default_constant("reduction_factor");
 end
 
 
@@ -184,12 +184,9 @@ end
 % WITH_CYCLING_MEMORY is only used when we need to permute the direction_indices. If
 % WITH_CYCLING_MEMORY is true, then we will permute the direction_indices by using the
 % direction_indices of the previous iteration. Otherwise, we will permute the direction_indices
-% with the initial direction_indices of ascending orders.
-if isfield(options, "with_cycling_memory")
-    with_cycling_memory = options.with_cycling_memory;
-else
-    with_cycling_memory = get_default_constant("with_cycling_memory");
-end
+% with the initial direction_indices of ascending orders. In bds, we have removed the with_cycling_memory
+% and set it to true by default. For convenience, we keep it here.
+with_cycling_memory = true;
 
 % Initialize the step sizes and alpha_hist, which is the history of step sizes.
 if isfield(options, "output_alpha_hist")
@@ -232,11 +229,12 @@ if output_xhist
     end
 end
 
-% Decide whether to print during the computation.
-if isfield(options, "verbose")
-    verbose = options.verbose;
+% Decide whether to print during the computation. In bds, we have removed the verbose option
+% and use iprint instead. 
+if isfield(options, "iprint")
+    iprint = options.iprint;
 else
-    verbose = get_default_constant("verbose");
+    iprint = get_default_constant("iprint");
 end
 
 % To avoid that the users bring some randomized strings.
@@ -250,7 +248,7 @@ end
 exitflag = get_exitflag("MAXIT_REACHED");
 xbase = x0;
 [fbase, fbase_real] = eval_fun(fun, xbase);
-if verbose
+if iprint > 0
     fprintf("Function number %d, F = %f\n", 1, fbase_real);
     fprintf("The corresponding X is:\n");
     fprintf("%f  ", xbase(:)');
@@ -304,7 +302,10 @@ for iter = 1:maxit
     suboptions.forcing_function = forcing_function;
     suboptions.ftarget = ftarget;
     suboptions.polling_inner = options.polling_inner;
-    suboptions.verbose = verbose;
+    suboptions.iprint = iprint;
+    % There is no need to set i_real in pds.m. However, to keep the consistency with
+    % inner_direct_search, we set it to 1.
+    suboptions.i_real = 1;
 
     [sub_xopt, sub_fopt, sub_exitflag, sub_output] = inner_direct_search(fun, xbase,...
         fbase, D, 1:size(D, 2), alpha, suboptions);
@@ -323,16 +324,23 @@ for iter = 1:maxit
 
     nf = nf+sub_output.nf;
 
-    % Update the step sizes and store the history of step sizes.
-    % fbase and xbase are used for the computation in the block. fval and
-    % xval are always the best function value and point so far.
+
+
+    % Whether to update xbase and fbase. xbase serves as the "base point" for the computation in the next block,
+    % meaning that reduction will be calculated with respect to xbase, as shown above.
+    % Note that their update requires a sufficient decrease if reduction_factor(1) > 0.
+    update_base = (reduction_factor(1) <= 0 && sub_fopt < fbase) ...
+                || (sub_fopt + reduction_factor(1) * forcing_function(alpha) < fbase);
+
+    % Update the step size alpha according to the reduction achieved.
     if sub_fopt + reduction_factor(3) * forcing_function(alpha) < fbase
         alpha = expand * alpha;
     elseif sub_fopt + reduction_factor(2) * forcing_function(alpha) >= fbase
         alpha = shrink * alpha;
     end
 
-    if (reduction_factor(1) <= 0 && sub_fopt < fbase) || sub_fopt + reduction_factor(1) * forcing_function(alpha) < fbase
+    % Update xbase and fbase if the sufficient decrease condition is satisfied.
+    if update_base
         xbase = sub_xopt;
         fbase = sub_fopt;
     end

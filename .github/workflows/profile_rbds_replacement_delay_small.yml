@@ -184,7 +184,7 @@ jobs:
           mv merged.pdf "summary_rbds_replacement_delay_small.pdf"
           cd ..
           if [ -d "summary" ]; then
-            mv summary "summary_${BASE_INFO}"
+            mv summary "summary_rbds_replacement_delay_small"
           fi
 
       - name: Upload merged artifact
@@ -201,4 +201,4 @@ jobs:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
           name: summary_files_rbds_replacement_delay_small
-          path: tests/testdata/downloaded_artifacts/summary_${{ env.BASE_INFO }}/**
+          path: tests/testdata/downloaded_artifacts/summary_rbds_replacement_delay_small/**

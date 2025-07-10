@@ -1204,7 +1204,9 @@ end
 
 function x = pds_test(fun, x0)
 
-    x = pds(fun, x0);
+    option.expand = 2;
+    option.shrink = 0.5;
+    x = pds(fun, x0, option);
     
 end
 

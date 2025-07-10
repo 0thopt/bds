@@ -180,10 +180,10 @@ jobs:
           cd summary
           ls
           bash ../merge_pdf.sh
-          mv merged.pdf "summary_block_number_small.pdf"
+          mv merged.pdf "summary_cbds_num_blocks_small.pdf"
           cd ..
           if [ -d "summary" ]; then
-            mv summary "summary_${BASE_INFO}"
+            mv summary "summary_cbds_num_blocks_small"
           fi
 
       - name: Upload merged artifact
@@ -191,7 +191,7 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: merged_profiles_blocks_small
+          name: merged_profiles_cbds_num_blocks_small
           path: tests/testdata/downloaded_artifacts/**
 
       - name: Upload summary files
@@ -199,5 +199,5 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: summary_files_blocks_small
+          name: summary_files_cbds_num_blocks_small
           path: tests/testdata/downloaded_artifacts/summary_${{ env.BASE_INFO }}/**
