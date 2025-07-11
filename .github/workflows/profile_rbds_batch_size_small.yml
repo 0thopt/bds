@@ -181,10 +181,10 @@ jobs:
           cd summary
           ls
           bash ../merge_pdf.sh
-          mv merged.pdf "summary_rbds_batch_size_big.pdf"
+          mv merged.pdf "summary_rbds_batch_size_small.pdf"
           cd ..
           if [ -d "summary" ]; then
-            mv summary "summary_rbds_batch_size_big"
+            mv summary "summary_rbds_batch_size_small"
           fi
 
       - name: Upload merged artifact
@@ -192,7 +192,7 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: merged_profiles_rbds_batch_size_big
+          name: merged_profiles_rbds_batch_size_small
           path: tests/testdata/downloaded_artifacts/**
 
       - name: Upload summary files
@@ -200,5 +200,5 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: summary_files_rbds_batch_size_big
-          path: tests/testdata/downloaded_artifacts/summary_rbds_batch_size_big/**
+          name: summary_files_rbds_batch_size_small
+          path: tests/testdata/downloaded_artifacts/summary_rbds_batch_size_small/**
