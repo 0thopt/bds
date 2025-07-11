@@ -41,6 +41,7 @@ end
 function divide_direction_set_test(testcase)
 %DIVIDE_DIRECTION_SET_TEST tests the file private/divide_direction_set.m.
 
+% Test the case where n cannot be divided by nb.
 n = 11;
 nb = 3;
 index_direction_set = cell(1,nb);
@@ -59,6 +60,7 @@ index_direction_set{3} = [15 16 17 18 19 20];
 
 verifyEqual(testcase, divide_direction_set(n, nb), index_direction_set)
 
+% Test the case where n can be divided by nb.
 n = 15;
 nb = 3;
 index_direction_set = cell(1,nb);
@@ -68,6 +70,7 @@ index_direction_set{3} = [21 22 23 24 25 26 27 28 29 30];
 
 verifyEqual(testcase, divide_direction_set(n, nb), index_direction_set)
 
+% Test the case where n is equal to nb.
 n = 3;
 nb = 3;
 index_direction_set = cell(1,nb);
@@ -120,8 +123,9 @@ function get_default_constant_test(testcase)
 %GET_DEFAULT_CONSTANT_TEST tests the file private/get_default_constant.m.
 
 % The following tests verify the default values of parameters required by bds.
-% Some code repetition is expected. The test order matches the parameter order in get_default_constant.m.
-% If any error is triggered, it indicates that a default parameter value has changed.
+% Some code repetition is expected. The test order matches the parameter order in 
+% get_default_constant.m. If any test fails, it indicates that a default parameter value 
+% has been modified.
 constant_name = "MaxFunctionEvaluations_dim_factor";
 constant_value = 500;
 verifyEqual(testcase, get_default_constant(constant_name), constant_value)
@@ -182,6 +186,7 @@ constant_name = "shrink_big_noisy";
 constant_value = 0.85;
 verifyEqual(testcase, get_default_constant(constant_name), constant_value)
 
+% To ensure that the forcing function is a function handle, we use func2str to compare the function handles.
 assert(strcmp(func2str(get_default_constant("forcing_function")), func2str(@(alpha) alpha^2)));
 
 constant_name = "reduction_factor";
@@ -292,17 +297,19 @@ D_unique = D(:, 1:2:2*n-1);
 % of the positive directions in the output direction set. In get_direction_set, It may remove columns 
 % that are too short. However, for a random matrix with high dimensions, the probability of such case 
 % is negligible. According to High-Dimensional Probability (Remark 3.2.5), independent random vectors 
-% in high dimensions are almost surely orthogonal, so collinearity and linear dependence are not a concern here.
-% Another explanation for the low probability of collinearity is that the probability of a random matrix
-% having a zero determinant is essentially zero. This is because the determinant is a polynomial function of 
-% the matrix entries, and the set of matrices with zero determinant forms a lower-dimensional subset in the 
-% space of all matrices. As a result, the probability of randomly selecting a matrix with zero determinant is zero.
-% We also need to check whether the odd columns of D equal to the even columns of D with a negative sign.
-% In general, checking for exact equality between floating-point matrices is not recommended due to numerical 
-% precision issues. However, in this case, we use strict equality to confirm that get_direction_set does not 
-% alter the input matrix, and the odd columns of D are indeed the negative of the even columns.
-% In addition, we need to check whether the odd columns of D form a basis. To verify this, we can use the 
-% svd function to compute the rank of the matrix formed by the odd columns of D.
+% in high dimensions are almost surely orthogonal, so collinearity and linear dependence are not a 
+% concern here. Another explanation for the low probability of collinearity is that the probability of 
+% a random matrix having a zero determinant is essentially zero. This is because the determinant is a 
+% polynomial function of the matrix entries, and the set of matrices with zero determinant forms a 
+% lower-dimensional subset in the space of all matrices. As a result, the probability of randomly 
+% selecting a matrix with zero determinant is zero.
+% We also need to check whether the odd columns of D equal to the even columns of D with a negative 
+% sign. In general, checking for exact equality between floating-point matrices is not recommended 
+% due to numerical precision issues. However, in this case, we use strict equality to confirm that 
+% get_direction_set does not alter the input matrix, and the odd columns of D are indeed the negative 
+% of the even columns. In addition, we need to check whether the odd columns of D form a basis. 
+% To verify this, we can use the svd function to compute the rank of the matrix formed by the odd 
+% columns of D.
 [is_A_cols_in_B, ~] = ismember(D_unique', A', 'rows');
 [is_B_cols_in_A, ~] = ismember(A', D_unique', 'rows');
 if ~all(is_A_cols_in_B) || ~all(is_B_cols_in_A)
@@ -317,8 +324,9 @@ if r ~= n
     error('The odd columns of D is not a basis.');
 end
 
-% The following tests evaluate the behavior of get_direction_set when the input matrix consists entirely of NaN values.
-% The expected behavior is that get_direction_set should return a block diagonal matrix with 1 and -1.
+% The following tests evaluate the behavior of get_direction_set when the input matrix consists 
+% entirely of NaN values. The expected behavior is that get_direction_set should return a block 
+% diagonal matrix with 1 and -1.
 n = randi([1,100]);
 options.direction_set = NaN(n, n);
 D = [zeros(n) zeros(n)];
@@ -328,8 +336,9 @@ for ii = 1:n
 end
 verifyEqual(testcase, get_direction_set(n, options), D)
 
-% The following tests evaluate the behavior of get_direction_set when the input matrix consists entirely of Inf values.
-% The expected behavior is that get_direction_set should return a block diagonal matrix with 1 and -1.
+% The following tests evaluate the behavior of get_direction_set when the input matrix consists
+% entirely of Inf values. The expected behavior is that get_direction_set should return a block 
+% diagonal matrix with 1 and -1.
 n = randi([1,100]);
 options.direction_set = inf(n, n);
 D = [zeros(n) zeros(n)];
@@ -339,8 +348,9 @@ for ii = 1:n
 end
 verifyEqual(testcase, get_direction_set(n, options), D)
 
-% The following tests evaluate the behavior of get_direction_set when the input matrix consists entirely of zeros.
-% The expected behavior is that get_direction_set should return a block diagonal matrix with 1 and -1.
+% The following tests evaluate the behavior of get_direction_set when the input matrix consists 
+% entirely of zeros. The expected behavior is that get_direction_set should return a block diagonal 
+% matrix with 1 and -1.
 n = randi([1,100]);
 options.direction_set = zeros(n, n);
 D = [zeros(n) zeros(n)];
@@ -350,8 +360,8 @@ for ii = 1:n
 end
 verifyEqual(testcase, get_direction_set(n, options), D)
 
-%The following example is based on https://github.com/libprima/prima/blob/main/matlab/tests/testprima.m, which is written
-%by Zaikun Zhang.
+%The following example is based on https://github.com/libprima/prima/blob/main/matlab/tests/testprima.m, 
+%which is written by Zaikun Zhang.
 function [f, g, H]=chrosen(x)
 %CHROSEN calculates the function value, gradient, and Hessian of the
 %   Chained Rosenbrock function.
@@ -384,12 +394,6 @@ end
 
 function bds_test(testcase)
 %BDS_TEST tests the file ./bds.m.
-
-% This test function verifies the basic functionality of the bds function
-% by checking if it can find the minimum of the Chained Rosenbrock function.
-% BDS will experience different input parameters, such as the block_visiting_pattern,
-% batch_size, and replacement_delay. Thus, the optimal function value returned by BDS
-% under different configurations might be different, but they should all be close to 0.
 
 % This test verifies the core functionality of the bds algorithm by checking its ability to
 % minimize the Chained Rosenbrock function. The bds.m is tested under various configurations, 
@@ -484,9 +488,10 @@ options.num_blocks = 1;
 if abs(fopt) > 1e-6
     error('The function value is not close to 0.');
 end
-% When both batch_size and num_blocks are 1, test different cases of
-% block_visiting_pattern. Actually, the block_visiting_pattern does not matter
-% when both batch_size and num_blocks are 1.
+
+% When both batch_size and num_blocks are set to 1, different values 
+% of block_visiting_pattern are tested. In this scenario, block_visiting_pattern 
+% has no effect, as there is only one block to visit.
 options.block_visiting_pattern = "random";
 [~, fopt, ~, ~] = bds(@chrosen, x0, options);
 if abs(fopt) > 1e-6

@@ -1,32 +1,29 @@
-name: Profile rbds with different replacement delays, small
+name: Profile original ds and pds using optiprofiler, big
 
 on:
   # Trigger the workflow on # push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   schedule:
-  - cron: '0 6 */1 * *'
+  - cron: '0 8 */1 * *'
   workflow_dispatch:
 
 jobs:
   test:
-    name: Profile RBDS with different replacement delays, small
+    name: Profile original ds and pds, big
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
         matlab: [latest]
-        dim: [small]
+        dim: [big]
         with_optim_toolbox: [yes]
-        solver: [rnm1d]
-        competitor_1: [rhnd]
-        competitor_2: [rqnd]
-        competitor_3: [rend]
-        competitor_4: [r1d]
+        solver: [direct-search-orig]
+        competitor: [pds]
         run_plain: [false]
-        summarize_log_ratio_profiles: [false]
-        feature: [plain, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, linearly_transformed, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
+        summarize_log_ratio_profiles: [true]
+        feature: [plain, perturbed_x0_0.001, perturbed_x0_1, perturbed_x0_10, perturbed_x0_100, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, truncated_1, truncated_2, truncated_3, truncated_4, permuted, linearly_transformed, random_nan_5, random_nan_10, random_nan_20, quantized_1, quantized_2, quantized_3, quantized_4, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
 
     steps:
       - name: Check out repository
@@ -83,12 +80,10 @@ jobs:
               cd(fullfile(root_dir, 'tests'));
               options = struct();
               options.feature_name = '${{ matrix.feature }}';
-              options.solver_names = {'${{ matrix.solver }}', '${{ matrix.competitor_1 }}', '${{ matrix.competitor_2 }}', '${{ matrix.competitor_3 }}', '${{ matrix.competitor_4 }}'};
+              options.solver_names = {'${{ matrix.solver }}', '${{ matrix.competitor }}'};
               options.dim = '${{ matrix.dim }}';
-              options.n_runs = 1;
               options.run_plain = ${{ matrix.run_plain }};
               options.summarize_log_ratio_profiles = ${{ matrix.summarize_log_ratio_profiles }};
-              options.test_blocks = true;
               profile_optiprofiler(options);
               cd(root_dir);
               cd(fullfile(root_dir, 'tests'));
@@ -128,7 +123,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: profile_optiprofiler_${{ matrix.solver }}_${{ matrix.competitor_1 }}_${{ matrix.competitor_2 }}_${{ matrix.competitor_3 }}_${{ matrix.competitor_4 }}_${{ matrix.dim }}_${{ matrix.feature }}
+          name: profile_optiprofiler_${{ matrix.solver }}_${{ matrix.competitor }}_${{ matrix.dim }}_${{ matrix.feature }}_${{ matrix.run_plain }}
           path: ./tests/testdata/
 
   merge_artifacts:
@@ -165,7 +160,6 @@ jobs:
 
           ARTIFACT_NAME=$(ls | grep "profile_optiprofiler" | head -n 1)
           BASE_INFO=$(echo $ARTIFACT_NAME | sed -n 's/.*optiprofiler_\([^_]*_[^_]*_\(small\|big\)\).*/\1/p')
-
           # Replace all '-' with '_' in BASE_INFO
           BASE_INFO=$(echo $BASE_INFO | sed 's/-/_/g')
           echo "Base info extracted: ${BASE_INFO}"
@@ -181,10 +175,10 @@ jobs:
           cd summary
           ls
           bash ../merge_pdf.sh
-          mv merged.pdf "summary_rbds_replacement_delay_small.pdf"
+          mv merged.pdf "summary_${BASE_INFO}.pdf"
           cd ..
           if [ -d "summary" ]; then
-            mv summary "summary_rbds_replacement_delay_small"
+            mv summary "summary_${BASE_INFO}"
           fi
 
       - name: Upload merged artifact
@@ -192,7 +186,7 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: merged_profiles_rbds_replacement_delay_small
+          name: merged_profiles_${{ env.BASE_INFO }}
           path: tests/testdata/downloaded_artifacts/**
 
       - name: Upload summary files
@@ -200,5 +194,5 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: summary_files_rbds_replacement_delay_small
-          path: tests/testdata/downloaded_artifacts/summary_rbds_replacement_delay_small/**
+          name: summary_files_${{ env.BASE_INFO }}
+          path: tests/testdata/downloaded_artifacts/summary_${{ env.BASE_INFO }}/**
