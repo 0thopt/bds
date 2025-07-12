@@ -324,11 +324,10 @@ for iter = 1:maxit
 
     nf = nf+sub_output.nf;
 
-
-
-    % Whether to update xbase and fbase. xbase serves as the "base point" for the computation in the next block,
-    % meaning that reduction will be calculated with respect to xbase, as shown above.
-    % Note that their update requires a sufficient decrease if reduction_factor(1) > 0.
+    % Whether to update xbase and fbase. xbase serves as the "base point" for the 
+    % computation in the next block, meaning that reduction will be calculated with 
+    % respect to xbase, as shown above. Note that their update requires a sufficient 
+    % decrease if reduction_factor(1) > 0.
     update_base = (reduction_factor(1) <= 0 && sub_fopt < fbase) ...
                 || (sub_fopt + reduction_factor(1) * forcing_function(alpha) < fbase);
 
