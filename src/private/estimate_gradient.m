@@ -1,15 +1,23 @@
-function [gradient, is_gradient_returned] = estimate_gradient(grad_info)
+function [gradient, is_gradient_returned, ...
+          directional_derivative_history, ...
+          is_directional_derivative_sampled_history, ...
+          last_sampled_iteration_per_direction] = ...
+    estimate_gradient(grad_info, ...
+                      directional_derivative_history, ...
+                      is_directional_derivative_sampled_history, ...
+                      last_sampled_iteration_per_direction)
 % estimate_gradient estimates the gradient using finite difference methods.
 % The gradient is computed under the following cases:
 % 1. If the number of blocks equals the batch size, the gradient is computed only if all directions have been sampled.
 %    - For "central_difference_mode", the gradient is returned only if no block has achieved sufficient decrease.
 %    - For "mixed_difference_mode", the gradient is always returned as long as all directions are sampled.
-% 2. If the number of blocks does not equal the batch size, the gradient is computed as long as at least one direction 
-%    has been sampled.
+% 2. If the number of blocks does not equal the batch size, the gradient is computed whenever each direction has 
+% at least one sampled directional derivative.
 % Inputs:
 %   grad_info: A structure containing the following fields:
 %       - n: Number of variables.
 %       - num_blocks: Number of blocks.
+%       - iter: Current iteration number.
 %       - sufficient_decrease_each_block: Boolean array indicating if sufficient decrease was achieved in each block.
 %       - direction_set: Matrix containing only the positive directions (i.e., the odd columns of the full direction set in bds.m).
 %                        This matrix is of size n x n, where each column corresponds to a basis direction d_i (i=1,...,n).
@@ -20,10 +28,23 @@ function [gradient, is_gradient_returned] = estimate_gradient(grad_info)
 %       - step_size_each_block: Step size used for each block, recorded before updating step sizes.
 %       - direction_set_indices_current_iteration: Cell array containing indices of sampled directions for the current iteration.
 %       - finite_difference_mode: Mode of finite difference estimation ("central_difference_mode" or "mixed_difference_mode").
+%   directional_derivative_history: An n-by-history_length matrix, where each row corresponds to a direction and each column to 
+%       an iteration. Each entry stores the directional derivative for a given direction at a specific iteration.
+%       The number of columns (history_length) is preset to the maximum number of iterations, since MATLAB matrices require 
+%       fixed size at initialization. If not provided, elements are initialized to NaN.
+%   is_directional_derivative_sampled_history: An n-by-history_length logical matrix, where each row corresponds to a direction and each 
+%       column to an iteration. Each entry indicates whether the directional derivative for a given direction was sampled at a 
+%       specific iteration. The number of columns is also preset to the maximum number of iterations.
+%   last_sampled_iteration_per_direction: A vector of length n, where each entry corresponds to a direction and stores the last
+%       iteration when the directional derivative for that direction was sampled. This is used to track the last sampled iteration 
+%       for each direction, which can be used to estimate the gradient when batch size is less than the number of blocks.
 % Outputs:
 %   - gradient: Estimated gradient vector. If the gradient cannot be estimated, it will be NaN.
 %   - is_gradient_returned: Boolean indicating if the gradient was successfully estimated. If the gradient is estimated, 
 %                           it will be true; otherwise, it will be false.
+%   - directional_derivative_history: See the detailed explanation above.
+%   - is_directional_derivative_sampled_history: See the detailed explanation above.
+%   - last_sampled_iteration_per_direction: See the detailed explanation above.
  
 % is_sampled_direction is a logical array indicating whether each direction has been sampled. If a direction has been sampled,
 % it will be true; otherwise, it will be false.
@@ -36,6 +57,8 @@ directional_derivative = zeros(grad_info.n, 1);
 is_gradient_returned = false;
 % Initialize the gradient to NaN. If the gradient is not estimated, it will remain NaN.
 gradient = NaN;
+% Initialize the updated vector for the last sampled iteration of each direction.
+last_sampled_iteration_per_direction_update = zeros(grad_info.n, 1);
 
 for i = 1:grad_info.n
 
@@ -43,6 +66,12 @@ for i = 1:grad_info.n
     % directions have been sampled in any block. The 2*i-1-th direction corresponds to the positive direction, and the 2*i-th 
     % direction corresponds to the negative direction.
     [is_sampled_direction(i), block_index, direction_position, is_sampled_positive_negative_direction] = is_direction_sampled(i, grad_info.num_blocks, grad_info.fhist_each_block, grad_info.direction_set_indices_current_iteration);
+
+    % Record whether the i-th direction has been sampled at the current iteration.
+    is_directional_derivative_sampled_history(i, grad_info.iter) = is_sampled_direction(i);
+
+    % Find the last true index in the logical vector.
+    last_sampled_iteration_per_direction_update(i) = max([0 find(is_directional_derivative_sampled_history(i, 1:grad_info.iter))]);
 
     % If the direction is sampled, compute the directional derivative.
     if is_sampled_direction(i)
@@ -63,6 +92,8 @@ for i = 1:grad_info.n
                 end
             end
         end
+        % Record the computed directional derivative of the i-th direction at the current iteration.
+        directional_derivative_history(i, grad_info.iter) = directional_derivative(i);
     end
 end
 
@@ -83,28 +114,29 @@ if grad_info.num_blocks == grad_info.batch_size
             is_gradient_returned = true;
         end
     end
+    if is_gradient_returned
+        % Find the indices of the sampled directions.
+        sampled_direction_indices = find(is_sampled_direction);
+        % Extract the sampled directions from the direction set.
+        sampled_direction_set = grad_info.direction_set(:, sampled_direction_indices);
+        % Compute the gradient using the least-squares minimum norm solution.
+        gradient = lsqminnorm(sampled_direction_set', directional_derivative(sampled_direction_indices));
+    end
 else
-    % When the number of blocks is not equal to the batch size (i.e., num_blocks > batch_size), 
-    % the gradient will be estimated as long as at least one direction has been sampled. 
-    if any(is_sampled_direction)
-        % If at least one direction has been sampled, we will compute the gradient.
+    % When num_blocks is not equal to batch_size, the gradient is estimated whenever each direction has at least one sampled 
+    % directional derivative. This is detected by checking that last_sampled_iteration_per_direction and 
+    % last_sampled_iteration_per_direction_update are different, and that all directions have at least one sampled 
+    % value (i.e., all(last_sampled_iteration_per_direction_update > 0)). For each direction, the most recently sampled directional 
+    % derivative is extracted from the history, and the gradient is computed using the least-squares minimum norm solution.
+    if all(last_sampled_iteration_per_direction ~= last_sampled_iteration_per_direction_update) && all(last_sampled_iteration_per_direction_update > 0)
         is_gradient_returned = true;
+        directional_derivative =  directional_derivative_history(sub2ind(size(directional_derivative_history), (1:size(directional_derivative_history,1))', last_sampled_iteration_per_direction_update));
+        gradient = lsqminnorm(grad_info.direction_set', directional_derivative);
     end
 end
 
-if is_gradient_returned
-    % Find the indices of the sampled directions.
-    sampled_direction_indices = find(is_sampled_direction);
-    % Extract the sampled directions from the direction set.
-    sampled_direction_set = grad_info.direction_set(:, sampled_direction_indices);
-    % Compute the gradient using the least-squares minimum norm solution.
-    gradient = lsqminnorm(sampled_direction_set', directional_derivative(sampled_direction_indices));
-    % Scale the gradient by the ratio of num_blocks to batch_size to ensure unbiasedness.
-    % Note: When num_blocks equals batch_size, this scaling has no effect and is not necessary.
-    % However, for code simplicity, the scaling is applied in all cases. If num_blocks is greater than batch_size,
-    % this scaling ensures that the estimated gradient is unbiased.
-    gradient = gradient * (grad_info.num_blocks / grad_info.batch_size);
-end
+% Update the last sampled iteration for each direction.
+last_sampled_iteration_per_direction = last_sampled_iteration_per_direction_update;
 
 function [is_sampled_each_direction, block_index_each_direction, direction_position_in_block, is_sampled_positive_negative_direction] = is_direction_sampled(direction_index, num_blocks, fhist_each_block, direction_set_indices_current_iteration)
 % is_direction_sampled checks if a specific direction has been sampled in any block.
@@ -119,7 +151,7 @@ function [is_sampled_each_direction, block_index_each_direction, direction_posit
 %   - block_index_each_direction: Index of the block where the direction_index-th direction was sampled. 
 %                                 If the direction is not sampled, it will be 0.
 %   - direction_position_in_block: Position of the positive and negative direction along the direction_index-th direction 
-%                                  in the block where it was sampled. If the 
+%                                  in the block where it was sampled.
 %   - is_sampled_positive_negative_direction: Boolean array indicating if the positive and negative directions have been sampled.
 
 % Initialize variables to store the results.
