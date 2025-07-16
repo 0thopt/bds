@@ -194,7 +194,7 @@ block_visiting_pattern = options.block_visiting_pattern;
 num_blocks = options.num_blocks;
 batch_size = options.batch_size;
 % Determine the indices of directions in each block.
-direction_set_indices = divide_direction_set(n, num_blocks);
+grouped_direction_indices = divide_direction_set(n, num_blocks);
 
 expand = options.expand;
 shrink = options.shrink;
@@ -285,9 +285,7 @@ elseif nf >= MaxFunctionEvaluations
     exitflag = get_exitflag("MAXFUN_REACHED");
 end
 
-% Initialize the block_indices, which is a vector containing the indices of blocks that we
-% are going to visit iterately. Initialize the number of blocks visited also.
-all_block_indices = (1:num_blocks);
+%Initialize the number of blocks visited.
 num_visited_blocks = 0;
 
 % fopt_all(i) stores the best function value found in the i-th block after one iteration, 
@@ -306,20 +304,15 @@ for iter = 1:maxit
     % These blocks should not have been visited in the previous replacement_delay
     % iterations when the replacement_delay is nonnegative.
     unavailable_block_indices = unique(block_hist(max(1, (iter-replacement_delay) * batch_size) : (iter-1) * batch_size), 'stable');
-    available_block_indices = setdiff(all_block_indices, unavailable_block_indices);
+    available_block_indices = setdiff(1:num_blocks, unavailable_block_indices);
 
     % Select batch_size blocks randomly from the available blocks. The selected blocks
     % will be visited in this iteration.
     block_indices = available_block_indices(random_stream.randperm(length(available_block_indices), batch_size));
     
-    % Choose the block visiting block_visiting_pattern based on options.block_visiting_pattern.
-    switch block_visiting_pattern
-        case "sorted"
-            block_indices = sort(block_indices);
-        case "random"
-            % block_indices = block_indices(random_stream.randperm(length(block_indices)));
-        case "parallel"
-            block_indices = all_block_indices;
+    % Choose the block indices based on options.block_visiting_pattern.
+    if strcmpi(block_visiting_pattern, "sorted")
+        block_indices = sort(block_indices);
     end
 
     for i = 1:length(block_indices)
@@ -329,7 +322,7 @@ for iter = 1:maxit
         i_real = block_indices(i);
 
         % Get indices of directions in the i_real-th block.
-        direction_indices = direction_set_indices{i_real};
+        direction_indices = grouped_direction_indices{i_real};
 
         % Set the options for the direct search within the i_real-th block.
         suboptions.FunctionEvaluations_exhausted = nf;
@@ -368,7 +361,7 @@ for iter = 1:maxit
 
         % Retrieve the direction indices of the i_real-th block, which represent the order of the
         % directions in the i_real-th block when we perform the direct search in this block next time.
-        direction_set_indices{i_real} = sub_output.direction_indices;
+        grouped_direction_indices{i_real} = sub_output.direction_indices;
 
         % Whether to update xbase and fbase. xbase serves as the "base point" for the computation in the next block,
         % meaning that reduction will be calculated with respect to xbase, as shown above.
