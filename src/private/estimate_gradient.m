@@ -114,25 +114,19 @@ if grad_info.num_blocks == grad_info.batch_size
             is_gradient_returned = true;
         end
     end
-    if is_gradient_returned
-        % Find the indices of the sampled directions.
-        sampled_direction_indices = find(is_sampled_direction);
-        % Extract the sampled directions from the direction set.
-        sampled_direction_set = grad_info.direction_set(:, sampled_direction_indices);
-        % Compute the gradient using the least-squares minimum norm solution.
-        gradient = lsqminnorm(sampled_direction_set', directional_derivative(sampled_direction_indices));
-    end
-else
+elseif all(last_sampled_iteration_per_direction ~= last_sampled_iteration_per_direction_update) && all(last_sampled_iteration_per_direction_update > 0)
     % When num_blocks is not equal to batch_size, the gradient is estimated whenever each direction has at least one sampled 
     % directional derivative. This is detected by checking that last_sampled_iteration_per_direction and 
-    % last_sampled_iteration_per_direction_update are different, and that all directions have at least one sampled 
+    % last_sampled_iteration_per_direction_update are different, and that all directions already have at least one sampled 
     % value (i.e., all(last_sampled_iteration_per_direction_update > 0)). For each direction, the most recently sampled directional 
     % derivative is extracted from the history, and the gradient is computed using the least-squares minimum norm solution.
-    if all(last_sampled_iteration_per_direction ~= last_sampled_iteration_per_direction_update) && all(last_sampled_iteration_per_direction_update > 0)
-        is_gradient_returned = true;
-        directional_derivative =  directional_derivative_history(sub2ind(size(directional_derivative_history), (1:size(directional_derivative_history,1))', last_sampled_iteration_per_direction_update));
-        gradient = lsqminnorm(grad_info.direction_set', directional_derivative);
-    end
+    is_gradient_returned = true;
+    directional_derivative =  directional_derivative_history(sub2ind(size(directional_derivative_history), (1:size(directional_derivative_history,1))', last_sampled_iteration_per_direction_update));
+end
+
+if is_gradient_returned
+    % If the gradient is successfully estimated, we will update the gradient vector.
+    gradient = lsqminnorm(grad_info.direction_set', directional_derivative);
 end
 
 % Update the last sampled iteration for each direction.
