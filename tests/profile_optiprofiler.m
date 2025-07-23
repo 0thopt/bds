@@ -70,7 +70,7 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
         % Actually, the way of truncating the function value is to
         % Truncate to n significant figures and round off the last digit, which
         % can be regarded as some kind of noise. The minimum value should be
-        % 0 of course. When it comes to the case of maximum value, the actural 
+        % 0 of course. When it comes to the case of maximum value, the actual
         % value is 10^m + 5*10^{m-n} and the truncated value is 5*10^{m-n}.
         % The relative error is 5/(10^n + 5). Assume that the noise follows
         % the uniform distribution, then the noise level is 5/(10^n + 5) * 0.5.
