@@ -11,6 +11,7 @@ field_list = {
     'batch_size'
     'MaxFunctionEvaluations'
     'direction_set'
+    'grouped_direction_indices'
     'is_noisy'
     'expand'
     'shrink'
@@ -209,17 +210,18 @@ else
         options.alpha_init = ones(options.num_blocks, 1);
     end
 
-    % The above processes are to deal with the fields that are related to the dimension of the problem.
-    % Then remove those fields to avoid setting the default value of them again, including Algorithm, 
-    % block_visiting_pattern, num_blocks, direction_set, batch_size, expand, shrink, replacement_delay, MaxFunctionEvaluations, 
-    % alpha_init.
-    field_list = setdiff(field_list, {'Algorithm', 'block_visiting_pattern', 'num_blocks', 'direction_set', 'batch_size', ...
-    'expand', 'shrink', 'replacement_delay', 'MaxFunctionEvaluations', 'alpha_init'});
+    % The above procedures handle fields that depend on problem-specific information and are not determined solely 
+    % by user input. Then remove those fields to avoid setting the default value of them again, including Algorithm, 
+    % block_visiting_pattern, num_blocks, direction_set, grouped_direction_indices, batch_size, expand, shrink, 
+    % replacement_delay, MaxFunctionEvaluations, alpha_init.
+    field_list = setdiff(field_list, {'Algorithm', 'block_visiting_pattern', 'num_blocks', 'direction_set', ...
+    'grouped_direction_indices', 'batch_size', 'expand', 'shrink', 'replacement_delay', 'MaxFunctionEvaluations', ...
+    'alpha_init'});
     
     for i = 1:length(field_list)
         field_name = field_list{i};
         if ~isfield(options, field_name)
-            % Get the default value of those fields that are not related to the dimension of the problem
+            % Get the default value of those fields that are not related to the problem information
             % from the get_default_constant function.
             options.(field_name) = get_default_constant(field_name);
         end
@@ -230,7 +232,7 @@ else
     if options.output_alpha_hist
         try
             % Test allocation of alpha_hist whether it exceeds the maximum memory size allowed.
-            alpha_hist_test = NaN(options.num_blocks, 500*length(x0)); %#ok<NASGU>
+            alpha_hist_test = NaN(options.num_blocks, 500*length(x0));
             clear alpha_hist_test
         catch
             options.output_alpha_hist = false;
@@ -241,7 +243,7 @@ else
     if  options.output_xhist
         try
             % Test allocation of xhist whether it exceeds the maximum memory size allowed.
-            xhist_test = NaN(length(x0), 500*length(x0)); %#ok<NASGU>
+            xhist_test = NaN(length(x0), 500*length(x0));
             clear xhist_test
         catch
             options.output_xhist = false;

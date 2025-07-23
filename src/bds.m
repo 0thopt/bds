@@ -39,6 +39,13 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               is not singular, then we will revise the
 %                               direction_set to make it linear independent.
 %                               See get_direction_set.m for details. Default: eye(n).
+%   grouped_direction_indices   A cell array of length num_blocks, where each
+%                               cell contains a vector of indices corresponding 
+%                               to the directions assigned to that block. Each index 
+%                               should be in the range 1 to n, where n is the problem 
+%                               dimension. The i-th index refers to the i-th direction 
+%                               in direction_set.
+%                               See divide_direction_set.m for details.
 %   is_noisy                    A flag deciding whether the problem is noisy or
 %                               not. The value of is_noisy will be only used to
 %                               determine the values of expand and shrink now.
@@ -194,7 +201,7 @@ block_visiting_pattern = options.block_visiting_pattern;
 num_blocks = options.num_blocks;
 batch_size = options.batch_size;
 % Determine the indices of directions in each block.
-grouped_direction_indices = divide_direction_set(n, num_blocks);
+grouped_direction_indices = divide_direction_set(n, num_blocks, options);
 
 expand = options.expand;
 shrink = options.shrink;

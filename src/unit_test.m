@@ -80,6 +80,17 @@ index_direction_set{3} = [5 6];
 
 verifyEqual(testcase, divide_direction_set(n, nb), index_direction_set)
 
+% Test the case where options.grouped_direction_indices is provided.
+n = 11;
+nb = 3;
+options.grouped_direction_indices = {[1 3 5 7], [2 4 8], [6 9 10 11]};
+index_direction_set = cell(1,nb);
+index_direction_set{1} = [1 2 5 6 9 10 13 14];
+index_direction_set{2} = [3 4 7 8 15 16];
+index_direction_set{3} = [11 12 17 18 19 20 21 22];
+
+verifyEqual(testcase, divide_direction_set(n, nb, options), index_direction_set)
+
 end
 
 function output = eval_fun_tmp(x)
@@ -291,29 +302,32 @@ A = randn(n);
 options.direction_set = A;
 D = get_direction_set(n, options);
 D_unique = D(:, 1:2:2*n-1);
-% Note: The matrix formed by the positive directions (i.e., the odd columns) in the direction set 
-% returned by get_direction_set may be a sorted version of the column vectors of the input matrix. 
-% Therefore, we need to check whether the columns of the input matrix are the same as the columns 
-% of the positive directions in the output direction set. In get_direction_set, It may remove columns 
-% that are too short. However, for a random matrix with high dimensions, the probability of such case 
-% is negligible. According to High-Dimensional Probability (Remark 3.2.5), independent random vectors 
+% Note: In get_direction_set, It may remove columns that are too short. However, for a random matrix 
+% with high dimensions, the probability of such case is negligible. According to 
+% High-Dimensional Probability (Remark 3.2.5), independent random vectors 
 % in high dimensions are almost surely orthogonal, so collinearity and linear dependence are not a 
 % concern here. Another explanation for the low probability of collinearity is that the probability of 
 % a random matrix having a zero determinant is essentially zero. This is because the determinant is a 
 % polynomial function of the matrix entries, and the set of matrices with zero determinant forms a 
 % lower-dimensional subset in the space of all matrices. As a result, the probability of randomly 
 % selecting a matrix with zero determinant is zero.
-% We also need to check whether the odd columns of D equal to the even columns of D with a negative 
-% sign. In general, checking for exact equality between floating-point matrices is not recommended 
-% due to numerical precision issues. However, in this case, we use strict equality to confirm that 
-% get_direction_set does not alter the input matrix, and the odd columns of D are indeed the negative 
-% of the even columns. In addition, we need to check whether the odd columns of D form a basis. 
+% In get_direction_set, we sort the indices of vectors that are present in both the input matrix A and 
+% the output matrix D. Although QR factorization with column pivoting is used to select a maximal linearly 
+% independent subset, sorting these indices ensures that the order of the vectors in the output matrix D 
+% is as consistent as possible with that in the input matrix A. This allows us to use isequal to verify 
+% that the odd columns of D are identical to the input matrix A. Note that get_direction_set does not alter 
+% the input matrix A unless collinearity, linear dependence, NaN, Inf, or very short columns are present.
+% As previously discussed, the probability of such cases is negligible for random matrices with large n.
+% Therefore, we can reliably use isequal to confirm that the odd columns of D match the input matrix A.
+% We also need to check whether the odd columns of D equal to the even columns of D with a negative
+% sign. In general, checking for exact equality between floating-point matrices is not recommended
+% due to numerical precision issues. However, in this case, we use strict equality to confirm that
+% get_direction_set does not alter the input matrix, and the odd columns of D are indeed the negative
+% of the even columns. In addition, we need to check whether the odd columns of D form a basis.
 % To verify this, we can use the svd function to compute the rank of the matrix formed by the odd 
 % columns of D.
-[is_A_cols_in_B, ~] = ismember(D_unique', A', 'rows');
-[is_B_cols_in_A, ~] = ismember(A', D_unique', 'rows');
-if ~all(is_A_cols_in_B) || ~all(is_B_cols_in_A)
-    error('The directions are not the same as the input.');
+if ~isequal(D_unique, A)
+    error('The odd columns of D are not the same as the input matrix.');
 end
 if D(:, 1:2:2*n-1) ~= -D(:, 2:2:2*n)
     error('The directions in one block are not opposite.');
