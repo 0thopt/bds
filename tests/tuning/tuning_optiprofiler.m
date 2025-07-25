@@ -383,7 +383,7 @@ function x = cbds_expand_shrink(fun, x0, expand, shrink)
     option.Algorithm = 'cbds';
     option.expand = expand;
     option.shrink = shrink;
-    x = bds_development(fun, x0, option);
+    x = bds(fun, x0, option);
     
 end
 
@@ -400,7 +400,7 @@ function x = cbds_window_size_fun_tol(fun, x0, func_window_size, func_tol_1, fun
         option.func_tol_2 = func_tol_2;
         option.use_function_value_stop = true;
     end
-    x = bds_development(fun, x0, option);
+    x = bds(fun, x0, option);
     
 end
 
@@ -417,7 +417,7 @@ function x = cbds_window_size_grad_tol(fun, x0, grad_window_size, grad_tol_1, gr
         option.grad_tol_2 = grad_tol_2;
         option.use_estimated_gradient_stop = true;
     end
-    x = bds_development(fun, x0, option);
+    x = bds(fun, x0, option);
     
 end
 
@@ -447,7 +447,7 @@ function x = cbds_window_size_grad_tol_batch_size(fun, x0, grad_window_size, gra
     % gradient computation.
     seed = round(1e4 * option.expand) + round(1e6 * option.shrink) + option.batch_size;
     option.seed = seed;
-    x = bds_development(fun, x0, option);
+    x = bds(fun, x0, option);
     
 end
 
