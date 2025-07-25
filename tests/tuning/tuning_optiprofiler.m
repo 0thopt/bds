@@ -1,11 +1,13 @@
 function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, options)
 
     clc
+    options.n_jobs = 1; % Set the number of jobs to 1 for the seed to be consistent.
     n_solvers = length(options.solver_names);
     solvers = cell(1, n_solvers);
     
     % According to the field of parameters, different solvers are tested.
     param_fields = fieldnames(parameters);
+    
     switch true
         case ismember('expand', param_fields) && ismember('shrink', param_fields)
             for i_solver = 1:n_solvers
@@ -15,11 +17,11 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
             for i_solver = 1:n_solvers
                 solvers{i_solver} = @(fun, x0) cbds_window_size_fun_tol(fun, x0, parameters.func_window_size(i_solver), parameters.func_tol_1(i_solver), parameters.func_tol_2(i_solver));
             end
-        case ismember('grad_window_size', param_fields) && ismember('grad_tol_1', param_fields) && ~ismember('grad_tol_2', param_fields) && ~ismember('batch_size', param_fields)
+        case ismember('grad_window_size', param_fields) && ismember('grad_tol_1', param_fields) && ismember('grad_tol_2', param_fields) && ~ismember('batch_size', param_fields)
             for i_solver = 1:n_solvers
                 solvers{i_solver} = @(fun, x0) cbds_window_size_grad_tol(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol_1(i_solver), parameters.grad_tol_2(i_solver));
             end
-        case ismember('grad_window_size', param_fields) && ismember('grad_tol_1', param_fields) && ~ismember('grad_tol_2', param_fields) && ismember('batch_size', param_fields)
+        case ismember('grad_window_size', param_fields) && ismember('grad_tol_1', param_fields) && ismember('grad_tol_2', param_fields) && ismember('batch_size', param_fields)
             for i_solver = 1:n_solvers
                 solvers{i_solver} = @(fun, x0) cbds_window_size_grad_tol_batch_size(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol_1(i_solver), parameters.grad_tol_2(i_solver), parameters.batch_size(i_solver));
             end
