@@ -59,6 +59,22 @@ switch constant_name
         constant_value = 0;
     case {"debug_flag"}
         constant_value = false;
+    case {"use_function_value_stop"}
+        constant_value = false;
+    case {"func_window_size"}
+        constant_value = 10;
+    case {"func_tol_1"}
+        constant_value = 1e-6;
+    case {"func_tol_2"}
+        constant_value = 1e-9;
+    case {"use_estimated_gradient_stop"}
+        constant_value = false;
+    case {"grad_window_size"}
+        constant_value = 1;
+    case {"grad_tol_1"}
+        constant_value = 1e-3;
+    case {"grad_tol_2"}
+        constant_value = 1e-6;
     otherwise
         error("Unknown constant name")
 end

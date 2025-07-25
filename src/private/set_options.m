@@ -31,6 +31,14 @@ field_list = {
     'output_xhist'
     'iprint'
     'debug_flag'
+    'use_function_value_stop'
+    'func_window_size'
+    'func_tol_1'
+    'func_tol_2'
+    'use_estimated_gradient_stop'
+    'grad_window_size'
+    'grad_tol_1'
+    'grad_tol_2'
     };
 
 % Get the field names of options.

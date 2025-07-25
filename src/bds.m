@@ -132,6 +132,33 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %   debug_flag                  A flag deciding whether to check the inputs and outputs
 %                               when the algorithm is running.
 %                               Default: false.
+%   use_function_value_stop     Whether to use the function value to stop the
+%                               algorithm. If it is true, then the algorithm will
+%                               stop when the function value does not change
+%                               significantly over the last func_window_size iterations.
+%                               It is an optional termination criterion.
+%                               Default: false. 
+%   func_window_size            The number of iterations to consider when checking
+%                               whether the function value has changed significantly.
+%                               It should be a positive integer. Default: 10.
+%   func_tol_1                  The first tolerance for the function value change.
+%                               It should be a positive number. Default: 1e-6.
+%   func_tol_2                  The second tolerance for the function value change.
+%                               It should be a positive number. Default: 1e-9.
+%   use_estimated_gradient_stop Whether to use the estimated gradient to stop
+%                               the algorithm. If it is true and the algorithm
+%                               is not terminated by other criteria, then the
+%                               algorithm will stop when the estimated gradient
+%                               is sufficiently small.
+%                               It is an optional termination criterion.
+%                               Default: false.
+%   grad_window_size            The number of iterations to consider when checking
+%                               whether the estimated gradient has changed significantly.
+%                               It should be a positive integer. Default: 1.
+%   grad_tol_1                  The first tolerance for the estimated gradient change.
+%                               It should be a positive number. Default: 1e-3.
+%   grad_tol_2                  The second tolerance for the estimated gradient change.
+%                               It should be a positive number. Default: 1e-6.
 %
 %   [XOPT, FOPT] = BDS(...) returns an approximate minimizer XOPT and its function value FOPT.
 %
@@ -242,10 +269,27 @@ end
 
 % Initialize the history of function values.
 fhist = NaN(1, MaxFunctionEvaluations);
+% Initialize the fopt for each iteration.
+fopt_hist = NaN(1, MaxFunctionEvaluations);
 
 output_block_hist = options.output_block_hist;
 % Initialize the history of blocks visited.
 block_hist = NaN(1, MaxFunctionEvaluations);
+
+use_function_value_stop = options.use_function_value_stop;
+func_window_size = options.func_window_size;
+func_tol_1 = options.func_tol_1;
+func_tol_2 = options.func_tol_2;
+
+use_estimated_gradient_stop = options.use_estimated_gradient_stop;
+grad_window_size = options.grad_window_size;
+grad_tol_1 = options.grad_tol_1;
+grad_tol_2 = options.grad_tol_2;
+grad_hist = [];
+
+grad_info = struct();
+grad_info.step_size_each_batch = NaN(batch_size, 1);
+grad_info.direction_set = D;
 
 % Initialize exitflag. If exitflag is not set elsewhere, then the maximum number of iterations
 % is reached, and hence we initialize exitflag to the corresponding value.
@@ -322,6 +366,14 @@ for iter = 1:maxit
         block_indices = sort(block_indices);
     end
 
+    % Initialize batch_direction_indices, a cell array of length batch_size, to store the indices 
+    % of the directions evaluated in each batch during the current iteration. Also initialize 
+    % is_batch_fully_visited, a logical array of length batch_size, which indicates whether all 
+    % directions in each batch have been evaluated in this iteration.
+    batch_direction_indices = cell(1, batch_size);
+    is_batch_fully_visited = false(1, batch_size);
+    batch_fhist = cell(1, batch_size);
+    
     for i = 1:length(block_indices)
 
         % i_real = block_indices(i) is the real index of the block to be visited. For example,
@@ -330,6 +382,12 @@ for iter = 1:maxit
 
         % Get indices of directions in the i_real-th block.
         direction_indices = grouped_direction_indices{i_real};
+
+        % Store the step size for the i_real-th block in grad_info. We use i (the batch index)
+        % instead of i_real (the absolute block index) because we are only concerned with the batch_size
+        % blocks visited in the current iteration. Therefore, step_size_each_batch is initialized with
+        % batch_size elements.
+        grad_info.step_size_each_batch(i) = alpha_all(i_real);
 
         % Set the options for the direct search within the i_real-th block.
         suboptions.FunctionEvaluations_exhausted = nf;
@@ -361,6 +419,21 @@ for iter = 1:maxit
 
         % Update the number of function evaluations.
         nf = nf+sub_output.nf;
+
+        % Store the indices (with respect to the full direction set) of the directions in the 
+        % i_real-th block that were evaluated during this iteration. 
+        % Note that batch_direction_indices is initialized with batch_size cells, as we are 
+        % mainly interested in tracking which directions are visited in each batch during the 
+        % current iteration. Therefore, we use i (the batch index in this iteration) rather than
+        % i_real (the absolute block index).
+        batch_direction_indices{i} = direction_indices(1:sub_output.nf);
+        % If the number of directions evaluated in the i_real-th block is equal to sub_output.nf,
+        % then we set is_batch_fully_visited(i) to true, indicating that all directions in the i_real-th 
+        % block have been evaluated in this iteration.
+        if length(direction_indices) == sub_output.nf
+            is_batch_fully_visited(i) = true;
+        end
+        batch_fhist{i} = sub_output.fhist;
 
         % Record the best function value and point encountered in the i_real-th block.
         fopt_all(i_real) = sub_fopt;
@@ -413,11 +486,6 @@ for iter = 1:maxit
     % Why iter+1? Because we record the step size for the next iteration.
     alpha_hist(:, iter+1) = alpha_all;
 
-    % Actually, fopt is not always the minimum of fhist after the moment we update fopt
-    % since the value we used to iterate is not always equal to the value returned by the function.
-    % See eval_fun.m for details.
-    % assert(fopt == min(fhist));
-
     % Update xopt and fopt. Note that we do this only if the iteration encounters a strictly better point.
     % Make sure that fopt is always the minimum of fhist after the moment we update fopt.
     % The determination between fopt_all and fopt is to avoid the case that fopt_all is
@@ -430,6 +498,11 @@ for iter = 1:maxit
         xopt = xopt_all(:, index);
     end
 
+    % Actually, fopt is not always the minimum of fhist after the moment we update fopt
+    % since the value we used to iterate is not always equal to the value returned by the function.
+    % See eval_fun.m for details.
+    % assert(fopt == min(fhist));
+
     % For "parallel", we will update xbase and fbase only after one iteration of the outer loop.
     % During the inner loop, every block will share the same xbase and fbase.
     if strcmpi(block_visiting_pattern, "parallel")
@@ -439,6 +512,46 @@ for iter = 1:maxit
         if (reduction_factor(1) <= 0 && fopt < fbase) || fopt + reduction_factor(1) * forcing_function(min(alpha_all)) < fbase
             xbase = xopt;
             fbase = fopt;
+        end
+    end
+
+    % Track the best function value observed in each iteration.
+    fopt_hist(iter) = fopt;
+
+    % Check if the optimization should stop due to insufficient change in the objective function
+    % over the last func_window_size iterations. If the change is below a specified threshold,
+    % terminate the optimization. This check is performed after the current iteration is complete,
+    % ensuring fopt_hist includes the latest function value.
+    if use_function_value_stop && iter > func_window_size
+        func_change = max(fopt_hist(iter-func_window_size+1:iter)) - min(fopt_hist(iter-func_window_size+1:iter));
+        if func_change < func_tol_1 * min(1, abs(fopt_hist(iter))) || ...
+                func_change < func_tol_2 * max(1, abs(fopt_hist(iter)))
+            terminate = true;
+            exitflag = get_exitflag("SMALL_OBJECTIVE_CHANGE");
+        end
+    end
+
+    % If all directions in the batch have been visited during this iteration, we can estimate the gradient.
+    if all(is_batch_fully_visited)
+        grad_info.batch_direction_indices = batch_direction_indices;
+        grad_info.batch_fhist = batch_fhist;
+        grad = estimate_gradient(grad_info);
+        % If the norm of the estimated gradient exceeds the threshold (1e30), it is discarded.
+        % This threshold is chosen to maintain consistency with the standard used in eval_fun.m.
+        if ~(norm(grad) > 1e30)
+            % Record the estimated gradient in grad_hist.
+            grad_hist = [grad_hist, grad];
+        end
+    end
+
+    if use_estimated_gradient_stop
+        % Check whether the consecutive grad_window_size gradients are sufficiently small.
+        if length(grad_hist) > grad_window_size
+            grad_window_size_hist = vecnorm(grad_hist(:, end-grad_window_size+1:end));
+            if all(grad_window_size_hist < grad_tol_1 * min(1, norm(grad_hist(:,1))) | grad_window_size_hist < grad_tol_2 * max(1, norm(grad_hist(:,1))))
+                terminate = true;
+                exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
+            end
         end
     end
 
@@ -476,6 +589,10 @@ switch exitflag
         output.message = "The target of the objective function is reached.";
     case get_exitflag("MAXIT_REACHED")
         output.message = "The maximum number of iterations is reached.";
+    case get_exitflag("SMALL_OBJECTIVE_CHANGE")
+        output.message = "The change of the function value is small.";
+    case get_exitflag("SMALL_ESTIMATE_GRADIENT")
+        output.message = "The estimated gradient is small.";
     otherwise
         output.message = "Unknown exitflag";
 end

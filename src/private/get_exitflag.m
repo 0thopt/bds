@@ -1,12 +1,13 @@
 function [exitflag] = get_exitflag(information)
 %GET_EXITFLAG gets the EXITFLAG of BDS.
-%   SMALL_ALPHA     Step size is below StepTolerance. In the case of variable step sizes, 
-%                   SMALL_ALPHA indicates the largest component of step sizes is 
-%                   below StepTolerance.
-%   MAXFUN_REACHED  The number of function evaluations reaches MAXFUN.
-%   FTARGET_REACHED Function value is smaller than or equal to FTARGET.
-%   MAXIT_REACHED   The number of iterations reaches MAXIT.  
-%
+%   SMALL_ALPHA                     Step size is below StepTolerance. In the case of variable step sizes, 
+%                                   SMALL_ALPHA indicates the largest component of step sizes is 
+%                                   below StepTolerance.
+%   MAXFUN_REACHED                  The number of function evaluations reaches MAXFUN.
+%   FTARGET_REACHED                 Function value is smaller than or equal to FTARGET.
+%   MAXIT_REACHED                   The number of iterations reaches MAXIT.
+%   SMALL_OBJECTIVE_CHANGE          The change of the function value is small.
+%   SMALL_ESTIMATE_GRADIENT         The estimated gradient is small.
 
 % Check whether INFORMATION is a string or not.
 if ~isstring(information)
@@ -22,6 +23,10 @@ switch information
         exitflag = 2;
     case "MAXIT_REACHED"
         exitflag = 3;
+    case "SMALL_OBJECTIVE_CHANGE"
+        exitflag = 4;
+    case "SMALL_ESTIMATE_GRADIENT"
+        exitflag = 5;
     otherwise
         exitflag = -1;
 end
