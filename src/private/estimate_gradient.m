@@ -41,12 +41,16 @@ n = size(full_direction_set, 1);
 % This is done to ensure that we only consider the positive directions for gradient estimation.
 positive_direction_set = full_direction_set(:, 1:2:2*n-1);
 
-% Find the indices of the positive directions visited in this iteration in the direction_indices_this_iter.
+% Identify the indices in direction_indices_this_iter corresponding to positive directions (odd indices).
+% Sort these indices according to the values in direction_indices_this_iter, so that the positive directions
+% are processed in ascending order of their indices in the full direction set.
+% The resulting sorted_positive_directions_visited_indices_in_fhist gives the positions in direction_indices_this_iter
+% for the sorted positive directions visited in this iteration.
 positive_direction_visited_indices_in_fhist = find(mod(direction_indices_this_iter, 2) == 1);
 [~, positive_sort_order] = sort(direction_indices_this_iter(positive_direction_visited_indices_in_fhist));
 sorted_positive_directions_visited_indices_in_fhist = positive_direction_visited_indices_in_fhist(positive_sort_order);
 
-% Find the indices of the negative directions visited in this iteration in the direction_indices_this_iter.
+% Do the same for negative directions (even indices).
 negative_direction_visited_indices_in_fhist = find(mod(direction_indices_this_iter, 2) == 0);
 [~, negative_sort_order] = sort(direction_indices_this_iter(negative_direction_visited_indices_in_fhist));
 sorted_negative_directions_visited_indices_in_fhist = negative_direction_visited_indices_in_fhist(negative_sort_order);
@@ -59,22 +63,23 @@ positive_direction_visited_indices = direction_indices_this_iter(mod(direction_i
 sampled_direction_set = full_direction_set(:, positive_direction_visited_indices);
 
 for i = 1:num_sampled_directions
-    % Get the index of the i-th positive direction visited in this iteration.
-    positive_index = direction_indices_this_iter(sorted_positive_directions_visited_indices_in_fhist(i));
-    % Get the index of the i-th negative direction visited in this iteration.
-    negative_index = direction_indices_this_iter(sorted_negative_directions_visited_indices_in_fhist(i));
+
+    % Find the indices of the positive and negative directions in the direction_indices_this_iter.
+    positive_index_in_fhist = sorted_positive_directions_visited_indices_in_fhist(i);
+    negative_index_in_fhist = sorted_negative_directions_visited_indices_in_fhist(i);
 
     for j = 1:batch_size
-        % Find the batch that contains both the positive and negative direction indices.
-        if any(batch_direction_indices{j} == positive_index) && any(batch_direction_indices{j} == negative_index)
+        % Find the batch that contains both the indices of the positive and negative directions in the full
+        % direction set.
+        if any(batch_direction_indices{j} == direction_indices_this_iter(positive_index_in_fhist)) && any(batch_direction_indices{j} == direction_indices_this_iter(negative_index_in_fhist))
             batch_with_directions_index = j;
             % Only the first occurrence is needed.
             break;
         end
     end
-       
+    
     % Calculate the directional derivative.
-    directional_derivative(i) = (fhist_this_iter(positive_index) - fhist_this_iter(negative_index)) / 2 * step_size_each_batch(batch_with_directions_index);
+    directional_derivative(i) = (fhist_this_iter(positive_index_in_fhist) - fhist_this_iter(negative_index_in_fhist)) / 2 * step_size_each_batch(batch_with_directions_index);
 
 end
 
