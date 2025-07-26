@@ -463,7 +463,6 @@ else
     use_estimated_gradient_stop = false;
 end
 if use_estimated_gradient_stop
-
     grad_info = struct();
     grad_info.step_size_each_block = NaN(num_blocks, 1);
     grad_info.sufficient_decrease_each_block = false(num_blocks, 1);
@@ -474,15 +473,6 @@ if use_estimated_gradient_stop
     grad_info.n = n;
     grad_info.batch_size = batch_size;
     grad_info.direction_set = D(: , 1 : 2 : 2*n-1);
-    % dir_dev_hist is the history of directional deviations, which is a matrix of size n-by-maxit.
-    dir_dev_hist = NaN(n, maxit);
-    % is_dir_dev_sam_hist is a boolean matrix of size n-by-maxit, which indicates whether the directional 
-    % deviation for a given direction was sampled at a specific iteration.
-    is_dir_dev_sam_hist = false(n, maxit);
-    % last_sam_iter_per_dir is a vector of size n, which stores the last iteration when the directional
-    % deviation for each direction was sampled.
-    last_sam_iter_per_dir = zeros(n, 1);
-
     if isfield(options, "finite_difference_mode")
         grad_info.finite_difference_mode = options.finite_difference_mode;
         options = rmfield(options, "finite_difference_mode");
@@ -848,10 +838,7 @@ for iter = 1:maxit
 
     if use_estimated_gradient_stop
         grad_info.fopt = fopt;
-        grad_info.iter = iter;
-        [grad, is_grad_returned, dir_dev_hist, is_dir_dev_sam_hist, ...
-            last_sam_iter_per_dir] = estimate_gradient( ...
-            grad_info, dir_dev_hist, is_dir_dev_sam_hist, last_sam_iter_per_dir);
+        [grad, is_grad_returned]  = estimate_gradient(grad_info);
         if is_grad_returned && norm(grad) < 1e30
             % keyboard
             grad_hist = [grad_hist, norm(grad)];
