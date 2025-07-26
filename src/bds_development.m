@@ -852,7 +852,7 @@ for iter = 1:maxit
         [grad, is_grad_returned, dir_dev_hist, is_dir_dev_sam_hist, ...
             last_sam_iter_per_dir] = estimate_gradient( ...
             grad_info, dir_dev_hist, is_dir_dev_sam_hist, last_sam_iter_per_dir);
-        if is_grad_returned
+        if is_grad_returned && norm(grad) < 1e30
             % keyboard
             grad_hist = [grad_hist, norm(grad)];
         end
