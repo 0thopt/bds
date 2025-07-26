@@ -32,59 +32,54 @@ batch_size = length(step_size_each_batch);
 % Compute the number of unique directions sampled in this iteration,
 % where each direction is defined by a pair of positive and negative directions.
 num_sampled_directions = length(direction_indices_this_iter) / 2;
-num_directional_derivatives = ceil(num_sampled_directions / 2);
-directional_derivative = nan(num_directional_derivatives, 1);
+directional_derivative = nan(num_sampled_directions, 1);
 % Get the full direction set.
 full_direction_set = grad_info.direction_set;
 n = size(full_direction_set, 1);
+% Extract the positive direction set from the full direction set.
+% The positive direction set is the odd columns of the full direction set.
+% This is done to ensure that we only consider the positive directions for gradient estimation.
+positive_direction_set = full_direction_set(:, 1:2:2*n-1);
 
-% Find the indices of the positive direction visited in this iteration in direction_indices_this_iter.
-% These indices correspond to the positive directions in the full direction set.
-% The positive directions are those with odd indices in the full direction set.
-positive_direction_visited_indices = find(mod(direction_indices_this_iter, 2) == 1);
-% Sort the positive directions visited in this iteration and get their indices in the direction_indices_this_iter.
-[~, positive_direction_visited_indices_sorted] = sort(direction_indices_this_iter(positive_direction_visited_indices));
-positive_direction_visited_indices_sorted = positive_direction_visited_indices(positive_direction_visited_indices_sorted);
+% Find the indices of the positive directions visited in this iteration in the direction_indices_this_iter.
+positive_direction_visited_indices_in_fhist = find(mod(direction_indices_this_iter, 2) == 1);
+[~, positive_sort_order] = sort(direction_indices_this_iter(positive_direction_visited_indices_in_fhist));
+sorted_positive_directions_visited_indices_in_fhist = positive_direction_visited_indices_in_fhist(positive_sort_order);
 
-% Find the indices of the negative direction visited in this iteration in direction_indices_this_iter.
-% These indices correspond to the negative directions in the full direction set.
-% The negative directions are those with even indices in the full direction set.
-negative_direction_visited_indices = find(mod(direction_indices_this_iter, 2) == 0);
-% Sort the negative directions visited in this iteration and get their indices in the direction_indices_this_iter.
-[~, negative_direction_visited_indices_sorted] = sort(direction_indices_this_iter(negative_direction_visited_indices));
-negative_direction_visited_indices_sorted = negative_direction_visited_indices(negative_direction_visited_indices_sorted);
+% Find the indices of the negative directions visited in this iteration in the direction_indices_this_iter.
+negative_direction_visited_indices_in_fhist = find(mod(direction_indices_this_iter, 2) == 0);
+[~, negative_sort_order] = sort(direction_indices_this_iter(negative_direction_visited_indices_in_fhist));
+sorted_negative_directions_visited_indices_in_fhist = negative_direction_visited_indices_in_fhist(negative_sort_order);
 
 % Extract the set of sampled directions for this iteration from the full direction set.
-% For central difference gradient estimation, use positive_direction_visited_indices_sorted
+% For central difference gradient estimation, use positive_direction_visited_indices
 % to index the corresponding directions in the full direction set.
-sampled_direction_set = full_direction_set(:, positive_direction_visited_indices_sorted);
+% Find the indices of the positive direction visited in this iteration in the full direction set.
+positive_direction_visited_indices = direction_indices_this_iter(mod(direction_indices_this_iter, 2) == 1);
+sampled_direction_set = full_direction_set(:, positive_direction_visited_indices);
 
-for i = 1:length(positive_direction_visited_indices_sorted)
-    % Get the index of the positive direction.
-    pos_index = positive_direction_visited_indices_sorted(i);
-    % Get the index of the negative direction.
-    neg_index = negative_direction_visited_indices_sorted(i);
+for i = 1:num_sampled_directions
+    % Get the index of the i-th positive direction visited in this iteration.
+    positive_index = direction_indices_this_iter(sorted_positive_directions_visited_indices_in_fhist(i));
+    % Get the index of the i-th negative direction visited in this iteration.
+    negative_index = direction_indices_this_iter(sorted_negative_directions_visited_indices_in_fhist(i));
 
-    for j = 1:length(batch_size)
-        % Identify the batch that contains both the positive and negative direction indices.
-        % This is done by checking if both pos_index and neg_index are present in the current batch_direction_indices cell.
-        for k = 1:length(batch_direction_indices)
-            if any(batch_direction_indices{k} == pos_index) && any(batch_direction_indices{k} == neg_index)
-                batch_with_directions_index = k;
-                % Only the first occurrence is needed.
-                break;
-            end
+    for j = 1:batch_size
+        % Find the batch that contains both the positive and negative direction indices.
+        if any(batch_direction_indices{j} == positive_index) && any(batch_direction_indices{j} == negative_index)
+            batch_with_directions_index = j;
+            % Only the first occurrence is needed.
+            break;
         end
     end
-    
+       
     % Calculate the directional derivative.
-    directional_derivative(i) = (fhist_this_iter(pos_index) - fhist_this_iter(neg_index)) / 2 * step_size_each_batch(batch_with_directions_index);
+    directional_derivative(i) = (fhist_this_iter(positive_index) - fhist_this_iter(negative_index)) / 2 * step_size_each_batch(batch_with_directions_index);
 
 end
 
-% grad = lsqminnorm(full_direction_set*full_direction_set', (n / num_sampled_directions) * sampled_direction_set * directional_derivative);
-% Why use the backslash operator instead of lsqminnorm? Since full_direction_set is invertible,
-% full_direction_set*full_direction_set' is positive definite. The backslash operator provides a more efficient solution in this case.
-grad = (full_direction_set*full_direction_set') \ ((n / num_sampled_directions) * sampled_direction_set * directional_derivative);
+% Why use the backslash operator instead of lsqminnorm? Since positive_direction_set is invertible,
+% positive_direction_set*positive_direction_set' is positive definite. The backslash operator provides a more efficient solution in this case.
+grad = (positive_direction_set*positive_direction_set') \ ((n / num_sampled_directions) * sampled_direction_set * directional_derivative);
 
 end
