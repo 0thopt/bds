@@ -127,6 +127,7 @@ output.xhist = xhist(:, 1:nf);
 output.nf = nf;
 output.direction_indices = direction_indices;
 output.terminate = terminate;
+output.sufficient_decrease = sufficient_decrease;
 decrease_value = fopt - fbase;
 if iprint == 3
     if sufficient_decrease

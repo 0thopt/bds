@@ -373,7 +373,8 @@ for iter = 1:maxit
     batch_direction_indices = cell(1, batch_size);
     is_batch_fully_visited = false(1, batch_size);
     batch_fhist = cell(1, batch_size);
-    
+    batch_sufficient_decrease = false(1, batch_size);
+
     for i = 1:length(block_indices)
 
         % i_real = block_indices(i) is the real index of the block to be visited. For example,
@@ -434,6 +435,7 @@ for iter = 1:maxit
             is_batch_fully_visited(i) = true;
         end
         batch_fhist{i} = sub_output.fhist;
+        batch_sufficient_decrease(i) = sub_output.sufficient_decrease;
 
         % Record the best function value and point encountered in the i_real-th block.
         fopt_all(i_real) = sub_fopt;
@@ -532,7 +534,9 @@ for iter = 1:maxit
     end
 
     % If all directions in the batch have been visited during this iteration, we can estimate the gradient.
+    % if all(is_batch_fully_visited) && ~any(batch_sufficient_decrease)
     if all(is_batch_fully_visited)
+        keyboard
         grad_info.batch_direction_indices = batch_direction_indices;
         grad_info.batch_fhist = batch_fhist;
         grad = estimate_gradient(grad_info);
