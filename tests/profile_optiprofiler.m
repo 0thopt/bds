@@ -310,6 +310,10 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @nomad_test;
             case 'nomad-6'
                 solvers{i} = @nomad_6_test;
+            case 'bds-gws-1-gtol-3x-6x'
+                solvers{i} = @bds_grad_window_size_01_grad_tol_3x_6x_test;
+            case 'bds-development-gws-1-gtol-3x-6x'
+                solvers{i} = @bds_development_grad_window_size_01_grad_tol_3x_6x_test;
             otherwise
                 error('Unknown solver');
         end
@@ -1280,5 +1284,33 @@ function x = nomad_6_test(fun, x0)
     fun = @(x) fun(x(:));
 
     [x, ~, ~, ~, ~] = nomadOpt(fun,x0,lb,ub,params);
+    
+end
+
+function x = bds_grad_window_size_01_grad_tol_3x_6x_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+
+    option.use_estimated_gradient_stop = true;
+    option.grad_window_size = 1;
+    option.grad_tol_1 = 1e-3;
+    option.grad_tol_2 = 1e-6;
+
+    x = bds(fun, x0, option);
+    
+end
+
+function x = bds_development_grad_window_size_01_grad_tol_3x_6x_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+
+    option.use_estimated_gradient_stop = true;
+    option.grad_window_size = 1;
+    option.grad_tol_1 = 1e-3;
+    option.grad_tol_2 = 1e-6;
+
+    x = bds_development(fun, x0, option);
     
 end
