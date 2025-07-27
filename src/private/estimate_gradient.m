@@ -18,7 +18,6 @@ function grad = estimate_gradient(grad_info)
 % Outputs:
 %   - grad: Estimated gradient vector of size n x 1, where n is the number of dimensions.
 
-
 batch_direction_indices = grad_info.batch_direction_indices;
 % Concatenate all the indices of the directions visited in this iteration into a single vector.
 direction_indices_this_iter = [batch_direction_indices{:}];
@@ -72,14 +71,14 @@ for i = 1:num_sampled_directions
         % Find the batch that contains both the indices of the positive and negative directions in the full
         % direction set.
         if any(batch_direction_indices{j} == direction_indices_this_iter(positive_index_in_fhist)) && any(batch_direction_indices{j} == direction_indices_this_iter(negative_index_in_fhist))
-            batch_with_directions_index = j;
+            sample_batch_index = j;
             % Only the first occurrence is needed.
             break;
         end
     end
     
     % Calculate the directional derivative.
-    directional_derivative(i) = (fhist_this_iter(positive_index_in_fhist) - fhist_this_iter(negative_index_in_fhist)) / 2 * step_size_each_batch(batch_with_directions_index);
+    directional_derivative(i) = (fhist_this_iter(positive_index_in_fhist) - fhist_this_iter(negative_index_in_fhist)) / (2 * step_size_each_batch(sample_batch_index));
 
 end
 

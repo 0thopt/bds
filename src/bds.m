@@ -536,7 +536,6 @@ for iter = 1:maxit
     % If all directions in the batch have been visited during this iteration, we can estimate the gradient.
     % if all(is_batch_fully_visited) && ~any(batch_sufficient_decrease)
     if all(is_batch_fully_visited)
-        keyboard
         grad_info.batch_direction_indices = batch_direction_indices;
         grad_info.batch_fhist = batch_fhist;
         grad = estimate_gradient(grad_info);
@@ -582,6 +581,7 @@ if output_xhist
     output.xhist = xhist(:, 1:nf);
 end
 output.fhist = fhist(1:nf);
+output.grad_hist = grad_hist;
 
 % Set the message according to exitflag.
 switch exitflag
