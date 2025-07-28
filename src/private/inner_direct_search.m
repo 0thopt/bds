@@ -51,6 +51,10 @@ xhist = NaN(n, num_directions);
 nf = 0; 
 fopt = fbase;
 xopt = xbase;
+% Initialize sufficient_decrease to false in case it is not set within the loop.
+% This ensures that if the algorithm terminates early (e.g., by reaching ftarget after the first evaluation),
+% sufficient_decrease remains well-defined and consistent with the algorithm's logic.
+sufficient_decrease = false;
 
 for j = 1 : num_directions
 
