@@ -248,6 +248,30 @@ constant_name = "debug_flag";
 constant_value = false;
 verifyEqual(testcase, get_default_constant(constant_name), constant_value)
 
+constant_name = "func_window_size";
+constant_value = 10;
+verifyEqual(testcase, get_default_constant(constant_name), constant_value)
+
+constant_name = "func_tol_1";
+constant_value = 1e-6;
+verifyEqual(testcase, get_default_constant(constant_name), constant_value)
+
+constant_name = "func_tol_2";
+constant_value = 1e-9;
+verifyEqual(testcase, get_default_constant(constant_name), constant_value)
+
+constant_name = "grad_window_size";
+constant_value = 1;
+verifyEqual(testcase, get_default_constant(constant_name), constant_value)
+
+constant_name = "grad_tol_1";
+constant_value = 1e-3;
+verifyEqual(testcase, get_default_constant(constant_name), constant_value)
+
+constant_name = "grad_tol_2";
+constant_value = 1e-6;
+verifyEqual(testcase, get_default_constant(constant_name), constant_value)
+
 end
 
 function get_exitflag_test(testcase)
@@ -411,7 +435,7 @@ function bds_test(testcase)
 
 % This test verifies the core functionality of the bds algorithm by checking its ability to
 % minimize the Chained Rosenbrock function. The bds.m is tested under various configurations, 
-% including different block_visiting_pattern, batch_size, and replacement_delay settings.
+% including different block_visiting_pattern, batch_size.
 % While the optimal function value returned by bds.m may vary slightly depending on these parameters, 
 % all results should be close to zero.
 x0 = zeros(3,1);
@@ -463,26 +487,13 @@ if abs(fopt) > 1e-8
     error('The function value is not close to 0.');
 end
 
-% Test the case where the batch_size is 3 and the replacement_delay is 0.
-options.replacement_delay = 0;
+% Test the case where the batch_size is 3 and the block_visiting_pattern is "sorted".
+options.block_visiting_pattern = "sorted";
 [~, fopt, ~, ~] = bds(@chrosen, x0, options);
 if abs(fopt) > 1e-8
     error('The function value is not close to 0.');
 end
 
-% Test the case where the batch_size is 3 and the replacement_delay is 1.
-options.replacement_delay = 1;
-[~, fopt, ~, ~] = bds(@chrosen, x0, options);
-if abs(fopt) > 1e-8
-    error('The function value is not close to 0.');
-end
-
-% Test the case where the batch_size is 3 and the replacement_delay is 2.
-options.replacement_delay = 2;
-if abs(fopt) > 1e-8
-    error('The function value is not close to 0.');
-end
-options = rmfield(options, 'replacement_delay');
 options = rmfield(options, 'batch_size');
 
 % Test the case where the block_visiting_pattern is "parallel" and the 

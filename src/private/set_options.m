@@ -12,6 +12,7 @@ field_list = {
     'MaxFunctionEvaluations'
     'direction_set'
     'grouped_direction_indices'
+    'block_selecting_probability'
     'is_noisy'
     'expand'
     'shrink'
@@ -23,7 +24,6 @@ field_list = {
     'polling_inner'
     'cycling_inner'
     'batch_size'
-    'replacement_delay'
     'seed'
     'output_xhist'
     'output_alpha_hist'
@@ -78,7 +78,6 @@ else
                     case 'rbds'
                         options.num_blocks = n;
                         options.batch_size = 1;
-                        options.replacement_delay = n - 1;
                         options.block_visiting_pattern = 'sorted';
                     case 'pads'
                         options.num_blocks = n;
@@ -118,6 +117,11 @@ else
     % Set the default value of block_visiting_pattern if it is not provided.
     if ~isfield(options, 'block_visiting_pattern')
         options.block_visiting_pattern = 'sorted';
+    end
+
+    if ~isfield(options, 'block_selecting_probability')
+        % If block_selecting_probability is not provided, let each block have an equal probability of being selected.
+        options.block_selecting_probability = ones(1, options.num_blocks) / options.num_blocks;
     end
 
     % Set the default value of is_noisy if it is not provided.
@@ -182,16 +186,6 @@ else
         options.shrink = options.shrink;
     end
 
-    % If replacement_delay is r, then the block that is selected in the current
-    % iteration will not be selected in the next r iterations. Note that replacement_delay cannot exceed
-    % floor(num_blocks/batch_size)-1. The reason we set the default value of replacement_delay to
-    % floor(num_blocks/batch_size)-1 is that the performance will be better when replacement_delay is larger.
-    if isfield(options, "replacement_delay")
-        options.replacement_delay = min(options.replacement_delay, floor(options.num_blocks/options.batch_size)-1);
-    else
-        options.replacement_delay = floor(options.num_blocks/options.batch_size)-1;
-    end
-
     % Set the maximum number of function evaluations. If the options do not contain MaxFunctionEvaluations,
     % it is set to MaxFunctionEvaluations_dim_factor*n, where n is the dimension of the problem.
     if ~isfield(options, "MaxFunctionEvaluations")
@@ -218,14 +212,12 @@ else
         options.alpha_init = ones(options.num_blocks, 1);
     end
 
-    % The above procedures handle fields that depend on problem-specific information and are not determined solely 
-    % by user input. Then remove those fields to avoid setting the default value of them again, including Algorithm, 
-    % block_visiting_pattern, num_blocks, direction_set, grouped_direction_indices, batch_size, expand, shrink, 
-    % replacement_delay, MaxFunctionEvaluations, alpha_init.
+    % The above procedures handle some fields that depend on problem-specific information and are not 
+    % determined solely by user input. To avoid resetting their default values, we remove these fields from options.
     field_list = setdiff(field_list, {'Algorithm', 'block_visiting_pattern', 'num_blocks', 'direction_set', ...
-    'grouped_direction_indices', 'batch_size', 'expand', 'shrink', 'replacement_delay', 'MaxFunctionEvaluations', ...
-    'alpha_init'});
-    
+    'block_selecting_probability', 'grouped_direction_indices', 'batch_size', 'expand', 'shrink', ...
+    'MaxFunctionEvaluations', 'alpha_init'});
+
     for i = 1:length(field_list)
         field_name = field_list{i};
         if ~isfield(options, field_name)

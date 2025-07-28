@@ -47,6 +47,12 @@ if isfield(options, "debug_flag") && options.debug_flag
     if n < num_blocks
         error('The number of blocks should not be greater than the number of variables.');
     end
+    if isfield(options, "grouped_direction_indices") && ~iscell(options.grouped_direction_indices)
+        error('options.grouped_direction_indices should be a cell array.');
+    end
+    if isfield(options, "grouped_direction_indices") && length(options.grouped_direction_indices) ~= num_blocks
+        error('The length of options.grouped_direction_indices should be equal to num_blocks.');
+    end
 end
 
 grouped_direction_indices = cell(1, num_blocks);

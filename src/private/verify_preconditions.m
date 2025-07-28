@@ -47,6 +47,18 @@ if isfield(options, "direction_set")
     end
 end
 
+if isfield(options, 'block_selecting_probability')
+    if ~(isnumvec(options.block_selecting_probability) && length(options.block_selecting_probability) == options.num_blocks)
+        error("options.block_selecting_probability should be a vector with the length equal to num_blocks.");
+    end
+    if  all(options.block_selecting_probability > 0) && all(options.block_selecting_probability < 1)
+        error("options.block_selecting_probability should be a vector with positive elements and elements less than 1.");
+    end
+    if sum(options.block_selecting_probability) ~= 1
+        error("The sum of options.block_selecting_probability should be equal to 1.");
+    end
+end
+
 if isfield(options, "is_noisy")
     if ~islogical(options.is_noisy)
         error("options.is_noisy should be a logical value.");
@@ -192,12 +204,6 @@ if isfield(options, "batch_size")
     end
 end
 
-if isfield(options, "replacement_delay")
-    if ~isintegerscalar(options.replacement_delay)
-        error("options.replacement_delay should be an integer.");
-    end
-end
-
 if isfield(options, "output_xhist")
     if ~islogical(options.output_xhist)
         error("options.output_xhist should be a logical value.");
@@ -222,4 +228,50 @@ if isfield(options, "iprint")
     end
 end
 
+if isfield(options, "func_window_size")
+    if  ~(isintegerscalar(options.func_window_size) && options.func_window_size > 0)
+        error("options.func_window_size should be a positive integer.");
+    end
+end
+
+if isfield(options, "func_tol_1")
+    if ~(isrealscalar(options.func_tol_1) && options.func_tol_1 > 0)
+        error("options.func_tol_1 should be a positive real number.");
+    end
+end
+
+if isfield(options, "func_tol_2")
+    if ~(isrealscalar(options.func_tol_2) && options.func_tol_2 > 0)
+        error("options.func_tol_2 should be a positive real number.");
+    end
+end
+
+if isfield(options, "func_tol_1") && isfield(options, "func_tol_2")
+    if options.func_tol_1 < options.func_tol_2
+        error("options.func_tol_1 should be greater than or equal to options.func_tol_2.");
+    end
+end
+
+if isfield(options, "grad_window_size")
+    if  ~(isintegerscalar(options.grad_window_size) && options.grad_window_size > 0)
+        error("options.grad_window_size should be a positive integer.");
+    end
+end
+
+if isfield(options, "grad_tol_1")
+    if ~(isrealscalar(options.grad_tol_1) && options.grad_tol_1 > 0)
+        error("options.grad_tol_1 should be a positive real number.");
+    end
+end
+
+if isfield(options, "grad_tol_2")
+    if ~(isrealscalar(options.grad_tol_2) && options.grad_tol_2 > 0)
+        error("options.grad_tol_2 should be a positive real number.");
+    end
+end
+
+if isfield(options, "grad_tol_1") && isfield(options, "grad_tol_2")
+    if options.grad_tol_1 < options.grad_tol_2
+        error("options.grad_tol_1 should be greater than or equal to options.grad_tol_2.");
+    end
 end

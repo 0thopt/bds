@@ -101,12 +101,6 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               k blocks are randomly selected to visit. A positive
 %                               integer less than or equal to num_blocks.
 %                               Default: num_blocks.
-%   replacement_delay           Suppose that replacement_delay is r. If replacement_delay > 0 
-%                               and block i is selected at iteration k, then it will not 
-%                               be selected at iterations k+1, ..., k+r. The value of 
-%                               replacement_delay should be an nonnegative integer less than or 
-%                               equal to floor(num_blocks/batch_size)-1.                               
-%                               Default: floor(num_blocks/batch_size)-1.
 %   seed                        The seed for random number generator. Default: "shuffle".
 %   output_xhist                Whether to output the history of points visited.
 %                               Default: false.
@@ -240,7 +234,6 @@ reduction_factor = options.reduction_factor;
 forcing_function = options.forcing_function;
 polling_inner = options.polling_inner;
 cycling_inner = options.cycling_inner;
-replacement_delay = options.replacement_delay;
 
 MaxFunctionEvaluations = options.MaxFunctionEvaluations;
 % Set the maximum number of iterations.
@@ -290,6 +283,8 @@ grad_hist = [];
 grad_info = struct();
 grad_info.step_size_each_batch = NaN(batch_size, 1);
 grad_info.direction_set = D;
+
+block_selecting_probability = options.block_selecting_probability;
 
 % Initialize exitflag. If exitflag is not set elsewhere, then the maximum number of iterations
 % is reached, and hence we initialize exitflag to the corresponding value.
@@ -348,18 +343,14 @@ fopt_all = NaN(1, num_blocks);
 xopt_all = NaN(n, num_blocks);
 
 for iter = 1:maxit
-    
-    % Define block_indices, a vector that specifies both the indices of the blocks
+
+    % Define block_indices as a vector specifying both which blocks are selected
     % and the order in which they will be visited during the current iteration.
     % The length of block_indices is equal to batch_size.
-    % These blocks should not have been visited in the previous replacement_delay
-    % iterations when the replacement_delay is nonnegative.
-    unavailable_block_indices = unique(block_hist(max(1, (iter-replacement_delay) * batch_size) : (iter-1) * batch_size), 'stable');
-    available_block_indices = setdiff(1:num_blocks, unavailable_block_indices);
-
-    % Select batch_size blocks randomly from the available blocks. The selected blocks
-    % will be visited in this iteration.
-    block_indices = available_block_indices(random_stream.randperm(length(available_block_indices), batch_size));
+    % Randomly select batch_size blocks from 1:num_blocks (without replacement) according to the 
+    % specified probabilities. The selected blocks will be visited in this iteration in the order
+    % given by block_indices.
+    block_indices = select_random_blocks(num_blocks, batch_size, random_stream, block_selecting_probability);
     
     % Choose the block indices based on options.block_visiting_pattern.
     if strcmpi(block_visiting_pattern, "sorted")
