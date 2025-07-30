@@ -223,6 +223,9 @@ num_blocks = options.num_blocks;
 batch_size = options.batch_size;
 % Determine the indices of directions in each block.
 grouped_direction_indices = divide_direction_set(n, num_blocks, options);
+% Compute the block selection weight.
+block_selection_weight = options.block_selection_weight;
+block_selection_probability = compute_block_selection_probability(block_selection_weight, batch_size);
 
 expand = options.expand;
 shrink = options.shrink;
@@ -282,9 +285,8 @@ grad_hist = [];
 
 grad_info = struct();
 grad_info.step_size_each_batch = NaN(batch_size, 1);
+grad_info.batch_selection_probability = zeros(batch_size, 1);
 grad_info.direction_set = D;
-
-block_selecting_probability = options.block_selecting_probability;
 
 % Initialize exitflag. If exitflag is not set elsewhere, then the maximum number of iterations
 % is reached, and hence we initialize exitflag to the corresponding value.
@@ -350,21 +352,28 @@ for iter = 1:maxit
     % Randomly select batch_size blocks from 1:num_blocks (without replacement) according to the 
     % specified probabilities. The selected blocks will be visited in this iteration in the order
     % given by block_indices.
-    block_indices = select_random_blocks(num_blocks, batch_size, random_stream, block_selecting_probability);
+    block_indices = select_random_blocks(num_blocks, batch_size, random_stream, block_selection_weight);
     
     % Choose the block indices based on options.block_visiting_pattern.
     if strcmpi(block_visiting_pattern, "sorted")
         block_indices = sort(block_indices);
     end
 
-    % Initialize batch_direction_indices, a cell array of length batch_size, to store the indices 
-    % of the directions evaluated in each batch during the current iteration. Also initialize 
-    % is_batch_fully_visited, a logical array of length batch_size, which indicates whether all 
-    % directions in each batch have been evaluated in this iteration.
+    % Initialize batch_direction_indices as a cell array of length batch_size to store the indices 
+    % of directions evaluated in each batch during the current iteration.
+    % Initialize is_batch_fully_visited as a logical array of length batch_size, indicating whether 
+    % all directions in each batch have been evaluated in this iteration.
+    % Initialize batch_fhist as a cell array of length batch_size to store the function values 
+    % computed in each batch during the current iteration.
+    % Initialize batch_sufficient_decrease as a logical array of length batch_size, indicating whether 
+    % the sufficient decrease condition is satisfied in each batch during the current iteration.
+    % Initialize batch_selected_probability as a vector of length batch_size to store the selection 
+    % probabilities of the batches chosen in this iteration.
     batch_direction_indices = cell(1, batch_size);
     is_batch_fully_visited = false(1, batch_size);
     batch_fhist = cell(1, batch_size);
     batch_sufficient_decrease = false(1, batch_size);
+    batch_selected_probability = NaN(1, batch_size);
 
     for i = 1:length(block_indices)
 
@@ -380,6 +389,9 @@ for iter = 1:maxit
         % blocks visited in the current iteration. Therefore, step_size_each_batch is initialized with
         % batch_size elements.
         grad_info.step_size_each_batch(i) = alpha_all(i_real);
+
+        % Store the probability of selecting the i_real-th block in the current iteration.
+        grad_info.batch_selection_probability(i) = block_selection_probability(i_real);
 
         % Set the options for the direct search within the i_real-th block.
         suboptions.FunctionEvaluations_exhausted = nf;
@@ -529,6 +541,7 @@ for iter = 1:maxit
     if all(is_batch_fully_visited)
         grad_info.batch_direction_indices = batch_direction_indices;
         grad_info.batch_fhist = batch_fhist;
+        grad_info.batch_selected_probability = batch_selected_probability;
         grad = estimate_gradient(grad_info);
         % If the norm of the estimated gradient exceeds the threshold (1e30), it is discarded.
         % This threshold is chosen to maintain consistency with the standard used in eval_fun.m.

@@ -47,15 +47,12 @@ if isfield(options, "direction_set")
     end
 end
 
-if isfield(options, 'block_selecting_probability')
-    if ~(isnumvec(options.block_selecting_probability) && length(options.block_selecting_probability) == options.num_blocks)
-        error("options.block_selecting_probability should be a vector with the length equal to num_blocks.");
+if isfield(options, 'block_selection_weight')
+    if ~(isnumvec(options.block_selection_weight) && length(options.block_selection_weight) == options.num_blocks)
+        error("options.block_selection_weight should be a vector with the length equal to num_blocks.");
     end
-    if  all(options.block_selecting_probability > 0) && all(options.block_selecting_probability < 1)
-        error("options.block_selecting_probability should be a vector with positive elements and elements less than 1.");
-    end
-    if sum(options.block_selecting_probability) ~= 1
-        error("The sum of options.block_selecting_probability should be equal to 1.");
+    if  ~(all(options.block_selection_weight > 0) && all(options.block_selection_weight <= 1))
+        error("options.block_selection_weight should be a vector with positive elements and elements less than or equal to 1.");
     end
 end
 

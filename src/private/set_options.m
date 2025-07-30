@@ -12,7 +12,7 @@ field_list = {
     'MaxFunctionEvaluations'
     'direction_set'
     'grouped_direction_indices'
-    'block_selecting_probability'
+    'block_selection_weight'
     'is_noisy'
     'expand'
     'shrink'
@@ -119,9 +119,9 @@ else
         options.block_visiting_pattern = 'sorted';
     end
 
-    if ~isfield(options, 'block_selecting_probability')
-        % If block_selecting_probability is not provided, let each block have an equal probability of being selected.
-        options.block_selecting_probability = ones(1, options.num_blocks) / options.num_blocks;
+    if ~isfield(options, 'block_selection_weight')
+        % If block_selection_weight is not provided, let each block have an equal probability of being selected.
+        options.block_selection_weight = ones(1, options.num_blocks) / options.num_blocks;
     end
 
     % Set the default value of is_noisy if it is not provided.
@@ -215,7 +215,7 @@ else
     % The above procedures handle some fields that depend on problem-specific information and are not 
     % determined solely by user input. To avoid resetting their default values, we remove these fields from options.
     field_list = setdiff(field_list, {'Algorithm', 'block_visiting_pattern', 'num_blocks', 'direction_set', ...
-    'block_selecting_probability', 'grouped_direction_indices', 'batch_size', 'expand', 'shrink', ...
+    'block_selection_weight', 'grouped_direction_indices', 'batch_size', 'expand', 'shrink', ...
     'MaxFunctionEvaluations', 'alpha_init'});
 
     for i = 1:length(field_list)
