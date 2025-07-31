@@ -11,8 +11,8 @@ function grad = estimate_gradient(grad_info)
 %                                            directions visited in this iteration.
 %   batch_fhist                              Cell array of batch_size, where each cell contains the function values 
 %                                            corresponding to the directions visited in this iteration.
-%   batch_selection_probability              Vector of size batch_size, containing the selection probabilities for 
-%                                            each batch visited in this iteration.
+%   direction_selection_probability_matrix   Diagonal matrix of size n x n, where the diagonal elements store the 
+%                                            selection probability for each positive direction.
 %   step_size_each_batch                     Vector of size batch_size, containing the step sizes for each batch visited 
 %                                            in this iteration.
 %   direction_set_indices_current_iteration  Cell array containing indices of sampled directions for the current iteration.
@@ -33,28 +33,11 @@ fhist_this_iter = [batch_fhist{:}];
 step_size_each_batch = grad_info.step_size_each_batch;
 batch_size = length(step_size_each_batch);
 
-batch_selection_probability = grad_info.batch_selection_probability;
+direction_selection_probability_matrix = grad_info.direction_selection_probability_matrix;
 % Compute the number of unique directions sampled in this iteration,
 % where each direction is defined by a pair of positive and negative directions.
 num_sampled_directions = length(direction_indices_this_iter) / 2;
 directional_derivative = nan(num_sampled_directions, 1);
-% Get the probability of selecting those directions in this iteration.
-direction_selection_probability = zeros(num_sampled_directions, num_sampled_directions);
-
-% Extract the indices of positive directions (odd indices) from each batch.
-% Each cell contains the indices of positive directions sampled in the corresponding batch.
-positive_direction_indices_per_batch = cellfun(@(x) x(mod(x,2)==1), batch_direction_indices, 'UniformOutput', false);
-
-% Compute the number of positive directions in each batch.
-lens = cellfun(@length, positive_direction_indices_per_batch);
-
-% Compute the starting index of each batch's positive directions in the concatenated array.
-first_indices = [1, cumsum(lens(1:end-1)) + 1];
-
-% Assign the batch selection probability to the corresponding diagonal block in the direction selection probability matrix.
-for i = 1:batch_size
-    direction_selection_probability(first_indices(i):first_indices(i) + lens(i) - 1, i) = batch_selection_probability(i);
-end
 
 % Get the full direction set.
 full_direction_set = grad_info.direction_set;
@@ -107,9 +90,9 @@ for i = 1:num_sampled_directions
 end
 
 % Why use the backslash operator instead of lsqminnorm? Since positive_direction_set is invertible and
-% direction_selection_probability is a diagonal matrix with strictly positive diagonal elements, the matrix
-% positive_direction_set * direction_selection_probability * positive_direction_set' is guaranteed to be positive definite.
+% direction_selection_probability_matrix is a diagonal matrix with strictly positive diagonal elements, the matrix
+% positive_direction_set * direction_selection_probability_matrix * positive_direction_set' is guaranteed to be positive definite.
 % In this case, the backslash operator provides a more efficient and numerically stable solution than lsqminnorm.
-grad = (positive_direction_set * direction_selection_probability * positive_direction_set') \ (sampled_direction_set * directional_derivative);
+grad = (positive_direction_set * direction_selection_probability_matrix * positive_direction_set') \ (sampled_direction_set * directional_derivative);
 
 end

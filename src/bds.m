@@ -46,6 +46,11 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               dimension. The i-th index refers to the i-th direction 
 %                               in direction_set.
 %                               See divide_direction_set.m for details.
+%   block_selection_weight      A vector of length num_blocks, where each element
+%                               specifies the selection weight for the corresponding block.
+%                               All weights must be strictly positive.
+%                               If not specified, block_selection_weight defaults to
+%                               ones(1, options.num_blocks) / options.num_blocks.
 %   is_noisy                    A flag deciding whether the problem is noisy or
 %                               not. The value of is_noisy will be only used to
 %                               determine the values of expand and shrink now.
@@ -225,7 +230,7 @@ batch_size = options.batch_size;
 grouped_direction_indices = divide_direction_set(n, num_blocks, options);
 % Compute the block selection weight.
 block_selection_weight = options.block_selection_weight;
-block_selection_probability = compute_block_selection_probability(block_selection_weight, batch_size);
+direction_selection_probability_matrix = compute_block_selection_probability(block_selection_weight, batch_size, grouped_direction_indices, n);
 
 expand = options.expand;
 shrink = options.shrink;
@@ -285,8 +290,8 @@ grad_hist = [];
 
 grad_info = struct();
 grad_info.step_size_each_batch = NaN(batch_size, 1);
-grad_info.batch_selection_probability = zeros(batch_size, 1);
 grad_info.direction_set = D;
+grad_info.direction_selection_probability_matrix = direction_selection_probability_matrix;
 
 % Initialize exitflag. If exitflag is not set elsewhere, then the maximum number of iterations
 % is reached, and hence we initialize exitflag to the corresponding value.
@@ -367,13 +372,10 @@ for iter = 1:maxit
     % computed in each batch during the current iteration.
     % Initialize batch_sufficient_decrease as a logical array of length batch_size, indicating whether 
     % the sufficient decrease condition is satisfied in each batch during the current iteration.
-    % Initialize batch_selected_probability as a vector of length batch_size to store the selection 
-    % probabilities of the batches chosen in this iteration.
     batch_direction_indices = cell(1, batch_size);
     is_batch_fully_visited = false(1, batch_size);
     batch_fhist = cell(1, batch_size);
     batch_sufficient_decrease = false(1, batch_size);
-    batch_selected_probability = NaN(1, batch_size);
 
     for i = 1:length(block_indices)
 
@@ -389,9 +391,6 @@ for iter = 1:maxit
         % blocks visited in the current iteration. Therefore, step_size_each_batch is initialized with
         % batch_size elements.
         grad_info.step_size_each_batch(i) = alpha_all(i_real);
-
-        % Store the probability of selecting the i_real-th block in the current iteration.
-        grad_info.batch_selection_probability(i) = block_selection_probability(i_real);
 
         % Set the options for the direct search within the i_real-th block.
         suboptions.FunctionEvaluations_exhausted = nf;
@@ -541,7 +540,6 @@ for iter = 1:maxit
     if all(is_batch_fully_visited)
         grad_info.batch_direction_indices = batch_direction_indices;
         grad_info.batch_fhist = batch_fhist;
-        grad_info.batch_selected_probability = batch_selected_probability;
         grad = estimate_gradient(grad_info);
         % If the norm of the estimated gradient exceeds the threshold (1e30), it is discarded.
         % This threshold is chosen to maintain consistency with the standard used in eval_fun.m.
