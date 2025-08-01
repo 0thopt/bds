@@ -48,7 +48,6 @@ if batch_size == 1
     % Therefore P_k = p_k / e_1(p) = p_k / sum(p).
     % ep(2) = e_1(p) = sum(p), which is the sum of all weights.
     block_selection_probability = block_selection_weight / ep(2);
-    return;
 end
 
 % Iterate over each block to compute its selection probability.
@@ -145,6 +144,6 @@ start_indices_positive_directions = [1, cumsum(num_positive_directions_per_block
 for i = 1:n
     direction_selection_probability_matrix(start_indices_positive_directions(i):start_indices_positive_directions(i) + num_positive_directions_per_block(i) - 1, i) = block_selection_probability(i);
 end
-
+keyboard
 end
 
