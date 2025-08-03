@@ -119,7 +119,7 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
         bds_Algorithms = {'ds', 'ds-randomized-orthogonal', 'pbds', 'rbds', 'pads', 'scbds', 'cbds', 'cbds-randomized-orthogonal',...
          'cbds-randomized-gaussian', 'cbds-permuted', 'cbds-rotated-initial-point'};
         if any(ismember(bds_Algorithms, options.solver_names))
-            options.solver_names(strcmpi(options.solver_names, 'ds')) = {'ds-noisy'};
+            % options.solver_names(strcmpi(options.solver_names, 'ds')) = {'ds-noisy'};
             % Temporarily, we will use the label 'ds'.
             options.solver_names(strcmpi(options.solver_names, 'ds')) = {'ds'};
             options.solver_names(strcmpi(options.solver_names, 'ds-randomized-orthogonal')) = {'ds-randomized-orthogonal-noisy'};
@@ -127,7 +127,7 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
             options.solver_names(strcmpi(options.solver_names, 'rbds')) = {'rbds-noisy'};
             options.solver_names(strcmpi(options.solver_names, 'pads')) = {'pads-noisy'};
             options.solver_names(strcmpi(options.solver_names, 'scbds')) = {'scbds-noisy'};
-            options.solver_names(strcmpi(options.solver_names, 'cbds')) = {'cbds-noisy'};
+            % options.solver_names(strcmpi(options.solver_names, 'cbds')) = {'cbds-noisy'};
             % Temporarily, we will use the label 'cbds'.
             options.solver_names(strcmpi(options.solver_names, 'cbds')) = {'cbds'};
             options.solver_names(strcmpi(options.solver_names, 'cbds-randomized-orthogonal')) = {'cbds-randomized-orthogonal-noisy'};
