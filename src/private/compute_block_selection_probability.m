@@ -144,6 +144,6 @@ start_indices_positive_directions = [1, cumsum(num_positive_directions_per_block
 for i = 1:n
     direction_selection_probability_matrix(start_indices_positive_directions(i):start_indices_positive_directions(i) + num_positive_directions_per_block(i) - 1, i) = block_selection_probability(i);
 end
-keyboard
+
 end
 
