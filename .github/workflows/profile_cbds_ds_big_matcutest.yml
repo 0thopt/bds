@@ -2,7 +2,7 @@ name: Profile cbds and ds using optiprofiler, big, matcutest
 
 on:
   # Trigger the workflow on # push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   schedule:
   - cron: '0 0 */1 * *'
@@ -20,7 +20,7 @@ jobs:
         dim: [big]
         with_optim_toolbox: [yes]
         solver: [cbds]
-        competitor: [direct-search]
+        competitor: [ds]
         plibs: [matcutest]
         run_plain: [false]
         summarize_log_ratio_profiles: [false]
