@@ -175,6 +175,8 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
     solvers = cell(1, length(options.solver_names));
     for i = 1:length(options.solver_names)
         switch options.solver_names{i}
+            case 'our-method'
+                solvers{i} = @cbds_orig_test;
             case 'adaptive-fd-bfgs'
                 solvers{i} = @(fun, x0) fminunc_adaptive(fun, x0, options.noise_level);
             case 'fd-bfgs'
