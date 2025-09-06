@@ -141,8 +141,9 @@ num_positive_directions_per_block = cellfun(@length, positive_direction_indices_
 start_indices_positive_directions = [1, cumsum(num_positive_directions_per_block(1:end-1)) + 1];
 
 % Assign the block selection probability to the corresponding diagonal block in the direction selection probability matrix.
-for i = 1:n
-    direction_selection_probability_matrix(start_indices_positive_directions(i):start_indices_positive_directions(i) + num_positive_directions_per_block(i) - 1, i) = block_selection_probability(i);
+for i = 1:num_blocks
+    idx_range = start_indices_positive_directions(i):start_indices_positive_directions(i) + num_positive_directions_per_block(i) - 1;
+    direction_selection_probability_matrix(sub2ind([n, n], idx_range, idx_range)) = block_selection_probability(i);
 end
 
 end

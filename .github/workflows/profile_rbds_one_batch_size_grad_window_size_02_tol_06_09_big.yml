@@ -1,4 +1,4 @@
-name: cbds with grad 1, 3x, 6x, big
+name: rbds with one batch size, grad 2, 6x, 9x, big
 
 on:
   # Trigger the workflow on # push or pull request
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: cbds with grad window size 1, tol 03 and 06, big
+    name: rbds with one batch size, grad window size 2, tol 06 and 09, big
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -77,11 +77,12 @@ jobs:
               % profile
               addpath(fullfile(root_dir, 'tests'));
               cd(fullfile(root_dir, 'tests', 'tuning'));
-              parameters.grad_window_size = [1 1e8];
-              parameters.grad_tol_1 = [1e-3 1e-30];
-              parameters.grad_tol_2 = [1e-6 1e-30];
+              parameters.grad_window_size = [2 1e8];
+              parameters.grad_tol_1 = [1e-6 1e-30];
+              parameters.grad_tol_2 = [1e-9 1e-30];
+              parameters.batch_size = ["one", "one"];
               options = struct();
-              options.solver_names = {'cbds-grad', 'cbds-default'};
+              options.solver_names = {'rbds-one-batch-size-grad', 'rbds-one-batch-size'};
               options.plibs = '${{ matrix.plibs }}';
               options.dim = '${{ matrix.dim }}';
               options.feature_name = '${{ matrix.feature }}';
@@ -122,7 +123,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: profile_optiprofiler_cbds_grad_window_size_01_tol_03_06_${{ matrix.dim }}_${{ matrix.feature }}
+          name: profile_optiprofiler_rbds_one_batch_size_grad_window_size_02_tol_06_09_${{ matrix.dim }}_${{ matrix.feature }}
           path: ./tests/tuning/tuning_data/**
 
   merge_artifacts:
@@ -175,10 +176,10 @@ jobs:
           cd summary
           ls
           bash ../merge_pdf.sh
-          mv merged.pdf "summary_cbds_grad_window_size_01_tol_03_06_big.pdf"
+          mv merged.pdf "summary_rbds_one_batch_size_grad_window_size_02_tol_06_09_big.pdf"
           cd ..
           if [ -d "summary" ]; then
-            mv summary "summary_cbds_grad_window_size_01_tol_03_06_big"
+            mv summary "summary_rbds_one_batch_size_grad_window_size_02_tol_06_09_big"
           fi
 
       - name: Upload merged artifact
@@ -186,7 +187,7 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: merged_profiles_cbds_grad_window_size_01_tol_03_06_big
+          name: merged_profiles_rbds_one_batch_size_grad_window_size_02_tol_06_09_big
           path: tests/tuning/tuning_data/downloaded_artifacts/**
 
       - name: Upload summary files
@@ -194,5 +195,5 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: summary_files_cbds_grad_window_size_01_tol_03_06_big
-          path: tests/tuning/tuning_data/downloaded_artifacts/summary_cbds_grad_window_size_01_tol_03_06_big/**
+          name: summary_files_rbds_one_batch_size_grad_window_size_02_tol_06_09_big
+          path: tests/tuning/tuning_data/downloaded_artifacts/summary_rbds_one_batch_size_grad_window_size_02_tol_06_09_big/**

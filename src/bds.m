@@ -270,8 +270,9 @@ end
 
 % Initialize the history of function values.
 fhist = NaN(1, MaxFunctionEvaluations);
-% Initialize the fopt for each iteration.
+% Initialize the fopt for each iteration. xopt_hist will be used in subspace methods.
 fopt_hist = NaN(1, MaxFunctionEvaluations);
+xopt_hist = NaN(n, MaxFunctionEvaluations);
 
 output_block_hist = options.output_block_hist;
 % Initialize the history of blocks visited.
@@ -289,8 +290,10 @@ grad_tol_2 = options.grad_tol_2;
 grad_hist = [];
 
 grad_info = struct();
-grad_info.step_size_each_batch = NaN(batch_size, 1);
-grad_info.direction_set = D;
+grad_info.n = n;
+grad_info.step_size_per_batch = NaN(batch_size, 1);
+grad_info.fbase_per_batch = NaN(batch_size, 1);
+grad_info.complete_direction_set = D;
 grad_info.direction_selection_probability_matrix = direction_selection_probability_matrix;
 
 % Initialize exitflag. If exitflag is not set elsewhere, then the maximum number of iterations
@@ -325,6 +328,9 @@ end
 % corresponding function value.
 xopt = xbase;
 fopt = fbase;
+% Initialize
+fopt_hist(1) = fopt;
+xopt_hist(:, 1) = xopt;
 
 terminate = false;
 % If MaxFunctionEvaluations is reached at the very first function evaluation
@@ -364,17 +370,17 @@ for iter = 1:maxit
         block_indices = sort(block_indices);
     end
 
-    % Initialize batch_direction_indices as a cell array of length batch_size to store the indices 
+    % Initialize sampled_direction_indices_per_batch as a cell array of length batch_size to store the indices 
     % of directions evaluated in each batch during the current iteration.
     % Initialize is_batch_fully_visited as a logical array of length batch_size, indicating whether 
     % all directions in each batch have been evaluated in this iteration.
-    % Initialize batch_fhist as a cell array of length batch_size to store the function values 
+    % Initialize function_values_per_batch as a cell array of length batch_size to store the function values 
     % computed in each batch during the current iteration.
     % Initialize batch_sufficient_decrease as a logical array of length batch_size, indicating whether 
     % the sufficient decrease condition is satisfied in each batch during the current iteration.
-    batch_direction_indices = cell(1, batch_size);
+    sampled_direction_indices_per_batch = cell(1, batch_size);
     is_batch_fully_visited = false(1, batch_size);
-    batch_fhist = cell(1, batch_size);
+    function_values_per_batch = cell(1, batch_size);
     batch_sufficient_decrease = false(1, batch_size);
 
     for i = 1:length(block_indices)
@@ -388,9 +394,10 @@ for iter = 1:maxit
 
         % Store the step size for the i_real-th block in grad_info. We use i (the batch index)
         % instead of i_real (the absolute block index) because we are only concerned with the batch_size
-        % blocks visited in the current iteration. Therefore, step_size_each_batch is initialized with
+        % blocks visited in the current iteration. Therefore, step_size_per_batch is initialized with
         % batch_size elements.
-        grad_info.step_size_each_batch(i) = alpha_all(i_real);
+        grad_info.step_size_per_batch(i) = alpha_all(i_real);
+        grad_info.fbase_per_batch(i) = fbase;
 
         % Set the options for the direct search within the i_real-th block.
         suboptions.FunctionEvaluations_exhausted = nf;
@@ -423,20 +430,24 @@ for iter = 1:maxit
         % Update the number of function evaluations.
         nf = nf+sub_output.nf;
 
-        % Store the indices (with respect to the full direction set) of the directions in the 
-        % i_real-th block that were evaluated during this iteration. 
-        % Note that batch_direction_indices is initialized with batch_size cells, as we are 
-        % mainly interested in tracking which directions are visited in each batch during the 
-        % current iteration. Therefore, we use i (the batch index in this iteration) rather than
-        % i_real (the absolute block index).
-        batch_direction_indices{i} = direction_indices(1:sub_output.nf);
-        % If the number of directions evaluated in the i_real-th block is equal to sub_output.nf,
-        % then we set is_batch_fully_visited(i) to true, indicating that all directions in the i_real-th 
-        % block have been evaluated in this iteration.
+        % Store the indices of directions (with respect to the full direction set) that were evaluated 
+        % in the current batch during this iteration.
+        % Note: We use sampled_direction_indices_per_batch{i} rather than sampled_direction_indices_per_batch{i_real} because:
+        % 1. sampled_direction_indices_per_batch has length batch_size, tracking only directions visited in the current iteration.
+        % 2. We're recording information by batch position (i) rather than absolute block index (i_real).
+        % 3. This organization simplifies gradient estimation which only needs info about directions sampled in this iteration.
+        sampled_direction_indices_per_batch{i} = direction_indices(1:sub_output.nf);
+
+        % Mark whether all directions in the current batch were fully evaluated.
+        % Again using the batch index (i) rather than absolute block index (i_real).
         if length(direction_indices) == sub_output.nf
             is_batch_fully_visited(i) = true;
         end
-        batch_fhist{i} = sub_output.fhist;
+
+        % Store function values for the current batch.
+        function_values_per_batch{i} = sub_output.fhist;
+
+        % Record whether sufficient decrease was achieved in this batch.
         batch_sufficient_decrease(i) = sub_output.sufficient_decrease;
 
         % Record the best function value and point encountered in the i_real-th block.
@@ -519,15 +530,16 @@ for iter = 1:maxit
         end
     end
 
-    % Track the best function value observed in each iteration.
-    fopt_hist(iter) = fopt;
+    % Track the best function value observed and the corresponding point in this iteration.
+    fopt_hist(iter + 1) = fopt;
+    xopt_hist(:, iter + 1) = xopt;
 
     % Check if the optimization should stop due to insufficient change in the objective function
     % over the last func_window_size iterations. If the change is below a specified threshold,
     % terminate the optimization. This check is performed after the current iteration is complete,
     % ensuring fopt_hist includes the latest function value.
     if use_function_value_stop && iter > func_window_size
-        func_change = max(fopt_hist(iter-func_window_size+1:iter)) - min(fopt_hist(iter-func_window_size+1:iter));
+        func_change = max(fopt_hist(iter-func_window_size+2:iter+1)) - min(fopt_hist(iter-func_window_size+2:iter+1));
         if func_change < func_tol_1 * min(1, abs(fopt_hist(iter))) || ...
                 func_change < func_tol_2 * max(1, abs(fopt_hist(iter)))
             terminate = true;
@@ -535,11 +547,11 @@ for iter = 1:maxit
         end
     end
 
-    % If all directions in the batch have been visited during this iteration, we can estimate the gradient.
-    % if all(is_batch_fully_visited) && ~any(batch_sufficient_decrease)
-    if all(is_batch_fully_visited)
-        grad_info.batch_direction_indices = batch_direction_indices;
-        grad_info.batch_fhist = batch_fhist;
+    % If num_blocks equals to batch_size, we will only estimate the gradient if num_blocks equals to n. 
+    % If num_blocks is greater than batch_size, we will always estimate the gradient.
+    if (num_blocks == batch_size && num_blocks == n) || (num_blocks > batch_size)
+        grad_info.sampled_direction_indices_per_batch = sampled_direction_indices_per_batch;
+        grad_info.function_values_per_batch = function_values_per_batch;
         grad = estimate_gradient(grad_info);
         % If the norm of the estimated gradient exceeds the threshold (1e30), it is discarded.
         % This threshold is chosen to maintain consistency with the standard used in eval_fun.m.
