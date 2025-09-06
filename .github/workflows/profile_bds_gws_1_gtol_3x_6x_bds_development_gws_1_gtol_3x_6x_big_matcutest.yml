@@ -2,7 +2,7 @@ name: Different estimated gradient, gws 1, gtol 3x, 6x, big, matcutest
 
 on:
   # Trigger the workflow on # push or pull request
-  push:
+  # push:
   # Trigger the workflow manually
   schedule:
   - cron: '0 0 */2 * *'
@@ -38,7 +38,7 @@ jobs:
           repository: optiprofiler/optiprofiler
           path: optiprofiler
           submodules: recursive
-          ref: 16464bcb27c4aef1130d08519fca4ff64e6c2091
+          ref: 21b5dc6052cb458fa92a635799f83bc85c111d0f
 
       - name: Install Texlive
         run: sudo apt-get update && sudo apt-get install texlive
