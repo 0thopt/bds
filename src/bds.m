@@ -560,10 +560,10 @@ for iter = 1:maxit
             grad_hist = [grad_hist, grad];
         end
     end
-
+    
     if use_estimated_gradient_stop
         % Check whether the consecutive grad_window_size gradients are sufficiently small.
-        if length(grad_hist) > grad_window_size
+        if size(grad_hist, 2) > grad_window_size
             grad_window_size_hist = vecnorm(grad_hist(:, end-grad_window_size+1:end));
             if all(grad_window_size_hist < grad_tol_1 * min(1, norm(grad_hist(:,1))) | grad_window_size_hist < grad_tol_2 * max(1, norm(grad_hist(:,1))))
                 terminate = true;

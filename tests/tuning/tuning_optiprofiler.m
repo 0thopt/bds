@@ -419,7 +419,9 @@ function x = cbds_window_size_grad_tol(fun, x0, grad_window_size, grad_tol_1, gr
         option.grad_tol_2 = grad_tol_2;
         option.use_estimated_gradient_stop = true;
     end
+    
     x = bds(fun, x0, option);
+    
     
 end
 
