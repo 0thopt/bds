@@ -560,8 +560,12 @@ for iter = 1:maxit
             grad_hist = [grad_hist, grad];
         end
     end
-    
-    if use_estimated_gradient_stop
+
+    % The accuracy of our gradient estimation improves as the maximum step size decreases.
+    % Therefore, we only check for termination based on gradient criteria when the
+    % maximum step size falls below a specific threshold, ensuring that our gradient
+    % estimate is sufficiently reliable for termination decisions.
+    if use_estimated_gradient_stop && max(alpha_all) < 1e-3
         % Check whether the consecutive grad_window_size gradients are sufficiently small.
         if size(grad_hist, 2) > grad_window_size
             grad_window_size_hist = vecnorm(grad_hist(:, end-grad_window_size+1:end));
