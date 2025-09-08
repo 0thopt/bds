@@ -357,13 +357,17 @@ xopt_all = NaN(n, num_blocks);
 
 for iter = 1:maxit
 
-    % Define block_indices as a vector specifying both which blocks are selected
+    % Define block_indices, a vector that specifies both the indices of the blocks
     % and the order in which they will be visited during the current iteration.
     % The length of block_indices is equal to batch_size.
-    % Randomly select batch_size blocks from 1:num_blocks (without replacement) according to the 
-    % specified probabilities. The selected blocks will be visited in this iteration in the order
-    % given by block_indices.
-    block_indices = select_random_blocks(num_blocks, batch_size, random_stream, block_selection_weight);
+    % These blocks should not have been visited in the previous replacement_delay
+    % iterations when the replacement_delay is nonnegative.
+    unavailable_block_indices = unique(block_hist(max(1, (iter-replacement_delay) * batch_size) : (iter-1) * batch_size), 'stable');
+    available_block_indices = setdiff(1:num_blocks, unavailable_block_indices);
+
+     % Select batch_size blocks randomly from the available blocks. The selected blocks
+    % will be visited in this iteration.
+    block_indices = available_block_indices(random_stream.randperm(length(available_block_indices), batch_size));
     
     % Choose the block indices based on options.block_visiting_pattern.
     if strcmpi(block_visiting_pattern, "sorted")
@@ -372,14 +376,11 @@ for iter = 1:maxit
 
     % Initialize sampled_direction_indices_per_batch as a cell array of length batch_size to store the indices 
     % of directions evaluated in each batch during the current iteration.
-    % Initialize is_batch_fully_visited as a logical array of length batch_size, indicating whether 
-    % all directions in each batch have been evaluated in this iteration.
     % Initialize function_values_per_batch as a cell array of length batch_size to store the function values 
     % computed in each batch during the current iteration.
     % Initialize batch_sufficient_decrease as a logical array of length batch_size, indicating whether 
     % the sufficient decrease condition is satisfied in each batch during the current iteration.
     sampled_direction_indices_per_batch = cell(1, batch_size);
-    is_batch_fully_visited = false(1, batch_size);
     function_values_per_batch = cell(1, batch_size);
     batch_sufficient_decrease = false(1, batch_size);
 
@@ -437,12 +438,6 @@ for iter = 1:maxit
         % 2. We're recording information by batch position (i) rather than absolute block index (i_real).
         % 3. This organization simplifies gradient estimation which only needs info about directions sampled in this iteration.
         sampled_direction_indices_per_batch{i} = direction_indices(1:sub_output.nf);
-
-        % Mark whether all directions in the current batch were fully evaluated.
-        % Again using the batch index (i) rather than absolute block index (i_real).
-        if length(direction_indices) == sub_output.nf
-            is_batch_fully_visited(i) = true;
-        end
 
         % Store function values for the current batch.
         function_values_per_batch{i} = sub_output.fhist;
@@ -547,9 +542,8 @@ for iter = 1:maxit
         end
     end
 
-    % If num_blocks equals to batch_size, we will only estimate the gradient if num_blocks equals to n. 
-    % If num_blocks is greater than batch_size, we will always estimate the gradient.
-    if (num_blocks == batch_size && num_blocks == n) || (num_blocks > batch_size)
+    % If all batches do not get the sufficient decrease, we will estimate the gradient.
+    if ~any(batch_sufficient_decrease)
         grad_info.sampled_direction_indices_per_batch = sampled_direction_indices_per_batch;
         grad_info.function_values_per_batch = function_values_per_batch;
         grad = estimate_gradient(grad_info);
@@ -561,11 +555,7 @@ for iter = 1:maxit
         end
     end
 
-    % The accuracy of our gradient estimation improves as the maximum step size decreases.
-    % Therefore, we only check for termination based on gradient criteria when the
-    % maximum step size falls below a specific threshold, ensuring that our gradient
-    % estimate is sufficiently reliable for termination decisions.
-    if use_estimated_gradient_stop && max(alpha_all) < 1e-3
+    if use_estimated_gradient_stop
         % Check whether the consecutive grad_window_size gradients are sufficiently small.
         if size(grad_hist, 2) > grad_window_size
             grad_window_size_hist = vecnorm(grad_hist(:, end-grad_window_size+1:end));
