@@ -46,11 +46,6 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               dimension. The i-th index refers to the i-th direction 
 %                               in direction_set.
 %                               See divide_direction_set.m for details.
-%   block_selection_weight      A vector of length num_blocks, where each element
-%                               specifies the selection weight for the corresponding block.
-%                               All weights must be strictly positive.
-%                               If not specified, block_selection_weight defaults to
-%                               ones(1, options.num_blocks) / options.num_blocks.
 %   is_noisy                    A flag deciding whether the problem is noisy or
 %                               not. The value of is_noisy will be only used to
 %                               determine the values of expand and shrink now.
@@ -228,10 +223,6 @@ num_blocks = options.num_blocks;
 batch_size = options.batch_size;
 % Determine the indices of directions in each block.
 grouped_direction_indices = divide_direction_set(n, num_blocks, options);
-% Compute the block selection weight.
-block_selection_weight = options.block_selection_weight;
-direction_selection_probability_matrix = compute_block_selection_probability(block_selection_weight, batch_size, grouped_direction_indices, n);
-
 expand = options.expand;
 shrink = options.shrink;
 
@@ -242,6 +233,7 @@ reduction_factor = options.reduction_factor;
 forcing_function = options.forcing_function;
 polling_inner = options.polling_inner;
 cycling_inner = options.cycling_inner;
+replacement_delay = options.replacement_delay;
 
 MaxFunctionEvaluations = options.MaxFunctionEvaluations;
 % Set the maximum number of iterations.
@@ -294,7 +286,6 @@ grad_info.n = n;
 grad_info.step_size_per_batch = NaN(batch_size, 1);
 grad_info.fbase_per_batch = NaN(batch_size, 1);
 grad_info.complete_direction_set = D;
-grad_info.direction_selection_probability_matrix = direction_selection_probability_matrix;
 
 % Initialize exitflag. If exitflag is not set elsewhere, then the maximum number of iterations
 % is reached, and hence we initialize exitflag to the corresponding value.
@@ -365,10 +356,14 @@ for iter = 1:maxit
     unavailable_block_indices = unique(block_hist(max(1, (iter-replacement_delay) * batch_size) : (iter-1) * batch_size), 'stable');
     available_block_indices = setdiff(1:num_blocks, unavailable_block_indices);
 
-     % Select batch_size blocks randomly from the available blocks. The selected blocks
+    % Select batch_size blocks randomly from the available blocks. The selected blocks
     % will be visited in this iteration.
     block_indices = available_block_indices(random_stream.randperm(length(available_block_indices), batch_size));
     
+    % Compute the direction selection probability matrix.
+    direction_selection_probability_matrix = get_direction_selected_probability(n, batch_size, grouped_direction_indices, available_block_indices);
+    grad_info.direction_selection_probability_matrix = direction_selection_probability_matrix;
+
     % Choose the block indices based on options.block_visiting_pattern.
     if strcmpi(block_visiting_pattern, "sorted")
         block_indices = sort(block_indices);

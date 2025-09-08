@@ -24,6 +24,7 @@ field_list = {
     'polling_inner'
     'cycling_inner'
     'batch_size'
+    'replacement_delay'
     'seed'
     'output_xhist'
     'output_alpha_hist'
@@ -78,6 +79,7 @@ else
                     case 'rbds'
                         options.num_blocks = n;
                         options.batch_size = 1;
+                        options.replacement_delay = n - 1;
                         options.block_visiting_pattern = 'sorted';
                     case 'pads'
                         options.num_blocks = n;
@@ -185,6 +187,16 @@ else
     else
         options.shrink = options.shrink;
     end
+    
+    % If replacement_delay is r, then the block that is selected in the current
+    % iteration will not be selected in the next r iterations. Note that replacement_delay cannot exceed
+    % floor(num_blocks/batch_size)-1. The reason we set the default value of replacement_delay to
+    % floor(num_blocks/batch_size)-1 is that the performance will be better when replacement_delay is larger.
+    if isfield(options, "replacement_delay")
+        options.replacement_delay = min(options.replacement_delay, floor(options.num_blocks/options.batch_size)-1);
+    else
+        options.replacement_delay = floor(options.num_blocks/options.batch_size)-1;
+    end
 
     % Set the maximum number of function evaluations. If the options do not contain MaxFunctionEvaluations,
     % it is set to MaxFunctionEvaluations_dim_factor*n, where n is the dimension of the problem.
@@ -216,7 +228,7 @@ else
     % determined solely by user input. To avoid resetting their default values, we remove these fields from options.
     field_list = setdiff(field_list, {'Algorithm', 'block_visiting_pattern', 'num_blocks', 'direction_set', ...
     'block_selection_weight', 'grouped_direction_indices', 'batch_size', 'expand', 'shrink', ...
-    'MaxFunctionEvaluations', 'alpha_init'});
+    'MaxFunctionEvaluations', 'alpha_init', 'replacement_delay'});
 
     for i = 1:length(field_list)
         field_name = field_list{i};

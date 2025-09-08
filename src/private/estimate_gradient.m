@@ -10,7 +10,7 @@ function grad = estimate_gradient(grad_info)
 %                                            corresponding to the directions visited in this iteration.
 %   direction_selection_probability_matrix   Diagonal matrix of size n x n, where the diagonal elements store the 
 %                                            selection probability for each positive direction.
-%   step_size_per_batch                     Vector of size batch_size, containing the step sizes for each batch visited 
+%   step_size_per_batch                      Vector of size batch_size, containing the step sizes for each batch visited 
 %                                            in this iteration.
 %   n                                        The number of dimensions (i.e., the number of positive directions).
 
@@ -87,10 +87,12 @@ function [directional_derivative] = estimate_directional_derivative(positive_dir
             directional_derivative = (function_values_per_batch{batch_idx}(positive_index) - function_values_per_batch{batch_idx}(negative_index)) / (2 * step_size_per_batch(batch_idx));
             return;
         elseif ~isempty(positive_index)
+            keyboard
             % Forward difference formula
             directional_derivative = (function_values_per_batch{batch_idx}(positive_index) - function_values_per_batch{batch_idx}(1)) / step_size_per_batch(batch_idx);
             return;
         elseif ~isempty(negative_index)
+            keyboard
             % Backward difference formula
             directional_derivative = (function_values_per_batch{batch_idx}(1) - function_values_per_batch{batch_idx}(negative_index)) / step_size_per_batch(batch_idx);
             return;
