@@ -2,10 +2,10 @@ name: cbds with grad 5, 6x, 9x, big
 
 on:
   # Trigger the workflow on # push or pull request
-  push:
+  # push:
   # Trigger the workflow manually
-  schedule:
-  - cron: '0 6 */1 * *'
+  # schedule:
+  # - cron: '0 6 */1 * *'
   workflow_dispatch:
 
 jobs:
@@ -35,7 +35,7 @@ jobs:
           repository: optiprofiler/optiprofiler
           path: optiprofiler
           submodules: recursive
-          ref: 21b5dc6052cb458fa92a635799f83bc85c111d0f
+          ref: 8a617f4e52cb95988fe9f29949856dc2874b81e7
 
       - name: Install Texlive
         run: sudo apt-get update && sudo apt-get install texlive

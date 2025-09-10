@@ -1,6 +1,6 @@
 function grad = estimate_gradient(grad_info)
 %ESTIMATE_GRADIENT estimates the gradient using finite difference methods.
-%   The gradient is computed only if all directions in the batch visited in the current iteration have been sampled.
+%   The gradient is computed only if all batches do not achieve sufficient decrease.
 %   grad_info should be a structure with the following fields.
 %   complete_direction_set                   Matrix containing all directions (i.e., both positive and negative) 
 %                                            used in the optimization.

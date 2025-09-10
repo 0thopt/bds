@@ -549,7 +549,7 @@ for iter = 1:maxit
             grad_hist = [grad_hist, grad];
         end
     end
-
+    
     if use_estimated_gradient_stop
         % Check whether the consecutive grad_window_size gradients are sufficiently small.
         if size(grad_hist, 2) > grad_window_size
