@@ -20,7 +20,7 @@ jobs:
         dim: [small]
         with_optim_toolbox: [yes]
         solver: [cbds-orig]
-        competitor: [direct-search]
+        competitor: [ds]
         plibs: [s2mpj]
         run_plain: [false]
         summarize_log_ratio_profiles: [false]
