@@ -40,7 +40,7 @@ jobs:
           repository: optiprofiler/optiprofiler
           path: optiprofiler
           submodules: recursive
-          ref: 16464bcb27c4aef1130d08519fca4ff64e6c2091
+          ref: 8a617f4e52cb95988fe9f29949856dc2874b81e7
 
       - name: Install Texlive
         run: sudo apt-get update && sudo apt-get install texlive
