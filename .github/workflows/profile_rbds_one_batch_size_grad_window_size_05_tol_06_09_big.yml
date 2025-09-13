@@ -2,10 +2,10 @@ name: rbds with one batch size, grad 5, 6x, 9x, big
 
 on:
   # Trigger the workflow on # push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
-  schedule:
-  - cron: '0 6 */1 * *'
+  # schedule:
+  # - cron: '0 6 */1 * *'
   workflow_dispatch:
 
 jobs:
