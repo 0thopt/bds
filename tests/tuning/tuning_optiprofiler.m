@@ -452,7 +452,8 @@ function x = cbds_window_size_grad_tol_batch_size(fun, x0, grad_window_size, gra
     seed = round(1e4 * option.expand) + round(1e6 * option.shrink) + option.batch_size;
     option.seed = seed;
     option.output_block_hist = true;
-    
+    option.replacement_delay = 0;
+
     x = bds(fun, x0, option);
     
 end

@@ -65,7 +65,8 @@ end
 % direction_selection_probability_matrix is a diagonal matrix with strictly positive diagonal elements, the matrix
 % complete_basis_directions * direction_selection_probability_matrix * complete_basis_directions' is guaranteed to be positive definite.
 % In this case, the backslash operator provides a more efficient and numerically stable solution than lsqminnorm.
-grad = (complete_basis_directions * direction_selection_probability_matrix * complete_basis_directions') \ (sampled_basis_directions * sampled_directional_derivatives);
+% grad = (complete_basis_directions * direction_selection_probability_matrix * complete_basis_directions') \ (sampled_basis_directions * sampled_directional_derivatives);
+grad = lsqminnorm(complete_basis_directions * direction_selection_probability_matrix * complete_basis_directions', (sampled_basis_directions * sampled_directional_derivatives));
 
 end
 

@@ -355,7 +355,7 @@ for iter = 1:maxit
     % iterations when the replacement_delay is nonnegative.
     unavailable_block_indices = unique(block_hist(max(1, (iter-replacement_delay) * batch_size) : (iter-1) * batch_size), 'stable');
     available_block_indices = setdiff(1:num_blocks, unavailable_block_indices);
-
+    
     % Select batch_size blocks randomly from the available blocks. The selected blocks
     % will be visited in this iteration.
     block_indices = available_block_indices(random_stream.randperm(length(available_block_indices), batch_size));
