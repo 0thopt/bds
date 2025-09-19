@@ -489,6 +489,12 @@ function x = cbds_window_size_grad_tol_func_tol(fun, x0, grad_window_size, grad_
         option.use_function_value_stop = true;
     end
 
+    % When the feature is linearly transformed, the default stopping criteria may even trigger too early.
+    % So we set a smaller step tolerance and a larger maximum number of function evaluations to see the effect
+    % of the parameters.
+    option.StepTolerance = 1e-9;
+    option.MaxFunctionEvaluations = 1e3 * numel(x0);
+
     x = bds(fun, x0, option);
     
 end
