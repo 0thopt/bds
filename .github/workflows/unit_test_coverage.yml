@@ -11,7 +11,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        matlab: [latest]
+        matlab: [R2024b]
         with_optim_toolbox: [yes]
 
     steps:

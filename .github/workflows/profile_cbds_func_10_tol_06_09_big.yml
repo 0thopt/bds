@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        matlab: [latest]
+        matlab: [R2024b]
         dim: [big]
         plibs: [matcutest]
         with_optim_toolbox: [yes]
@@ -34,7 +34,7 @@ jobs:
           repository: optiprofiler/optiprofiler
           path: optiprofiler
           submodules: recursive
-          ref: 8a617f4e52cb95988fe9f29949856dc2874b81e7
+          ref: 9ab759489a601d619ea80cd3549b5ab91ad60150
 
       - name: Install Texlive
         run: sudo apt-get update && sudo apt-get install texlive
@@ -157,7 +157,7 @@ jobs:
           cd tests/tuning/tuning_data/downloaded_artifacts/
 
           ARTIFACT_NAME=$(ls | grep "profile_optiprofiler" | head -n 1)
-          BASE_INFO=$(echo $ARTIFACT_NAME | sed -n 's/.*optiprofiler_\([^_]*_[^_]*_\(small\|big\)\).*/\1/p')
+          BASE_INFO=$(echo $ARTIFACT_NAME | sed -n 's/.*optiprofiler_\([^_]*_[^_]*_\(small\|big\|large\)\).*/\1/p')
 
           # Replace all '-' with '_' in BASE_INFO
           BASE_INFO=$(echo $BASE_INFO | sed 's/-/_/g')

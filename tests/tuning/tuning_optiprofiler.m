@@ -117,6 +117,7 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
             options.n_runs = 2;
         end
     end
+    options.n_runs = 1;
     if ~isfield(options, 'solver_verbose')
         options.solver_verbose = 2;
     end
@@ -129,7 +130,12 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
             options.maxdim = 5;
         elseif strcmpi(options.dim, 'big')
             options.mindim = 6;
-            options.maxdim = 50;
+            options.maxdim = 20;
+        elseif strcmpi(options.dim, 'large')
+            options.mindim = 21;
+            options.maxdim = 200;            
+        else
+            error('Unknown dim option');
         end
         options = rmfield(options, 'dim');
     end

@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        matlab: [latest]
+        matlab: [R2024b]
         dim: [big]
         with_optim_toolbox: [yes]
         solver: [bds-gws-1-gtol-3x-6x]
@@ -38,7 +38,7 @@ jobs:
           repository: optiprofiler/optiprofiler
           path: optiprofiler
           submodules: recursive
-          ref: 8a617f4e52cb95988fe9f29949856dc2874b81e7
+          ref: 9ab759489a601d619ea80cd3549b5ab91ad60150
 
       - name: Install Texlive
         run: sudo apt-get update && sudo apt-get install texlive
