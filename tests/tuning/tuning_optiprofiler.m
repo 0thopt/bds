@@ -32,7 +32,7 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
             && ismember('grad_tol_1', param_fields) && ismember('grad_tol_2', param_fields) ...
             && ismember('func_tol_1', param_fields) && ismember('func_tol_2', param_fields)
             for i_solver = 1:n_solvers
-                solvers{i_solver} = @(fun, x0) cbds_window_size_grad_tol_func_tol(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol_1(i_solver), parameters.grad_tol_2(i_solver), parameters.func_window_size(i_solver), parameters.func_tol_1(i_solver), parameters.func_tol_2(i_solver));
+                solvers{i_solver} = @(fun, x0) cbds_window_size_grad_tol_func_tol(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol_1(i_solver), parameters.grad_tol_2(i_solver), parameters.func_window_size(i_solver), parameters.func_tol_1(i_solver), parameters.func_tol_2(i_solver), options.feature_name);
             end
     end
 
@@ -426,7 +426,7 @@ function x = cbds_window_size_grad_tol(fun, x0, grad_window_size, grad_tol_1, gr
     option.Algorithm = 'cbds';
     option.expand = 2;
     option.shrink = 0.5;
-    if grad_window_size > 1e5 || (grad_tol_1 == 1e-30 && grad_tol_2 == 1e-30)
+    if grad_window_size > 1e5 || grad_tol_1 == 1e-30 || grad_tol_2 == 1e-30
         option.use_estimated_gradient_stop = false;
     else
         option.grad_window_size = grad_window_size;
@@ -444,7 +444,7 @@ function x = cbds_window_size_grad_tol_batch_size(fun, x0, grad_window_size, gra
 
     option.expand = 2;
     option.shrink = 0.5;
-    if grad_window_size > 1e5 || (grad_tol_1 == 1e-30 && grad_tol_2 == 1e-30)
+    if grad_window_size > 1e5 || grad_tol_1 == 1e-30 || grad_tol_2 == 1e-30
         option.use_estimated_gradient_stop = false;
     else
         option.grad_window_size = grad_window_size;
@@ -473,12 +473,12 @@ function x = cbds_window_size_grad_tol_batch_size(fun, x0, grad_window_size, gra
     
 end
 
-function x = cbds_window_size_grad_tol_func_tol(fun, x0, grad_window_size, grad_tol_1, grad_tol_2, func_window_size, func_tol_1, func_tol_2)
+function x = cbds_window_size_grad_tol_func_tol(fun, x0, grad_window_size, grad_tol_1, grad_tol_2, func_window_size, func_tol_1, func_tol_2, feature_name)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
     option.shrink = 0.5;
-    if grad_window_size > 1e5 || (grad_tol_1 == 1e-30 && grad_tol_2 == 1e-30)
+    if grad_window_size > 1e5 || grad_tol_1 == 1e-30 || grad_tol_2 == 1e-30
         option.use_estimated_gradient_stop = false;
     else
         option.grad_window_size = grad_window_size;
@@ -498,9 +498,11 @@ function x = cbds_window_size_grad_tol_func_tol(fun, x0, grad_window_size, grad_
     % When the feature is linearly transformed, the default stopping criteria may even trigger too early.
     % So we set a smaller step tolerance and a larger maximum number of function evaluations to see the effect
     % of the parameters.
-    option.StepTolerance = 1e-9;
-    option.MaxFunctionEvaluations = 1e3 * numel(x0);
-
+    rotation_feature_list = {'linearly_transformed', 'rotation_noisy_1e-1', 'rotation_noisy_1e-2', 'rotation_noisy_1e-3', 'rotation_noisy_1e-4'};
+    if ismember(feature_name, rotation_feature_list)
+        option.StepTolerance = 1e-9;
+        option.MaxFunctionEvaluations = 1e3 * numel(x0);
+    end
     x = bds(fun, x0, option);
     
 end
