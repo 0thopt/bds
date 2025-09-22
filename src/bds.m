@@ -346,7 +346,7 @@ num_visited_blocks = 0;
 % blocks must still be recorded.
 fopt_all = NaN(1, num_blocks);
 xopt_all = NaN(n, num_blocks);
-keyboard
+
 for iter = 1:maxit
 
     % Define block_indices, a vector that specifies both the indices of the blocks
