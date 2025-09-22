@@ -495,14 +495,14 @@ function x = cbds_window_size_grad_tol_func_tol(fun, x0, grad_window_size, grad_
         option.use_function_value_stop = true;
     end
 
-    % When the feature is linearly transformed, the default stopping criteria may even trigger too early.
-    % So we set a smaller step tolerance and a larger maximum number of function evaluations to see the effect
-    % of the parameters.
-    rotation_feature_list = {'linearly_transformed', 'rotation_noisy_1e-1', 'rotation_noisy_1e-2', 'rotation_noisy_1e-3', 'rotation_noisy_1e-4'};
-    if ismember(feature_name, rotation_feature_list)
-        option.StepTolerance = 1e-9;
-        option.MaxFunctionEvaluations = 1e3 * numel(x0);
-    end
+    % % When the feature is linearly transformed, the default stopping criteria may even trigger too early.
+    % % So we set a smaller step tolerance and a larger maximum number of function evaluations to see the effect
+    % % of the parameters.
+    % rotation_feature_list = {'linearly_transformed', 'rotation_noisy_1e-1', 'rotation_noisy_1e-2', 'rotation_noisy_1e-3', 'rotation_noisy_1e-4'};
+    % if ismember(feature_name, rotation_feature_list)
+    %     option.StepTolerance = 1e-9;
+    %     option.MaxFunctionEvaluations = 1e3 * numel(x0);
+    % end
     x = bds(fun, x0, option);
     
 end

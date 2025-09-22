@@ -254,6 +254,7 @@ if  output_alpha_hist
     alpha_hist = NaN(num_blocks, maxit);
     alpha_hist(:, 1) = alpha_all(:);
 end
+gradient_accuracy_threshold = sqrt(max(alpha_all) * alpha_tol);
 
 output_xhist = options.output_xhist;
 if output_xhist
@@ -345,7 +346,7 @@ num_visited_blocks = 0;
 % blocks must still be recorded.
 fopt_all = NaN(1, num_blocks);
 xopt_all = NaN(n, num_blocks);
-
+keyboard
 for iter = 1:maxit
 
     % Define block_indices, a vector that specifies both the indices of the blocks
@@ -537,8 +538,12 @@ for iter = 1:maxit
         end
     end
 
-    % If all batches do not get the sufficient decrease, we will estimate the gradient.
-    if ~any(batch_sufficient_decrease)
+    % When sufficient decrease is not achieved in any batch, we estimate the gradient.
+    % The accuracy of gradient estimation is inversely proportional to step size.
+    % Therefore, we only consider the estimated gradient reliable when the maximum 
+    % step size falls below gradient_accuracy_threshold,
+    % as this ensures a sufficiently precise approximation of the true gradient.
+    if ~any(batch_sufficient_decrease) && max(alpha_all) < gradient_accuracy_threshold
         grad_info.sampled_direction_indices_per_batch = sampled_direction_indices_per_batch;
         grad_info.function_values_per_batch = function_values_per_batch;
         grad = estimate_gradient(grad_info);
