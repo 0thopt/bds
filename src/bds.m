@@ -254,7 +254,7 @@ if  output_alpha_hist
     alpha_hist = NaN(num_blocks, maxit);
     alpha_hist(:, 1) = alpha_all(:);
 end
-gradient_accuracy_threshold = get_gradient_accuracy(alpha_all, alpha_tol);
+gradient_accuracy_threshold = sqrt(max(alpha_all) * alpha_tol);
 
 output_xhist = options.output_xhist;
 if output_xhist

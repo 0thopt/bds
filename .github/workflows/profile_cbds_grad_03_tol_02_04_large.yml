@@ -1,8 +1,8 @@
-name: cbds with grad 3, 2x, 4x, big
+name: cbds with grad 3, 2x, 4x, large
 
 on:
   # Trigger the workflow on push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   # schedule:
   # - cron: '0 6 */1 * *'
@@ -10,14 +10,14 @@ on:
 
 jobs:
   test:
-    name: cbds with grad window size 3, tol 02 and 04, big
+    name: cbds with grad window size 3, tol 02 and 04, large
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
         matlab: [R2024b]
-        dim: [big]
+        dim: [large]
         plibs: [matcutest]
         with_optim_toolbox: [yes]
         feature: [plain, perturbed_x0_0.001, perturbed_x0_1, perturbed_x0_10, perturbed_x0_100, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, permuted, linearly_transformed, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
@@ -175,10 +175,10 @@ jobs:
           cd summary
           ls
           bash ../merge_pdf.sh
-          mv merged.pdf "summary_cbds_grad_window_size_03_tol_02_04_big.pdf"
+          mv merged.pdf "summary_cbds_grad_window_size_03_tol_02_04_large.pdf"
           cd ..
           if [ -d "summary" ]; then
-            mv summary "summary_cbds_grad_window_size_03_tol_02_04_big"
+            mv summary "summary_cbds_grad_window_size_03_tol_02_04_large"
           fi
 
       - name: Upload merged artifact
@@ -186,7 +186,7 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: merged_profiles_cbds_grad_window_size_03_tol_02_04_big
+          name: merged_profiles_cbds_grad_window_size_03_tol_02_04_large
           path: tests/tuning/tuning_data/downloaded_artifacts/**
 
       - name: Upload summary files
@@ -194,5 +194,5 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: summary_files_cbds_grad_window_size_03_tol_02_04_big
-          path: tests/tuning/tuning_data/downloaded_artifacts/summary_cbds_grad_window_size_03_tol_02_04_big/**
+          name: summary_files_cbds_grad_window_size_03_tol_02_04_large
+          path: tests/tuning/tuning_data/downloaded_artifacts/summary_cbds_grad_window_size_03_tol_02_04_large/**
