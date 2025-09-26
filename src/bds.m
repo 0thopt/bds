@@ -254,7 +254,7 @@ if  output_alpha_hist
     alpha_hist = NaN(num_blocks, maxit);
     alpha_hist(:, 1) = alpha_all(:);
 end
-gradient_accuracy_threshold = sqrt(max(alpha_all) * alpha_tol);
+gradient_termination_step_threshold = sqrt(max(alpha_all) * alpha_tol);
 
 output_xhist = options.output_xhist;
 if output_xhist
@@ -281,6 +281,7 @@ grad_window_size = options.grad_window_size;
 grad_tol_1 = options.grad_tol_1;
 grad_tol_2 = options.grad_tol_2;
 grad_hist = [];
+grad_stop_hist = [];
 
 grad_info = struct();
 grad_info.n = n;
@@ -539,27 +540,31 @@ for iter = 1:maxit
     end
 
     % When sufficient decrease is not achieved in any batch, we estimate the gradient.
-    % The accuracy of gradient estimation is inversely proportional to step size.
-    % Therefore, we only consider the estimated gradient reliable when the maximum 
-    % step size falls below gradient_accuracy_threshold,
-    % as this ensures a sufficiently precise approximation of the true gradient.
-    if ~any(batch_sufficient_decrease) && max(alpha_all) < gradient_accuracy_threshold
+    if ~any(batch_sufficient_decrease)
         grad_info.sampled_direction_indices_per_batch = sampled_direction_indices_per_batch;
         grad_info.function_values_per_batch = function_values_per_batch;
         grad = estimate_gradient(grad_info);
         % If the norm of the estimated gradient exceeds the threshold (1e30), it is discarded.
         % This threshold is chosen to maintain consistency with the standard used in eval_fun.m.
-        if ~(norm(grad) > 1e30)
+        % Additionally, we check for NaN values to ensure the gradient is valid.
+        if ~(norm(grad) > 1e30) && all(~isnan(grad))
             % Record the estimated gradient in grad_hist.
             grad_hist = [grad_hist, grad];
+            if max(alpha_all) < gradient_termination_step_threshold
+            % Smaller step sizes yield more accurate gradient estimates. We only consider
+            % gradients reliable for termination decisions when maximum step size is below
+            % gradient_termination_step_threshold. This prevents premature termination based on 
+            % inaccurate gradients.
+                grad_stop_hist = [grad_stop_hist, grad];
+            end
         end
     end
     
     if use_estimated_gradient_stop
         % Check whether the consecutive grad_window_size gradients are sufficiently small.
-        if size(grad_hist, 2) > grad_window_size
-            grad_window_size_hist = vecnorm(grad_hist(:, end-grad_window_size+1:end));
-            if all(grad_window_size_hist < grad_tol_1 * min(1, norm(grad_hist(:,1))) | grad_window_size_hist < grad_tol_2 * max(1, norm(grad_hist(:,1))))
+        if size(grad_stop_hist, 2) > grad_window_size
+            grad_window_size_hist = vecnorm(grad_stop_hist(:, end-grad_window_size+1:end));
+            if all(grad_window_size_hist < grad_tol_1 * min(1, norm(grad_stop_hist(:,1))) | grad_window_size_hist < grad_tol_2 * max(1, norm(grad_stop_hist(:,1))))
                 terminate = true;
                 exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
             end
