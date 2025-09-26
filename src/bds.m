@@ -572,34 +572,36 @@ for iter = 1:maxit
                     % BB2
                     bb_step_size = (s' * y) / (y' * y);
                 end
-                x_bb = xgrad_hist(:, end) - bb_step_size * grad_hist(:, end);
-                f_bb = eval_fun(fun, x_bb);
-                nf = nf + 1;
-                fhist(nf) = f_bb;
-                xhist(:, nf) = x_bb;
-                if output_xhist
+                if bb_step_size > 0
+                    x_bb = xgrad_hist(:, end) - bb_step_size * grad_hist(:, end);
+                    f_bb = eval_fun(fun, x_bb);
+                    nf = nf + 1;
+                    fhist(nf) = f_bb;
                     xhist(:, nf) = x_bb;
-                end
-                if (f_bb + reduction_factor(3) * forcing_function(bb_step_size)/2 < fbase)
-                    xbase = x_bb;
-                    fbase = f_bb;
-                    if iprint >= 2
-                        fprintf("BB step size = %23.16E\n", bb_step_size);
-                        fprintf("Function number %d    F = %23.16E\n", nf, f_bb);
-                        fprintf("The corresponding X is:\n");
-                        print_aligned_vector(x_bb);
-                        fprintf("\n");
+                    if output_xhist
+                        xhist(:, nf) = x_bb;
                     end
-                    if f_bb < fopt
-                        fopt = f_bb;
-                        xopt = x_bb;
-                        % fopt_hist(iter + 1) = fopt;
-                        % xopt_hist(:, iter + 1) = xopt;
+                    if (f_bb + reduction_factor(3) * forcing_function(bb_step_size)/2 < fbase)
+                        xbase = x_bb;
+                        fbase = f_bb;
+                        if iprint >= 2
+                            fprintf("BB step size = %23.16E\n", bb_step_size);
+                            fprintf("Function number %d    F = %23.16E\n", nf, f_bb);
+                            fprintf("The corresponding X is:\n");
+                            print_aligned_vector(x_bb);
+                            fprintf("\n");
+                        end
+                        if f_bb < fopt
+                            fopt = f_bb;
+                            xopt = x_bb;
+                            % fopt_hist(iter + 1) = fopt;
+                            % xopt_hist(:, iter + 1) = xopt;
+                        end
                     end
-                end
-                if nf >= MaxFunctionEvaluations
-                    terminate = true;
-                    exitflag = get_exitflag("MAXFUN_REACHED");
+                    if nf >= MaxFunctionEvaluations
+                        terminate = true;
+                        exitflag = get_exitflag("MAXFUN_REACHED");
+                    end
                 end
             end
 
