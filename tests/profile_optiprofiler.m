@@ -314,6 +314,8 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @bds_grad_window_size_01_grad_tol_3x_6x_test;
             case 'bds-development-gws-1-gtol-3x-6x'
                 solvers{i} = @bds_development_grad_window_size_01_grad_tol_3x_6x_test;
+            case 'bb'
+                solvers{i} = @bb_test;
             otherwise
                 error('Unknown solver');
         end
@@ -1312,5 +1314,15 @@ function x = bds_development_grad_window_size_01_grad_tol_3x_6x_test(fun, x0)
     option.grad_tol_2 = 1e-6;
 
     x = bds_development(fun, x0, option);
+    
+end
+
+function x = bb_test(fun, x0)
+
+    option.bb = true;
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    x = bds(fun, x0, option);
     
 end

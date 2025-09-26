@@ -167,12 +167,14 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %   [XOPT, FOPT, EXITFLAG, OUTPUT] = BDS(...) returns a
 %   structure OUTPUT with the following fields.
 %
-%   fhist        History of function values.
-%   xhist        History of points visited (if output_xhist is true).
-%   alpha_hist   History of step size for every iteration (if output_alpha_hist is true).
-%   blocks_hist  History of blocks visited (if output_block_hist is true).
-%   funcCount    The number of function evaluations.
-%   message      The information of EXITFLAG.
+%   fhist            History of function values.
+%   grad_hist        History of estimated gradients.
+%   xhist            History of points visited (if output_xhist is true).
+%   alpha_hist       History of step size for every iteration (if output_alpha_hist is true).
+%   blocks_hist      History of blocks visited (if output_block_hist is true).
+%   grad_stop_hist   History of estimated gradients used for stopping decisions (if use_estimated_gradient_stop is true).
+%   funcCount        The number of function evaluations.
+%   message          The information of EXITFLAG.
 %
 %   ***********************************************************************
 %   Authors:    Haitian LI (hai-tian.li@connect.polyu.hk)
@@ -280,7 +282,11 @@ use_estimated_gradient_stop = options.use_estimated_gradient_stop;
 grad_window_size = options.grad_window_size;
 grad_tol_1 = options.grad_tol_1;
 grad_tol_2 = options.grad_tol_2;
+
+bb = options.bb;
+
 grad_hist = [];
+xgrad_hist = [];
 grad_stop_hist = [];
 
 grad_info = struct();
@@ -550,11 +556,51 @@ for iter = 1:maxit
         if ~(norm(grad) > 1e30) && all(~isnan(grad))
             % Record the estimated gradient in grad_hist.
             grad_hist = [grad_hist, grad];
+            % Record the corresponding xbase in xgrad_hist. As long as all batches do not achieve
+            % sufficient decrease, we record the estimated gradient. Thus, xbase should be recorded
+            % not xopt even if xopt is better than xbase.
+            xgrad_hist = [xgrad_hist, xbase];
+
+            if size(grad_hist, 2) > 1 && bb
+                s = xgrad_hist(:, end) - xgrad_hist(:, end-1);
+                y = grad_hist(:, end) - grad_hist(:, end-1);
+                bb_step_size = (s' * y) / (y' * y);
+                x_bb = xgrad_hist(:, end) - bb_step_size * grad_hist(:, end);
+                f_bb = eval_fun(fun, x_bb);
+                nf = nf + 1;
+                fhist(nf) = f_bb;
+                xhist(:, nf) = x_bb;
+                if output_xhist
+                    xhist(:, nf) = x_bb;
+                end
+                if (f_bb + reduction_factor(3) * forcing_function(bb_step_size)/2 < fbase)
+                    xbase = x_bb;
+                    fbase = f_bb;
+                    if iprint >= 2
+                        fprintf("BB step size = %23.16E\n", bb_step_size);
+                        fprintf("Function number %d    F = %23.16E\n", nf, f_bb);
+                        fprintf("The corresponding X is:\n");
+                        print_aligned_vector(x_bb);
+                        fprintf("\n");
+                    end
+                    if f_bb < fopt
+                        fopt = f_bb;
+                        xopt = x_bb;
+                        % fopt_hist(iter + 1) = fopt;
+                        % xopt_hist(:, iter + 1) = xopt;
+                    end
+                end
+                if nf >= MaxFunctionEvaluations
+                    terminate = true;
+                    exitflag = get_exitflag("MAXFUN_REACHED");
+                end
+            end
+
             if max(alpha_all) < gradient_termination_step_threshold
-            % Smaller step sizes yield more accurate gradient estimates. We only consider
-            % gradients reliable for termination decisions when maximum step size is below
-            % gradient_termination_step_threshold. This prevents premature termination based on 
-            % inaccurate gradients.
+                % Smaller step sizes yield more accurate gradient estimates. We only consider
+                % gradients reliable for termination decisions when maximum step size is below
+                % gradient_termination_step_threshold. This prevents premature termination based on 
+                % inaccurate gradients.
                 grad_stop_hist = [grad_stop_hist, grad];
             end
         end
@@ -595,6 +641,9 @@ if output_xhist
 end
 output.fhist = fhist(1:nf);
 output.grad_hist = grad_hist;
+if use_estimated_gradient_stop
+    output.grad_stop_hist = grad_stop_hist;
+end
 
 % Set the message according to exitflag.
 switch exitflag

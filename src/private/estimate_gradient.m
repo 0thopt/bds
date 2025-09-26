@@ -2,16 +2,15 @@ function grad = estimate_gradient(grad_info)
 %ESTIMATE_GRADIENT estimates the gradient using finite difference methods.
 %   The gradient is computed only if all batches do not achieve sufficient decrease.
 %   grad_info should be a structure with the following fields.
-%   complete_direction_set                   Matrix containing all directions (i.e., both positive and negative) 
-%                                            used in the optimization.
+%   complete_direction_set                   Matrix containing all directions (i.e., both positive and negative).
 %   sampled_direction_indices_per_batch      Cell array of size batch_size, where each cell contains the indices of the 
-%                                            directions visited in this iteration.
-%   function_values_per_batch                Cell array of batch_size, where each cell contains the function values 
-%                                            corresponding to the directions visited in this iteration.
-%   direction_selection_probability_matrix   Diagonal matrix of size n x n, where the diagonal elements store the 
-%                                            selection probability for each positive direction.
+%                                            directions visited in the last iteration.
+%   function_values_per_batch                Cell array of batch_size, where each cell contains the function values
+%                                            corresponding to the directions visited in the last iteration.
+%   direction_selection_probability_matrix   Diagonal matrix of size n x n, where the diagonal elements store the
+%                                            selection probability for each direction.
 %   step_size_per_batch                      Vector of size batch_size, containing the step sizes for each batch visited 
-%                                            in this iteration.
+%                                            in the last iteration.
 %   n                                        The number of dimensions (i.e., the number of positive directions).
 
 % Outputs:
@@ -20,14 +19,14 @@ function grad = estimate_gradient(grad_info)
 n = grad_info.n;
 sampled_direction_indices_per_batch = grad_info.sampled_direction_indices_per_batch;
 
-% Concatenate all the direction indices visited in this iteration into a single vector
+% Concatenate all the direction indices visited in this iteration into a single vector.
 all_sampled_direction_indices = [sampled_direction_indices_per_batch{:}];
 
-% For each dimension i (1 to n), we have a positive direction d_i and a negative direction -d_i
+% For each dimension i (1 to n), we have a positive direction d_i and a negative direction -d_i.
 % In our implementation, these are indexed as:
-%   - Positive directions d_i: indexed as 2*i-1 (odd numbers)
-%   - Negative directions -d_i: indexed as 2*i (even numbers)
-% For gradient estimation, we only need one basis direction per dimension.
+%   - Positive directions d_i: indexed as 2*i-1 in complete_direction_set (odd numbers)
+%   - Negative directions -d_i: indexed as 2*i in complete_direction_set (even numbers)
+% For gradient estimation, we only need one basis direction per one-dimensional subspace.
 % We collect the positive direction indices for all dimensions where either the positive or negative direction was sampled.
 sampled_dimension_indices = [];
 for direction_idx = 1:n

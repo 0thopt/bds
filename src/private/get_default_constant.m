@@ -75,6 +75,8 @@ switch constant_name
         constant_value = 1e-3;
     case {"grad_tol_2"}
         constant_value = 1e-6;
+    case {"bb"}
+        constant_value = false;
     otherwise
         error("Unknown constant name")
 end
