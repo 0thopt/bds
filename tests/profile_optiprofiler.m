@@ -140,6 +140,7 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
             options.n_runs = 2;
         end
     end
+    options.n_runs = 1;
     if ~isfield(options, 'solver_verbose')
         options.solver_verbose = 2;
     end
@@ -152,10 +153,12 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
             options.maxdim = 5;
         elseif strcmpi(options.dim, 'big')
             options.mindim = 6;
-            options.maxdim = 50;
+            options.maxdim = 20;
         elseif strcmpi(options.dim, 'large')
-            options.mindim = 51;
+            options.mindim = 21;
             options.maxdim = 200;
+        else
+            error('Unknown dim option');
         end
         options = rmfield(options, 'dim');
     end
@@ -314,8 +317,10 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @bds_grad_window_size_01_grad_tol_3x_6x_test;
             case 'bds-development-gws-1-gtol-3x-6x'
                 solvers{i} = @bds_development_grad_window_size_01_grad_tol_3x_6x_test;
-            case 'bb'
-                solvers{i} = @bb_test;
+            case 'bb1'
+                solvers{i} = @bb1_test;
+            case 'bb2'
+                solvers{i} = @bb2_test;
             otherwise
                 error('Unknown solver');
         end
@@ -1317,9 +1322,19 @@ function x = bds_development_grad_window_size_01_grad_tol_3x_6x_test(fun, x0)
     
 end
 
-function x = bb_test(fun, x0)
+function x = bb1_test(fun, x0)
 
-    option.bb = true;
+    option.bb1 = true;
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = bb2_test(fun, x0)
+
+    option.bb2 = true;
     option.Algorithm = 'cbds';
     option.expand = 2;
     option.shrink = 0.5;

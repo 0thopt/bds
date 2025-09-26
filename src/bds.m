@@ -283,7 +283,8 @@ grad_window_size = options.grad_window_size;
 grad_tol_1 = options.grad_tol_1;
 grad_tol_2 = options.grad_tol_2;
 
-bb = options.bb;
+bb1 = options.bb1;
+bb2 = options.bb2;
 
 grad_hist = [];
 xgrad_hist = [];
@@ -561,10 +562,16 @@ for iter = 1:maxit
             % not xopt even if xopt is better than xbase.
             xgrad_hist = [xgrad_hist, xbase];
 
-            if size(grad_hist, 2) > 1 && bb
+            if size(grad_hist, 2) > 1 && (bb1 || bb2)
                 s = xgrad_hist(:, end) - xgrad_hist(:, end-1);
                 y = grad_hist(:, end) - grad_hist(:, end-1);
-                bb_step_size = (s' * y) / (y' * y);
+                if bb1
+                    % BB1
+                    bb_step_size = (s' * s) / (s' * y);
+                else
+                    % BB2
+                    bb_step_size = (s' * y) / (y' * y);
+                end
                 x_bb = xgrad_hist(:, end) - bb_step_size * grad_hist(:, end);
                 f_bb = eval_fun(fun, x_bb);
                 nf = nf + 1;

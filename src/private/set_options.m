@@ -40,7 +40,8 @@ field_list = {
     'grad_window_size'
     'grad_tol_1'
     'grad_tol_2'
-    'bb'
+    'bb1'
+    'bb2'
     };
 
 % Get the field names of options.
