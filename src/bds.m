@@ -562,7 +562,7 @@ for iter = 1:maxit
             % not xopt even if xopt is better than xbase.
             xgrad_hist = [xgrad_hist, xbase];
 
-            if size(grad_hist, 2) > 1 && (bb1 || bb2)
+            if size(grad_hist, 2) > 1 && (bb1 || bb2) && max(alpha_all) < 1e-1
                 s = xgrad_hist(:, end) - xgrad_hist(:, end-1);
                 y = grad_hist(:, end) - grad_hist(:, end-1);
                 if bb1
