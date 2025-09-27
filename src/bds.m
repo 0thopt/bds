@@ -287,7 +287,7 @@ bb1 = options.bb1;
 bb2 = options.bb2;
 
 grad_hist = [];
-xgrad_hist = [];
+grad_xhist = [];
 grad_stop_hist = [];
 
 grad_info = struct();
@@ -557,13 +557,13 @@ for iter = 1:maxit
         if ~(norm(grad) > 1e30) && all(~isnan(grad))
             % Record the estimated gradient in grad_hist.
             grad_hist = [grad_hist, grad];
-            % Record the corresponding xbase in xgrad_hist. As long as all batches do not achieve
+            % Record the corresponding xbase in grad_xhist. As long as all batches do not achieve
             % sufficient decrease, we record the estimated gradient. Thus, xbase should be recorded
             % not xopt even if xopt is better than xbase.
-            xgrad_hist = [xgrad_hist, xbase];
+            grad_xhist = [grad_xhist, xbase];
 
-            if size(grad_hist, 2) > 1 && (bb1 || bb2) && max(alpha_all) < 1e-1
-                s = xgrad_hist(:, end) - xgrad_hist(:, end-1);
+            if size(grad_hist, 2) > 1 && (bb1 || bb2) && max(alpha_all) < gradient_termination_step_threshold
+                s = grad_xhist(:, end) - grad_xhist(:, end-1);
                 y = grad_hist(:, end) - grad_hist(:, end-1);
                 if bb1
                     % BB1
@@ -573,7 +573,7 @@ for iter = 1:maxit
                     bb_step_size = (s' * y) / (y' * y);
                 end
                 if bb_step_size > 0
-                    x_bb = xgrad_hist(:, end) - bb_step_size * grad_hist(:, end);
+                    x_bb = grad_xhist(:, end) - bb_step_size * grad_hist(:, end);
                     f_bb = eval_fun(fun, x_bb);
                     nf = nf + 1;
                     fhist(nf) = f_bb;

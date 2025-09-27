@@ -27,7 +27,8 @@ all_sampled_direction_indices = [sampled_direction_indices_per_batch{:}];
 %   - Positive directions d_i: indexed as 2*i-1 in complete_direction_set (odd numbers)
 %   - Negative directions -d_i: indexed as 2*i in complete_direction_set (even numbers)
 % For gradient estimation, we only need one basis direction per one-dimensional subspace.
-% We collect the positive direction indices for all dimensions where either the positive or negative direction was sampled.
+% We collect the positive direction indices for all dimensions in 1:n where either the 
+% positive or negative direction was sampled.
 sampled_dimension_indices = [];
 for direction_idx = 1:n
     % For dimension direction_idx, check if either direction (positive or negative) was sampled.
