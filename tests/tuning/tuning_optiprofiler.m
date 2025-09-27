@@ -30,9 +30,17 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
             end
         case ismember('grad_window_size', param_fields) && ismember('func_window_size', param_fields) ...
             && ismember('grad_tol_1', param_fields) && ismember('grad_tol_2', param_fields) ...
-            && ismember('func_tol_1', param_fields) && ismember('func_tol_2', param_fields)
+            && ismember('func_tol_1', param_fields) && ismember('func_tol_2', param_fields) ...
+            && ~ismember('rotation', param_fields)
             for i_solver = 1:n_solvers
                 solvers{i_solver} = @(fun, x0) cbds_window_size_grad_tol_func_tol(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol_1(i_solver), parameters.grad_tol_2(i_solver), parameters.func_window_size(i_solver), parameters.func_tol_1(i_solver), parameters.func_tol_2(i_solver), options.feature_name);
+            end
+        case ismember('grad_window_size', param_fields) && ismember('func_window_size', param_fields) ...
+            && ismember('grad_tol_1', param_fields) && ismember('grad_tol_2', param_fields) ...
+            && ismember('func_tol_1', param_fields) && ismember('func_tol_2', param_fields) ...
+            && ismember('rotation', param_fields)
+            for i_solver = 1:n_solvers
+                solvers{i_solver} = @(fun, x0) cbds_rotation_window_size_grad_tol_func_tol(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol_1(i_solver), parameters.grad_tol_2(i_solver), parameters.func_window_size(i_solver), parameters.func_tol_1(i_solver), parameters.func_tol_2(i_solver), options.feature_name, parameters.rotation(i_solver));
             end
     end
 
@@ -493,6 +501,45 @@ function x = cbds_window_size_grad_tol_func_tol(fun, x0, grad_window_size, grad_
         option.func_tol_1 = func_tol_1;
         option.func_tol_2 = func_tol_2;
         option.use_function_value_stop = true;
+    end
+
+    % % When the feature is linearly transformed, the default stopping criteria may even trigger too early.
+    % % So we set a smaller step tolerance and a larger maximum number of function evaluations to see the effect
+    % % of the parameters.
+    % rotation_feature_list = {'linearly_transformed', 'rotation_noisy_1e-1', 'rotation_noisy_1e-2', 'rotation_noisy_1e-3', 'rotation_noisy_1e-4'};
+    % if ismember(feature_name, rotation_feature_list)
+    %     option.StepTolerance = 1e-9;
+    %     option.MaxFunctionEvaluations = 1e3 * numel(x0);
+    % end
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_rotation_window_size_grad_tol_func_tol(fun, x0, grad_window_size, grad_tol_1, grad_tol_2, func_window_size, func_tol_1, func_tol_2, feature_name, rotation)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    if grad_window_size > 1e5 || grad_tol_1 == 1e-30 || grad_tol_2 == 1e-30
+        option.use_estimated_gradient_stop = false;
+    else
+        option.grad_window_size = grad_window_size;
+        option.grad_tol_1 = grad_tol_1;
+        option.grad_tol_2 = grad_tol_2;
+        option.use_estimated_gradient_stop = true;
+    end
+    if func_window_size > 1e5 || func_tol_1 == 1e-30 || func_tol_2 == 1e-30
+        option.use_function_value_stop = false;
+    else
+        option.func_window_size = func_window_size;
+        option.func_tol_1 = func_tol_1;
+        option.func_tol_2 = func_tol_2;
+        option.use_function_value_stop = true;
+    end
+    if rotation
+        [Q,R] = qr(randn(n));
+        Q = Q*diag(sign(diag(R)));
+        option.direction_set = Q;
     end
 
     % % When the feature is linearly transformed, the default stopping criteria may even trigger too early.
