@@ -536,11 +536,15 @@ function x = cbds_rotation_window_size_grad_tol_func_tol(fun, x0, grad_window_si
         option.func_tol_2 = func_tol_2;
         option.use_function_value_stop = true;
     end
+    n = length(x0);
+    seed = round(1e4 * option.expand) + round(1e6 * option.shrink) + n;
     if rotation
-        n = length(x0);
+        oldState = rng();
+        rng(seed);
         [Q,R] = qr(randn(n));
         Q = Q*diag(sign(diag(R)));
         option.direction_set = Q;
+        rng(oldState);
     end
 
     % % When the feature is linearly transformed, the default stopping criteria may even trigger too early.
