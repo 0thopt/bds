@@ -537,6 +537,7 @@ function x = cbds_rotation_window_size_grad_tol_func_tol(fun, x0, grad_window_si
         option.use_function_value_stop = true;
     end
     if rotation
+        n = length(x0);
         [Q,R] = qr(randn(n));
         Q = Q*diag(sign(diag(R)));
         option.direction_set = Q;
