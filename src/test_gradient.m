@@ -53,6 +53,8 @@ function test_gradient(n, seed)
     theoretical_bound = (1 / (6 * min(svd(positive_direction_set)))) * sqrt(sum(direction_norms .* alpha_powers'));
     assert(grad_diff <= theoretical_bound - 1e-10, ...
         'Gradient estimation error does not match theoretical bound with tolerance 1e-10');
+
+    fprintf('Test passed! Actual gradient difference: %e, Theoretical bound: %e\n', grad_diff, theoretical_bound);
     
     % Restore the original random number generator state
     rng(oldState);
