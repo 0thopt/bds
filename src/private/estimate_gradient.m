@@ -15,7 +15,6 @@ function grad = estimate_gradient(grad_info)
 
 % Outputs:
 %   - grad: Estimated gradient vector of size n x 1, where n is the number of dimensions.
-
 n = grad_info.n;
 sampled_direction_indices_per_batch = grad_info.sampled_direction_indices_per_batch;
 
@@ -73,12 +72,20 @@ end
 function [directional_derivative] = estimate_directional_derivative(positive_direction_index_visited, step_size_per_batch, function_values_per_batch, sampled_direction_indices_per_batch)
     
     for batch_idx = 1:length(step_size_per_batch)
+
+        % Comment on the wrong indices of positive direction and negative direction, revert it!!!
+        % % Check if the positive direction is evaluated in this batch
+        % positive_index = find(sampled_direction_indices_per_batch{batch_idx} == 2*positive_direction_index_visited);
+
+        % % Check if the negative direction is evaluated in this batch
+        % negative_index = find(sampled_direction_indices_per_batch{batch_idx} == 2*positive_direction_index_visited - 1);
+
         % Check if the positive direction is evaluated in this batch
-        positive_index = find(sampled_direction_indices_per_batch{batch_idx} == 2*positive_direction_index_visited);
+        positive_index = find(sampled_direction_indices_per_batch{batch_idx} == 2*positive_direction_index_visited - 1);
 
         % Check if the negative direction is evaluated in this batch
-        negative_index = find(sampled_direction_indices_per_batch{batch_idx} == 2*positive_direction_index_visited - 1);
-
+        negative_index = find(sampled_direction_indices_per_batch{batch_idx} == 2*positive_direction_index_visited);
+        
         % Three cases for directional derivative estimation:
         % 1. Both positive and negative directions are evaluated (central difference)
         % 2. Only positive direction is evaluated (forward difference)

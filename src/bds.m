@@ -553,8 +553,9 @@ for iter = 1:maxit
         grad = estimate_gradient(grad_info);
         % If the norm of the estimated gradient exceeds the threshold (1e30), it is discarded.
         % This threshold is chosen to maintain consistency with the standard used in eval_fun.m.
-        % Additionally, we check for NaN values to ensure the gradient is valid.
-        if ~(norm(grad) > 1e30) && all(~isnan(grad))
+        % Additionally, we check for NaN values to ensure the gradient is valid. The following
+        % one line code can cover both cases.
+        if (norm(grad) <= 1e30)
             % Record the estimated gradient in grad_hist.
             grad_hist = [grad_hist, grad];
             % Record the corresponding xbase in grad_xhist. As long as all batches do not achieve
@@ -562,7 +563,7 @@ for iter = 1:maxit
             % not xopt even if xopt is better than xbase.
             grad_xhist = [grad_xhist, xbase];
 
-            if size(grad_hist, 2) > 1 && (bb1 || bb2) && max(alpha_all) < gradient_termination_step_threshold
+            if size(grad_hist, 2) > 1 && (bb1 || bb2)
                 s = grad_xhist(:, end) - grad_xhist(:, end-1);
                 y = grad_hist(:, end) - grad_hist(:, end-1);
                 if bb1
@@ -605,7 +606,7 @@ for iter = 1:maxit
                 end
             end
 
-            if max(alpha_all) < gradient_termination_step_threshold
+            if all(alpha_all < gradient_termination_step_threshold)
                 % Smaller step sizes yield more accurate gradient estimates. We only consider
                 % gradients reliable for termination decisions when maximum step size is below
                 % gradient_termination_step_threshold. This prevents premature termination based on 

@@ -34,6 +34,7 @@ The tests are **automated** by [GitHub Actions](https://docs.github.com/en/actio
 - [![Unit test of BDS](https://github.com/blockwise-direct-search/bds/actions/workflows/unit_test.yml/badge.svg)](https://github.com/blockwise-direct-search/bds/actions/workflows/unit_test.yml)
 - [![Coverage test of BDS](https://github.com/blockwise-direct-search/bds/actions/workflows/unit_test_coverage.yml/badge.svg)](https://github.com/blockwise-direct-search/bds/actions/workflows/unit_test_coverage.yml)
 - [![Verify norma](https://github.com/zeroth-order-optimization/bds/actions/workflows/verify_norma.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/verify_norma.yml)
+- [![Gradient test of BDS](https://github.com/zeroth-order-optimization/bds/actions/workflows/gradient_test.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/gradient_test.yml)
 
 The following tests are implemented by [Optiprofiler](https://github.com/optiprofiler/optiprofiler).
 

@@ -2,7 +2,7 @@ name: Profile original cbds with bb2, big, matcutest
 
 on:
   # Trigger the workflow on # push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   schedule:
   - cron: '0 0 */2 * *'
@@ -38,7 +38,7 @@ jobs:
           repository: optiprofiler/optiprofiler
           path: optiprofiler
           submodules: recursive
-          ref: 9ab759489a601d619ea80cd3549b5ab91ad60150
+          ref: 8bb36d319b027a1863831c275927868eec8e8da0
 
       - name: Install Texlive
         run: sudo apt-get update && sudo apt-get install texlive
