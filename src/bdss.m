@@ -42,13 +42,13 @@ for iter = 1:maxit
         MaxFunctionEvaluations_subspace = min(MaxFunctionEvaluations, 100*dim);
         options_subspace = optimset("MaxFunEvals", MaxFunctionEvaluations_subspace, ...
         "maxiter", 10^20, "tolfun", eps, "tolx", eps);
-        keyboard
+        
         [xopt_subspace, fopt_subspace, ~, output_subspace, xhist_subspace, fhist_subspace] = fminsearch_with_eval((@(d) eval_fun(fun, xopt + B*d)), zeros(dim, 1), options_subspace);
 
         nf = nf + output_subspace.funcCount;
         xhist(:, (nf - output_subspace.funcCount + 1):nf) = xopt + B * xhist_subspace;
         fhist((nf - output_subspace.funcCount + 1):nf) = fhist_subspace;
-        keyboard
+        
         if fopt_subspace < fopt
             xopt = xopt_subspace;
             fopt = fopt_subspace;

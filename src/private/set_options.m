@@ -44,6 +44,7 @@ field_list = {
     'bb2'
     'subspace'
     'spectral_cauchy'
+    'dogleg'
     };
 
 % Get the field names of options.

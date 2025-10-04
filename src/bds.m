@@ -287,7 +287,7 @@ bb1 = options.bb1;
 bb2 = options.bb2;
 subspace = options.subspace;
 spectral_cauchy = options.spectral_cauchy;
-
+dogleg = options.dogleg;
 
 grad_hist = [];
 grad_xhist = [];
@@ -572,12 +572,13 @@ for iter = 1:maxit
                 terminate = true;
                 exitflag = get_exitflag("SUBSPACE");
             end
-
-            if size(grad_hist, 2) > 1 && (bb1 || bb2 || spectral_cauchy) && ...
-                norm(grad_xhist(:, end) - grad_xhist(:, end-1)) > 1e-10
+            
+            if size(grad_hist, 2) > 1 && (bb1 || bb2 || spectral_cauchy || dogleg) && ...
+                    norm(grad_xhist(:, end) - grad_xhist(:, end-1)) > 1e-10
 
                 s = grad_xhist(:, end) - grad_xhist(:, end-1);
                 y = grad_hist(:,   end) - grad_hist(:,   end-1);
+                g  = grad_hist(:,   end);
 
                 if spectral_cauchy
                     % ---- Spectral–Cauchy trust step (zero new params) ----
@@ -586,7 +587,6 @@ for iter = 1:maxit
                         u   = s / ns;
                         sTy = s' * y;
                         phi = sTy / (ns^2);          % rank-1 曲率（沿 s 的二阶）
-                        g   = grad_hist(:, end);
                         ng  = norm(g);
                         Delta_k  = max(alpha_all);
 
@@ -628,7 +628,76 @@ for iter = 1:maxit
                             end
                         end
                     end
+                elseif dogleg
+                    % ---- 2D Dogleg trust step (closed-form; no line search/backtracking) ----
+                    ns = norm(s);       % ||x_k - x_{k-1}||
+                    ng = norm(g);       % ||g_k||
+                    if ng > 0
+                        Delta_k = max(alpha_all);           % 你的当前网格半径 Δk
+                        % 端点1：Cauchy 边界步（一定在球面上）
+                        pU = - (Delta_k / ng) * g;
 
+                        if ns > 0
+                            u   = s / ns;
+                            phi = (s' * y) / (ns^2);        % 沿 s 的 rank-1 曲率
+                        else
+                            phi = -Inf;                     % 无 s 信息→直接用边界步
+                        end
+
+                        if phi > 0
+                            % 端点2：一维牛顿步（若在球内优先选它）
+                            pB = - (u' * g) / phi * u;
+
+                            if norm(pB) <= Delta_k
+                                p = pB;                     % 球内→最优即 pB
+                            else
+                                % 折线路径 p(τ) = pU + τ (pB - pU)，求与球面的交点（闭式）
+                                d   = pB - pU;
+                                a   = d' * d;
+                                if a <= 0
+                                    p = pU;                 % 数值退化：回退边界步
+                                else
+                                    b   = 2 * (pU' * d);
+                                    c   = (pU' * pU) - Delta_k^2;
+                                    disc = b*b - 4*a*c; if disc < 0, disc = 0; end
+                                    tau  = (-b + sqrt(disc)) / (2*a);   % 0 < tau < 1
+                                    if tau < 0, tau = 0; elseif tau > 1, tau = 1; end
+                                    p = pU + tau * d;       % 边界上的最优点
+                                end
+                            end
+                        else
+                            % 负/不可靠曲率 → 自动退化为边界 Cauchy 步
+                            p = pU;
+                        end
+                        
+                        % —— 单次函数评估（预算守卫）——
+                        x_try = grad_xhist(:, end) + p;
+                        if nf < MaxFunctionEvaluations
+                            [~, f_try] = eval_fun(fun, x_try);
+                            nf = nf + 1;
+                            fhist(nf) = f_try;
+                            if output_xhist, xhist(:, nf) = x_try; end
+
+                            % —— 严格充分下降（与你主流程一致的二次 forcing）——
+                            % 若你用非单调/GLL，请把右侧 fbase 换成 f_ref
+                            if f_try + 1e-3 * forcing_function(norm(p)) < fbase
+                                xbase = x_try;  fbase = f_try;
+
+                                if f_try < fopt, fopt = f_try; xopt = x_try; end
+                                if iprint >= 2
+                                    fprintf("Dogleg2D: ||p|| = %23.16E\n", norm(p));
+                                    fprintf("Function number %d    F = %23.16E\n", nf, f_try);
+                                    fprintf("The corresponding X is:\n");
+                                    print_aligned_vector(x_try); fprintf("\n");
+                                end
+                            end
+
+                            if nf >= MaxFunctionEvaluations
+                                terminate = true;
+                                exitflag = get_exitflag("MAXFUN_REACHED");
+                            end
+                        end
+                    end
                 else
                     % ---- 你原有的 BB1/BB2 实现（保持原样）----
                     bb_ok = false;

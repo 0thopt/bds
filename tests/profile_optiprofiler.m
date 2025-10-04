@@ -323,6 +323,8 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @bb2_test;
             case 'sc'
                 solvers{i} = @sc_test;
+            case 'dogleg'
+                solvers{i} = @dogleg_test;
             otherwise
                 error('Unknown solver');
         end
@@ -1347,6 +1349,16 @@ end
 function x = sc_test(fun, x0)
 
     option.spectral_cauchy = true;
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = dogleg_test(fun, x0)
+
+    option.dogleg = true;
     option.Algorithm = 'cbds';
     option.expand = 2;
     option.shrink = 0.5;

@@ -1,8 +1,8 @@
-name: Profile original cbds with bb2, large, matcutest
+name: Profile original cbds with dogleg, big, matcutest
 
 on:
   # Trigger the workflow on # push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   # schedule:
   # - cron: '0 0 */2 * *'
@@ -10,17 +10,17 @@ on:
 
 jobs:
   test:
-    name: Profile original cbds and bb2, large, matcutest
+    name: Profile original cbds and dogleg, big, matcutest
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
         matlab: [R2024b]
-        dim: [large]
+        dim: [big]
         with_optim_toolbox: [yes]
         solver: [cbds-orig]
-        competitor: [bb2]
+        competitor: [dogleg]
         plibs: [matcutest]
         run_plain: [false]
         summarize_log_ratio_profiles: [false]

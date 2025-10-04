@@ -83,6 +83,8 @@ switch constant_name
         constant_value = false;
     case {"spectral_cauchy"}
         constant_value = false;
+    case {"dogleg"}
+        constant_value = false;
     otherwise
         error("Unknown constant name")
 end
