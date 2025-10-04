@@ -325,6 +325,10 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @sc_test;
             case 'dogleg'
                 solvers{i} = @dogleg_test;
+            case 'bdss'
+                solvers{i} = @bdss_test;
+            case 'newuoas'
+                solvers{i} = @newuoas_test;
             otherwise
                 error('Unknown solver');
         end
@@ -1364,4 +1368,18 @@ function x = dogleg_test(fun, x0)
     option.shrink = 0.5;
     x = bds(fun, x0, option);
     
+end
+
+function x = bdss_test(fun, x0)
+
+    option = struct();
+    x = bdss(fun, x0, option);
+
+end
+
+function x = newuoas_test(fun, x0)
+
+    option = struct();
+    x = newuoas(fun, x0, option);
+
 end
