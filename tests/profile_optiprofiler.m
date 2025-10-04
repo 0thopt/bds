@@ -321,6 +321,8 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @bb1_test;
             case 'bb2'
                 solvers{i} = @bb2_test;
+            case 'sc'
+                solvers{i} = @sc_test;
             otherwise
                 error('Unknown solver');
         end
@@ -1335,6 +1337,16 @@ end
 function x = bb2_test(fun, x0)
 
     option.bb2 = true;
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = sc_test(fun, x0)
+
+    option.spectral_cauchy = true;
     option.Algorithm = 'cbds';
     option.expand = 2;
     option.shrink = 0.5;

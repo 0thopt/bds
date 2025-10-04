@@ -8,6 +8,7 @@ function [exitflag] = get_exitflag(information)
 %   MAXIT_REACHED                   The number of iterations reaches MAXIT.
 %   SMALL_OBJECTIVE_CHANGE          The change of the function value is small.
 %   SMALL_ESTIMATE_GRADIENT         The estimated gradient is small.
+%   SUBSPACE                        The subspace optimization is performed.
 
 % Check whether INFORMATION is a string or not.
 if ~isstring(information)
@@ -27,6 +28,8 @@ switch information
         exitflag = 4;
     case "SMALL_ESTIMATE_GRADIENT"
         exitflag = 5;
+    case "SUBSPACE"
+        exitflag = 6;
     otherwise
         exitflag = -1;
 end

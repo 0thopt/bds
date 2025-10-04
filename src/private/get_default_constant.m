@@ -79,6 +79,10 @@ switch constant_name
         constant_value = false;
     case {"bb2"}
         constant_value = false;
+    case {"subspace"}
+        constant_value = false;
+    case {"spectral_cauchy"}
+        constant_value = false;
     otherwise
         error("Unknown constant name")
 end

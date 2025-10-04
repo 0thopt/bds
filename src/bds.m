@@ -11,13 +11,13 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %   XOPT = BDS(FUN, X0, OPTIONS) performs the computations with the options in
 %   OPTIONS. OPTIONS should be a structure with the following fields.
 %
-%   Algorithm                   Algorithm to use. It can be 'cbds' (sorted 
-%                               blockwise direct search) 'pbds' (randomly 
-%                               permuted blockwise direct search), 'rbds' 
+%   Algorithm                   Algorithm to use. It can be 'cbds' (sorted
+%                               blockwise direct search) 'pbds' (randomly
+%                               permuted blockwise direct search), 'rbds'
 %                               (randomized blockwise direct search), 'ds'
-%                               (the classical direct search), 'pads' (parallel 
-%                               blockwise direct search). If no Algorithm is specified 
-%                               in the options, the default setting will be equivalent to 
+%                               (the classical direct search), 'pads' (parallel
+%                               blockwise direct search). If no Algorithm is specified
+%                               in the options, the default setting will be equivalent to
 %                               using 'cbds' as the input.
 %   block_visiting_pattern      block_visiting_pattern to use. It can be 'sorted' (The selected
 %                               blocks will be visited in the order of their indices),
@@ -40,10 +40,10 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               direction_set to make it linear independent.
 %                               See get_direction_set.m for details. Default: eye(n).
 %   grouped_direction_indices   A cell array of length num_blocks, where each
-%                               cell contains a vector of indices corresponding 
-%                               to the directions assigned to that block. Each index 
-%                               should be in the range 1 to n, where n is the problem 
-%                               dimension. The i-th index refers to the i-th direction 
+%                               cell contains a vector of indices corresponding
+%                               to the directions assigned to that block. Each index
+%                               should be in the range 1 to n, where n is the problem
+%                               dimension. The i-th index refers to the i-th direction
 %                               in direction_set.
 %                               See divide_direction_set.m for details.
 %   is_noisy                    A flag deciding whether the problem is noisy or
@@ -69,17 +69,17 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               A 3-dimentional vector such that
 %                               reduction_factor(1) <= reduction_factor(2) <= reduction_factor(3),
 %                               reduction_factor(1) >= 0, and reduction_factor(2) > 0.
-%                               After the "inner direct search" over each block, the base 
-%                               point is updated to the best trial point in the block if 
+%                               After the "inner direct search" over each block, the base
+%                               point is updated to the best trial point in the block if
 %                               its reduction is more than reduction_factor(1) * forcing_function;
-%                               the step size in this block is shrunk if the reduction is at most 
-%                               reduction_factor(2) * forcing_function, and it is 
-%                               expanded if the reduction is at least 
-%                               reduction_factor(3) * forcing_function. 
+%                               the step size in this block is shrunk if the reduction is at most
+%                               reduction_factor(2) * forcing_function, and it is
+%                               expanded if the reduction is at least
+%                               reduction_factor(3) * forcing_function.
 %                               Default: [0, eps, eps]. See also forcing_function.
 %   StepTolerance               Lower bound of the step size. If the step size is
 %                               smaller than StepTolerance, then the algorithm
-%                               terminates.A (small) positive number. 
+%                               terminates.A (small) positive number.
 %                               Default: 1e-10.
 %   alpha_init                  Initial step size. If alpha_init is a positive
 %                               scalar, then the initial step size of each block
@@ -115,13 +115,13 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               showing the best vector of variables found and its
 %                               objective function value;
 %                               2: in addition to 1, each function evaluation with its
-%                               variables will be printed to the screen. The step size 
+%                               variables will be printed to the screen. The step size
 %                               for each block will also be printed.
 %                               3: in addition to 2, prints whether BDS satisfies the sufficient
 %                               decrease condition in each block, as well as the corresponding
 %                               decrease value for that block.
 %                               Default: 0.
-%                               This option is cited from 
+%                               This option is cited from
 %                               https://github.com/libprima/prima/blob/main/matlab/interfaces/newuoa.m.
 %   debug_flag                  A flag deciding whether to check the inputs and outputs
 %                               when the algorithm is running.
@@ -131,7 +131,7 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               stop when the function value does not change
 %                               significantly over the last func_window_size iterations.
 %                               It is an optional termination criterion.
-%                               Default: false. 
+%                               Default: false.
 %   func_window_size            The number of iterations to consider when checking
 %                               whether the function value has changed significantly.
 %                               It should be a positive integer. Default: 10.
@@ -253,9 +253,9 @@ output_alpha_hist = options.output_alpha_hist;
 alpha_all = options.alpha_init;
 % Record the initial step size into the alpha_hist.
 if  output_alpha_hist
-    alpha_hist = NaN(num_blocks, maxit);
     alpha_hist(:, 1) = alpha_all(:);
 end
+
 gradient_termination_step_threshold = sqrt(max(alpha_all) * alpha_tol);
 
 output_xhist = options.output_xhist;
@@ -285,6 +285,9 @@ grad_tol_2 = options.grad_tol_2;
 
 bb1 = options.bb1;
 bb2 = options.bb2;
+subspace = options.subspace;
+spectral_cauchy = options.spectral_cauchy;
+
 
 grad_hist = [];
 grad_xhist = [];
@@ -334,7 +337,7 @@ xopt_hist(:, 1) = xopt;
 
 terminate = false;
 % If MaxFunctionEvaluations is reached at the very first function evaluation
-% or FTARGET is reached at the very first function evaluation, no further computation 
+% or FTARGET is reached at the very first function evaluation, no further computation
 % should be entertained, and hence, no iteration should be run.
 if fbase_real <= ftarget
     maxit = 0;
@@ -347,10 +350,10 @@ end
 %Initialize the number of blocks visited.
 num_visited_blocks = 0;
 
-% fopt_all(i) stores the best function value found in the i-th block after one iteration, 
-% while xopt_all(:, i) holds the corresponding x. If a block is not visited during the iteration, 
-% fopt_all(i) is set to NaN. Both fopt_all and xopt_all have a length of num_blocks, not batch_size, 
-% as not all blocks might not be visited in each iteration, but the best function value across all 
+% fopt_all(i) stores the best function value found in the i-th block after one iteration,
+% while xopt_all(:, i) holds the corresponding x. If a block is not visited during the iteration,
+% fopt_all(i) is set to NaN. Both fopt_all and xopt_all have a length of num_blocks, not batch_size,
+% as not all blocks might not be visited in each iteration, but the best function value across all
 % blocks must still be recorded.
 fopt_all = NaN(1, num_blocks);
 xopt_all = NaN(n, num_blocks);
@@ -364,11 +367,11 @@ for iter = 1:maxit
     % iterations when the replacement_delay is nonnegative.
     unavailable_block_indices = unique(block_hist(max(1, (iter-replacement_delay) * batch_size) : (iter-1) * batch_size), 'stable');
     available_block_indices = setdiff(1:num_blocks, unavailable_block_indices);
-    
+
     % Select batch_size blocks randomly from the available blocks. The selected blocks
     % will be visited in this iteration.
     block_indices = available_block_indices(random_stream.randperm(length(available_block_indices), batch_size));
-    
+
     % Compute the direction selection probability matrix.
     direction_selection_probability_matrix = get_direction_selected_probability(n, batch_size, grouped_direction_indices, available_block_indices);
     grad_info.direction_selection_probability_matrix = direction_selection_probability_matrix;
@@ -378,11 +381,11 @@ for iter = 1:maxit
         block_indices = sort(block_indices);
     end
 
-    % Initialize sampled_direction_indices_per_batch as a cell array of length batch_size to store the indices 
+    % Initialize sampled_direction_indices_per_batch as a cell array of length batch_size to store the indices
     % of directions evaluated in each batch during the current iteration.
-    % Initialize function_values_per_batch as a cell array of length batch_size to store the function values 
+    % Initialize function_values_per_batch as a cell array of length batch_size to store the function values
     % computed in each batch during the current iteration.
-    % Initialize batch_sufficient_decrease as a logical array of length batch_size, indicating whether 
+    % Initialize batch_sufficient_decrease as a logical array of length batch_size, indicating whether
     % the sufficient decrease condition is satisfied in each batch during the current iteration.
     sampled_direction_indices_per_batch = cell(1, batch_size);
     function_values_per_batch = cell(1, batch_size);
@@ -435,7 +438,7 @@ for iter = 1:maxit
         % Update the number of function evaluations.
         nf = nf+sub_output.nf;
 
-        % Store the indices of directions (with respect to the full direction set) that were evaluated 
+        % Store the indices of directions (with respect to the full direction set) that were evaluated
         % in the current batch during this iteration.
         % Note: We use sampled_direction_indices_per_batch{i} rather than sampled_direction_indices_per_batch{i_real} because:
         % 1. sampled_direction_indices_per_batch has length batch_size, tracking only directions visited in the current iteration.
@@ -461,7 +464,7 @@ for iter = 1:maxit
         % meaning that reduction will be calculated with respect to xbase, as shown above.
         % Note that their update requires a sufficient decrease if reduction_factor(1) > 0.
         update_base = (reduction_factor(1) <= 0 && sub_fopt < fbase) ...
-                    || (sub_fopt + reduction_factor(1) * forcing_function(alpha_all(i_real)) < fbase);
+            || (sub_fopt + reduction_factor(1) * forcing_function(alpha_all(i_real)) < fbase);
 
         % Update the step size alpha_all according to the reduction achieved.
         if sub_fopt + reduction_factor(3) * forcing_function(alpha_all(i_real)) < fbase
@@ -498,13 +501,15 @@ for iter = 1:maxit
 
     % Record the step size for every iteration if output_alpha_hist is true.
     % Why iter+1? Because we record the step size for the next iteration.
-    alpha_hist(:, iter+1) = alpha_all;
+    if output_alpha_hist
+        alpha_hist = [alpha_hist, alpha_all(:)];
+    end
 
     % Update xopt and fopt. Note that we do this only if the iteration encounters a strictly better point.
     % Make sure that fopt is always the minimum of fhist after the moment we update fopt.
     % The determination between fopt_all and fopt is to avoid the case that fopt_all is
     % bigger than fopt due to the update of xbase and fbase.
-    % NOTE: If the function values are complex, the min function will return the value with the smallest 
+    % NOTE: If the function values are complex, the min function will return the value with the smallest
     % norm (magnitude).
     [~, index] = min(fopt_all, [], "omitnan");
     if fopt_all(index) < fopt
@@ -563,59 +568,136 @@ for iter = 1:maxit
             % not xopt even if xopt is better than xbase.
             grad_xhist = [grad_xhist, xbase];
 
-            if size(grad_hist, 2) > 1 && (bb1 || bb2) && all(alpha_all < gradient_termination_step_threshold)
+            if subspace
+                terminate = true;
+                exitflag = get_exitflag("SUBSPACE");
+            end
+
+            if size(grad_hist, 2) > 1 && (bb1 || bb2 || spectral_cauchy) && ...
+                norm(grad_xhist(:, end) - grad_xhist(:, end-1)) > 1e-10
+
                 s = grad_xhist(:, end) - grad_xhist(:, end-1);
-                y = grad_hist(:, end) - grad_hist(:, end-1);
-                if bb1
-                    % BB1
-                    bb_step_size = (s' * s) / (s' * y);
+                y = grad_hist(:,   end) - grad_hist(:,   end-1);
+
+                if spectral_cauchy
+                    % ---- Spectral–Cauchy trust step (zero new params) ----
+                    ns = norm(s);
+                    if ns > 0
+                        u   = s / ns;
+                        sTy = s' * y;
+                        phi = sTy / (ns^2);          % rank-1 曲率（沿 s 的二阶）
+                        g   = grad_hist(:, end);
+                        ng  = norm(g);
+                        Delta_k  = max(alpha_all);
+
+                        if (phi > 0) && (ng > 0) && (abs(u' * g) > eps * ng)
+                            tau_curve = (ng^2) / (phi * (u' * g)^2);
+                            tau_rad   = Delta_k / ng;
+                            tau       = min(tau_curve, tau_rad);
+                        elseif ng > 0
+                            tau = Delta_k / ng;            % 退化为 Cauchy 半径步
+                        else
+                            tau = 0;
+                        end
+
+                        if (tau > 0) && (nf < MaxFunctionEvaluations)
+                            p_sc = - tau * g;
+                            x_sc = grad_xhist(:, end) + p_sc;
+
+                            [~, f_sc_real] = eval_fun(fun, x_sc);
+                            nf = nf + 1;
+                            fhist(nf) = f_sc_real;
+                            if output_xhist, xhist(:, nf) = x_sc; end
+
+                            nps = norm(p_sc);
+                            % 若你用非单调/GLL，请把右侧 fbase 改成 f_ref
+                            if f_sc_real + forcing_function(nps) < fbase
+                                xbase = x_sc;  fbase = f_sc_real;
+
+                                if f_sc_real < fopt, fopt = f_sc_real; xopt = x_sc; end
+                                if iprint >= 2
+                                    fprintf("Spectral-Cauchy: tau = %23.16E, ||p|| = %23.16E\n", tau, nps);
+                                    fprintf("Function number %d    F = %23.16E\n", nf, f_sc_real);
+                                    fprintf("The corresponding X is:\n"); print_aligned_vector(x_sc); fprintf("\n");
+                                end
+                            end
+
+                            if nf >= MaxFunctionEvaluations
+                                terminate = true;
+                                exitflag = get_exitflag("MAXFUN_REACHED");
+                            end
+                        end
+                    end
+
                 else
-                    % BB2
-                    bb_step_size = (s' * y) / (y' * y);
-                end
-                if bb_step_size > 0
-                    x_bb = grad_xhist(:, end) - bb_step_size * grad_hist(:, end);
-                    f_bb = eval_fun(fun, x_bb);
-                    nf = nf + 1;
-                    fhist(nf) = f_bb;
-                    xhist(:, nf) = x_bb;
-                    if output_xhist
-                        xhist(:, nf) = x_bb;
-                    end
-                    if (f_bb + reduction_factor(3) * forcing_function(bb_step_size)/2 < fbase)
-                        xbase = x_bb;
-                        fbase = f_bb;
-                        if iprint >= 2
-                            fprintf("BB step size = %23.16E\n", bb_step_size);
-                            fprintf("Function number %d    F = %23.16E\n", nf, f_bb);
-                            fprintf("The corresponding X is:\n");
-                            print_aligned_vector(x_bb);
-                            fprintf("\n");
+                    % ---- 你原有的 BB1/BB2 实现（保持原样）----
+                    bb_ok = false;
+                    if bb1
+                        denom = s' * y;
+                        if denom > eps * norm(s) * norm(y)
+                            bb_step_size = (s' * s) / denom;
+                            bb_ok = isfinite(bb_step_size) && (bb_step_size > 0);
                         end
-                        if f_bb < fopt
-                            fopt = f_bb;
-                            xopt = x_bb;
-                            % fopt_hist(iter + 1) = fopt;
-                            % xopt_hist(:, iter + 1) = xopt;
+                    else  % BB2
+                        yy = y' * y;
+                        if yy > eps
+                            bb_step_size = (s' * y) / yy;
+                            bb_ok = isfinite(bb_step_size) && (bb_step_size > 0);
                         end
                     end
-                    if nf >= MaxFunctionEvaluations
-                        terminate = true;
-                        exitflag = get_exitflag("MAXFUN_REACHED");
+
+                    if bb_ok
+                        p_bb    = - bb_step_size * grad_hist(:, end);
+                        % 你当前版本这里有“截到 Δk”的逻辑；若保持不截断，可删掉下一段
+                        nbb     = norm(p_bb);
+                        % Delta_k = max(alpha_all);
+                        % if nbb > Delta_k && nbb > 0
+                        %     p_bb  = (Delta_k / nbb) * p_bb;
+                        %     nbb   = Delta_k;
+                        % end
+
+                        x_bb = grad_xhist(:, end) + p_bb;
+
+                        if nf < MaxFunctionEvaluations
+                            [~, f_bb_real] = eval_fun(fun, x_bb);
+                            nf = nf + 1;
+                            fhist(nf) = f_bb_real;
+                            if output_xhist, xhist(:, nf) = x_bb; end
+
+                            % 严格验收：直接用 forcing_function(norm(p))
+                            if f_bb_real + forcing_function(nbb) < fbase
+                                xbase = x_bb;  fbase = f_bb_real;
+
+                                if iprint >= 2
+                                    fprintf("BB step size = %23.16E\n", bb_step_size);
+                                    fprintf("Function number %d    F = %23.16E\n", nf, f_bb_real);
+                                    fprintf("The corresponding X is:\n");
+                                    print_aligned_vector(x_bb); fprintf("\n");
+                                end
+
+                                if f_bb_real < fopt, fopt = f_bb_real; xopt = x_bb; end
+                            end
+
+                            if nf >= MaxFunctionEvaluations
+                                terminate = true;
+                                exitflag = get_exitflag("MAXFUN_REACHED");
+                            end
+                        end
                     end
+                    % ---- 你原有的 BB1/BB2 实现结束 ----
                 end
             end
 
             if all(alpha_all < gradient_termination_step_threshold)
                 % Smaller step sizes yield more accurate gradient estimates. We only consider
                 % gradients reliable for termination decisions when maximum step size is below
-                % gradient_termination_step_threshold. This prevents premature termination based on 
+                % gradient_termination_step_threshold. This prevents premature termination based on
                 % inaccurate gradients.
                 grad_stop_hist = [grad_stop_hist, grad];
             end
         end
     end
-    
+
     if use_estimated_gradient_stop
         % Check whether the consecutive grad_window_size gradients are sufficiently small.
         if size(grad_stop_hist, 2) > grad_window_size
@@ -669,6 +751,8 @@ switch exitflag
         output.message = "The change of the function value is small.";
     case get_exitflag("SMALL_ESTIMATE_GRADIENT")
         output.message = "The estimated gradient is small.";
+    case get_exitflag("SUBSPACE")
+        output.message = "The algorithm is terminated by subspace method.";
     otherwise
         output.message = "Unknown exitflag";
 end

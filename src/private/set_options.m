@@ -42,6 +42,8 @@ field_list = {
     'grad_tol_2'
     'bb1'
     'bb2'
+    'subspace'
+    'spectral_cauchy'
     };
 
 % Get the field names of options.
