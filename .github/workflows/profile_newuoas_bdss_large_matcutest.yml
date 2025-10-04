@@ -86,7 +86,7 @@ jobs:
 
               % Setup prima
               cd(fullfile(root_dir, 'prima'));
-              setup
+              setup newuoa
 
               % Setup newuoas
               cd(fullfile(root_dir, 'newuoas'));

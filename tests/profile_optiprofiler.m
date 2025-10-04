@@ -1379,7 +1379,6 @@ end
 
 function x = newuoas_test(fun, x0)
 
-    option = struct();
-    x = newuoas(fun, x0, option);
+    [x, ~, ~, ~] = newuoas(fun, x0);
 
 end

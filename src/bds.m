@@ -389,7 +389,9 @@ for iter = 1:maxit
     % the sufficient decrease condition is satisfied in each batch during the current iteration.
     sampled_direction_indices_per_batch = cell(1, batch_size);
     function_values_per_batch = cell(1, batch_size);
-    batch_sufficient_decrease = false(1, batch_size);
+    % True if sufficient decrease is achieved in the block, false otherwise.
+    % Default to true to avoid MaxFunctionEvaluations being 1.
+    batch_sufficient_decrease = true(1, batch_size);
 
     for i = 1:length(block_indices)
 
