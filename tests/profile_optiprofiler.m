@@ -1373,6 +1373,8 @@ end
 function x = bdss_test(fun, x0)
 
     option = struct();
+    option.expand = 2;
+    option.shrink = 0.5;
     x = bdss(fun, x0, option);
 
 end

@@ -15,9 +15,6 @@ function [B, use_newuoa] = def_subspace(d, grad_hist, grad_xhist)
 
     Bcols = {};
 
-    have_g  = ~isempty(grad_hist)  && size(grad_hist,2) >= 1;
-    have_xy = ~isempty(grad_xhist) && size(grad_xhist,2) >= 2 && size(grad_xhist,2) == size(grad_hist,2);
-
     % -------- (1) last successful step d --------
     if norm(d) < 1e-10
         B = [];
@@ -27,12 +24,12 @@ function [B, use_newuoa] = def_subspace(d, grad_hist, grad_xhist)
         nd = norm(d);
         Bcols{end+1} = d / nd;
     end
-
+    
     % -------- (2) negative gradient -g --------
     gk = grad_hist(:,end);
     ng = -gk;
     ngn = norm(ng);
-    if norm(ngn) < 1e-10
+    if ngn < 1e-10
         B = [];
         use_newuoa = false;
         return;

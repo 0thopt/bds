@@ -23,7 +23,7 @@ end
 if isfield(options, 'options_newuoa')  
     options_newuoa  = options.options_newuoa;  
 else
-    options_newuoa = struct();
+    options_newuoa  = struct();
 end
 
 % request BDS to output histories (for building subspace)
@@ -62,11 +62,9 @@ for iter = 1:MaxIterations
         options_bds.alpha_init = alpha_final;  % warm start
     end
 
-    keyboard
     [xopt_bds, fopt_bds, exitflag_bds, out_bds] = bds(fun, xopt, options_bds);
     bds_step = xopt_bds - xopt;
     alpha_final = out_bds.alpha_final;
-    keyboard
 
     d = xopt_bds - xopt;
 
@@ -113,7 +111,7 @@ for iter = 1:MaxIterations
         (size(grad_hist, 2) >=2 && size(grad_xhist,2) >=2)
         [B, use_newuoa] = def_subspace(d, grad_hist, grad_xhist);
     end
-
+    
     if isempty(B) || ~use_newuoa
         % cannot form a reliable subspace this round
         should_restart_bds = false;
@@ -130,20 +128,17 @@ for iter = 1:MaxIterations
     end
 
     % rhobeg / rhoend sensible defaults if missing
-    if ~isfield(options_newuoa,'rhoend') || isempty(options_newuoa.rhoend)
-        options_newuoa.rhoend = max(1e-6, 1e-3*options_newuoa.rhobeg);  % %% FIX
-    end
-    if ~isfield(options_newuoa,'rhobeg') || isempty(options_newuoa.rhobeg)
-        options_newuoa.rhobeg = max(1e-3, min(1, norm(B,2)));  % %% FIX
-    end
+    rhoend_threshold = max(max(alpha_final), min(sqrt(max(alpha_final)*norm(bds_step)), 0.25*norm(bds_step)));
+    options_newuoa.rhoend = max(1e-2 * rhoend_threshold, 1e-6);
+    options_newuoa.rhobeg = max(rhoend_threshold, options_newuoa.rhoend * 10);
     options_newuoa.maxfun = maxfun_newuoa;
     options_newuoa.output_xhist = true;               % request NEWUOA to output trajectory
-    options_newuoa.iprint = 2;                        % print NEWUOA output
-    keyboard
+    options_newuoa.iprint = 0;                        % print NEWUOA output
+    
     % call NEWUOA in subspace (objective: d ↦ f(xopt + B*d))
     [dopt, fopt_newuoa, ~, out_newuoa] = newuoa( ...
         @(d) fun(xopt + B*d), zeros(dim,1), options_newuoa);   % %% FIX: remove undefined eval_fun
-    keyboard
+    
     % accounting for NEWUOA
     cnt_new = out_newuoa.funcCount;
     nf_rem = nf_rem - cnt_new;                       % %% FIX: deduct only new counts
@@ -191,5 +186,5 @@ output.fhist     = fhist(1:nf);
 output.xhist     = xhist(:,1:nf);
 output.remain    = nf_rem;
 output.lastIter  = iter;
-keyboard
+
 end

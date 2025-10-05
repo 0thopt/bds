@@ -1,8 +1,8 @@
-name: Profile newuoas with newuoa, large, matcutest
+name: Profile newuoa with bdss, large, matcutest
 
 on:
   # Trigger the workflow on # push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   # schedule:
   # - cron: '0 0 */2 * *'
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Profile newuoas with newuoa, large, matcutest
+    name: Profile newuoa with bdss, large, matcutest
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -19,8 +19,8 @@ jobs:
         matlab: [R2024b]
         dim: [large]
         with_optim_toolbox: [yes]
-        solver: [newuoas]
-        competitor: [newuoa]
+        solver: [newuoa]
+        competitor: [bdss]
         plibs: [matcutest]
         run_plain: [false]
         summarize_log_ratio_profiles: [false]
