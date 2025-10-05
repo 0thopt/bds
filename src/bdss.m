@@ -32,24 +32,19 @@ options_bds.output_xhist = true;
 
 % ---------- state ----------
 xopt = x0;
-fopt = fun(xopt);
 exitflag = 0;
 
 % histories (global)
 fhist  = nan(1, MaxFunctionEvaluations);
 xhist  = nan(n, MaxFunctionEvaluations);
-nf_rem = MaxFunctionEvaluations - 1;        % remaining budget (after initial eval)
+nf = 0;                          % number of function evaluations used
+nf_rem = MaxFunctionEvaluations;        % remaining budget (after initial eval)
 
 grad_hist  = [];                  % collected from BDS outputs
 grad_xhist = [];
 
 smalld_cnt = 0;                % count of consecutive small steps in NEWUOA
 should_restart_bds = false;  % whether to restart BDS (false)
-
-% record initial point
-fhist(1)   = fopt;
-xhist(:,1) = xopt;
-nf = 1;
 
 for iter = 1:MaxIterations
 
@@ -66,8 +61,10 @@ for iter = 1:MaxIterations
     if ~should_restart_bds && iter > 1
         options_bds.alpha_init = alpha_final;  % warm start
     end
+
     keyboard
     [xopt_bds, fopt_bds, exitflag_bds, out_bds] = bds(fun, xopt, options_bds);
+    bds_step = xopt_bds - xopt;
     alpha_final = out_bds.alpha_final;
     keyboard
 
@@ -90,8 +87,8 @@ for iter = 1:MaxIterations
         break;
     end
 
-    % If BDS stops due to SMALL_ALPHA, we stop the whole algorithm.
-    if exitflag_bds == get_exitflag("SMALL_ALPHA")
+    % If BDS did not use subspace, exit main loop
+    if ~(exitflag_bds == get_exitflag("SUBSPACE")) 
         exitflag = exitflag_bds;
         break;
     end
@@ -133,11 +130,11 @@ for iter = 1:MaxIterations
     end
 
     % rhobeg / rhoend sensible defaults if missing
-    if ~isfield(options_newuoa,'rhobeg') || isempty(options_newuoa.rhobeg)
-        options_newuoa.rhobeg = max(1e-3, min(1, norm(B,2)));  % %% FIX
-    end
     if ~isfield(options_newuoa,'rhoend') || isempty(options_newuoa.rhoend)
         options_newuoa.rhoend = max(1e-6, 1e-3*options_newuoa.rhobeg);  % %% FIX
+    end
+    if ~isfield(options_newuoa,'rhobeg') || isempty(options_newuoa.rhobeg)
+        options_newuoa.rhobeg = max(1e-3, min(1, norm(B,2)));  % %% FIX
     end
     options_newuoa.maxfun = maxfun_newuoa;
     options_newuoa.output_xhist = true;               % request NEWUOA to output trajectory
@@ -170,6 +167,7 @@ for iter = 1:MaxIterations
         fopt = fopt_newuoa;
         smalld_cnt = 0;                                    % 成功就清零
     else
+        should_restart_bds = false;                        % 失败就继续 BDS
         if normd <= 0.1*options_newuoa.rhoend              % %% FIX: 小步但无改进
             smalld_cnt = smalld_cnt + 1;
         else
