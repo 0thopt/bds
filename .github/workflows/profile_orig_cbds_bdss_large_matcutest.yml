@@ -1,4 +1,4 @@
-name: Profile newuoas with bdss, large, matcutest
+name: Profile original cbds with bdss, large, matcutest
 
 on:
   # Trigger the workflow on # push or pull request
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Profile newuoas with bdss, large, matcutest
+    name: Profile original cbds with bdss, large, matcutest
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -19,7 +19,7 @@ jobs:
         matlab: [R2024b]
         dim: [large]
         with_optim_toolbox: [yes]
-        solver: [newuoas]
+        solver: [cbds-orig]
         competitor: [bdss]
         plibs: [matcutest]
         run_plain: [false]

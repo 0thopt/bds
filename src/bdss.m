@@ -7,10 +7,14 @@ end
 n  = numel(x0);
 
 % outer options
-MaxFunctionEvaluations = 500 * n;
+if isfield(options, 'MaxFunctionEvaluations') && ~isempty(options.MaxFunctionEvaluations)
+    MaxFunctionEvaluations = options.MaxFunctionEvaluations;
+else
+    MaxFunctionEvaluations = 500 * n;
+end
 MaxIterations = MaxFunctionEvaluations;
 
-% inner options (user may pass more fields; we keep and override only needed)
+% BDS / NEWUOA options
 if isfield(options, 'options_bds')     
     options_bds = options.options_bds;     
 else
@@ -39,85 +43,84 @@ nf_rem = MaxFunctionEvaluations - 1;        % remaining budget (after initial ev
 grad_hist  = [];                  % collected from BDS outputs
 grad_xhist = [];
 
+smalld_cnt = 0;                % count of consecutive small steps in NEWUOA
+should_restart_bds = false;  % whether to restart BDS (false)
+
 % record initial point
 fhist(1)   = fopt;
 xhist(:,1) = xopt;
-offset     = 1;
-nf_total   = 1;
+nf = 1;
 
 for iter = 1:MaxIterations
+
     if nf_rem <= 0
+        exitflag = get_exitflag("MAXFUN_REACHED");
         break; 
     end
-
+    
     % ========== 1) run one BDS round ==========
-    % Pass remaining budget to BDS (conservative: let BDS use what's left; NEWUOA later会再裁剪)
-    options_bds.MaxFunctionEvaluations = nf_rem;                               % %% FIX
+    % Pass remaining budget to BDS (conservative: let BDS use what's left; 
+    % NEWUOA will take care of its own budget)
+    options_bds.MaxFunctionEvaluations = min(500*n, nf_rem);
+
+    if ~should_restart_bds && iter > 1
+        options_bds.alpha_init = alpha_final;  % warm start
+    end
+    keyboard
     [xopt_bds, fopt_bds, exitflag_bds, out_bds] = bds(fun, xopt, options_bds);
+    alpha_final = out_bds.alpha_final;
+    keyboard
+
+    d = xopt_bds - xopt;
 
     % BDS accounting
     cnt_bds = out_bds.funcCount;
 
     % append BDS trajectory if provided
-    % if isfield(out_bds, 'fhist') && ~isempty(out_bds.fhist)
-    %     k = numel(out_bds.fhist);
-    %     k = min(k, nf_rem);                        % clip to remaining buffer
-    %     fhist(offset+1:offset+k) = out_bds.fhist(1:k);
-    %     if isfield(out_bds, 'xhist') && ~isempty(out_bds.xhist)
-    %         xhist(:, offset+1:offset+k) = out_bds.xhist(:,1:k);
-    %     end
-    %     offset   = offset + k;
-    %     nf_total = nf_total + k;
-    % end
-    k = min(numel(out_bds.fhist), nf_rem);  % 直接计算并裁剪到剩余预算
-    fhist(offset+1:offset+k) = out_bds.fhist(1:k);
-    xhist(:, offset+1:offset+k) = out_bds.xhist(:,1:k);
-    offset = offset + k;
-    nf_total = nf_total + k;
+    function_evals_bds = min(numel(out_bds.fhist), nf_rem);  % 直接计算并裁剪到剩余预算
+    fhist(nf+1:nf+function_evals_bds) = out_bds.fhist(1:function_evals_bds);
+    xhist(:, nf+1:nf+function_evals_bds) = out_bds.xhist(:,1:function_evals_bds);
+    nf = nf + function_evals_bds;
 
-    nf_rem = nf_rem - cnt_bds;                    % %% FIX: only deduct the new count
+    nf_rem = nf_rem - cnt_bds;
     if nf_rem <= 0
         xopt = xopt_bds; 
         fopt = fopt_bds; 
-        exitflag = exitflag_bds; 
+        exitflag = get_exitflag("MAXFUN_REACHED");
+        break;
+    end
+
+    % If BDS stops due to SMALL_ALPHA, we stop the whole algorithm.
+    if exitflag_bds == get_exitflag("SMALL_ALPHA")
+        exitflag = exitflag_bds;
         break;
     end
 
     % adopt BDS best point
     xopt = xopt_bds;
     fopt = fopt_bds;
-
-    % collect grads/historical data for subspace
-    grad_hist = [grad_hist, out_bds.grad];
-    grad_xhist = [grad_xhist, xopt_bds];
-
-    % ========== 2) build subspace basis B (guarded) ==========
-    use_newuoa = false;
-    B = [];
-    if ~isempty(grad_hist) && size(grad_hist,2) >= 1 && ~isempty(grad_xhist) && size(grad_xhist,2) >= 2
-        g_last  = grad_hist(:, end);
-        dx_last = grad_xhist(:, end) - grad_xhist(:, end-1);
-        B = [g_last, dx_last];
-
-        % rank/orth check
-        [Q,R] = qr(B,0);                           % %% FIX: orthonormalize
-        tolR   = 1e-12 * max(1, norm(R,2));
-        rnk    = sum(abs(diag(R)) > tolR);
-
-        if rnk >= 1
-            B   = Q(:,1:rnk);
-            dim = size(B,2);
-            use_newuoa = (dim >= 1);
-        end
+    
+    % collect grads/historical data for subspace. grad_hist and grad_xhist may be empty.
+    if isfield(out_bds, 'grad_hist') && ~isempty(out_bds.grad_hist)
+        grad_hist  = [grad_hist, out_bds.grad_hist];
+    end
+    if isfield(out_bds, 'grad_xhist') && ~isempty(out_bds.grad_xhist)
+        grad_xhist = [grad_xhist, out_bds.grad_xhist];
     end
 
-    if ~use_newuoa
+    % ========== 2) build subspace basis B (guarded) ==========
+    B = [];
+    use_newuoa = false;
+    if exitflag_bds == get_exitflag("SUBSPACE") && ...
+        (~isempty(out_bds.grad_hist) && ~isempty(out_bds.grad_xhist)) && ...
+        (size(grad_hist, 2) >=2 && size(grad_xhist,2) >=2)
+        [B, use_newuoa] = def_subspace(d, grad_hist, grad_xhist);
+    end
+
+    if isempty(B) || ~use_newuoa
         % cannot form a reliable subspace this round
-        if nf_rem <= 0
-            break;
-        else
-            continue;
-        end
+        should_restart_bds = false;
+        continue;
     end
 
     % ========== 3) solve subproblem by NEWUOA on subspace ==========
@@ -125,6 +128,7 @@ for iter = 1:MaxIterations
     dim = size(B,2);
     maxfun_newuoa = min(500*dim, nf_rem);         % %% FIX: hard cap + remaining
     if maxfun_newuoa <= 0
+        exitflag = get_exitflag("MAXFUN_REACHED");
         break;
     end
 
@@ -137,41 +141,57 @@ for iter = 1:MaxIterations
     end
     options_newuoa.maxfun = maxfun_newuoa;
     options_newuoa.output_xhist = true;               % request NEWUOA to output trajectory
-
+    options_newuoa.iprint = 2;                        % print NEWUOA output
+    keyboard
     % call NEWUOA in subspace (objective: d ↦ f(xopt + B*d))
     [dopt, fopt_newuoa, ~, out_newuoa] = newuoa( ...
         @(d) fun(xopt + B*d), zeros(dim,1), options_newuoa);   % %% FIX: remove undefined eval_fun
-
+    keyboard
     % accounting for NEWUOA
     cnt_new = out_newuoa.funcCount;
     nf_rem = nf_rem - cnt_new;                       % %% FIX: deduct only new counts
 
     % append NEWUOA path (projected to R^n)
     if isfield(out_newuoa,'fhist') && ~isempty(out_newuoa.fhist)
-        k = numel(out_newuoa.fhist);
-        k = min(k, MaxFunctionEvaluations - offset);            % clip to buffer
-        fhist(offset+1:offset+k) = out_newuoa.fhist(1:k);
+        function_evals_newuoa = numel(out_newuoa.fhist);
+        function_evals_to_record = min(function_evals_newuoa, MaxFunctionEvaluations - nf);  % clip to buffer
+        fhist(nf+1:nf+function_evals_to_record) = out_newuoa.fhist(1:function_evals_to_record);
         if isfield(out_newuoa,'xhist') && ~isempty(out_newuoa.xhist)
-            X = xopt + B * out_newuoa.xhist(:,1:k);             % ▷ project subspace traj to R^n
-            xhist(:, offset+1:offset+k) = X;
+            X = xopt + B * out_newuoa.xhist(:,1:function_evals_to_record);  % ▷ project subspace traj to R^n
+            xhist(:, nf+1:nf+function_evals_to_record) = X;
         end
-        offset   = offset + k;
-        nf_total = nf_total + k;
+        nf = nf + function_evals_to_record;
     end
 
     % accept subspace step
+    normd = norm(dopt);
     if fopt_newuoa < fopt
-        xopt = xopt + B*dopt;
+        xopt = xopt + B*dopt; 
         fopt = fopt_newuoa;
+        smalld_cnt = 0;                                    % 成功就清零
+    else
+        if normd <= 0.1*options_newuoa.rhoend              % %% FIX: 小步但无改进
+            smalld_cnt = smalld_cnt + 1;
+        else
+            smalld_cnt = 0;
+        end
+        if smalld_cnt >= 3                                 % 三次小步退出（与 newuoas 对齐）
+            exitflag = 2; 
+            break;
+        end
     end
 
-    if nf_rem <= 0, break; end
+    if nf_rem <= 0
+        exitflag = get_exitflag("MAXFUN_REACHED");
+        break;
+    end
 end
 
 % ---------- finalize output ----------
-output.funcCount = nf_total;
-output.fhist     = fhist(1:offset);
-output.xhist     = xhist(:,1:offset);
+output.funcCount = nf;
+output.fhist     = fhist(1:nf);
+output.xhist     = xhist(:,1:nf);
 output.remain    = nf_rem;
 output.lastIter  = iter;
+keyboard
 end

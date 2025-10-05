@@ -560,17 +560,17 @@ for iter = 1:maxit
         grad = estimate_gradient(grad_info);
         % If the norm of the estimated gradient exceeds the threshold (1e30), it is discarded.
         % This threshold is chosen to maintain consistency with the standard used in eval_fun.m.
-        % Additionally, we check for NaN values to ensure the gradient is valid. The following
-        % one line code can cover both cases.
-        if (norm(grad) <= 1e30)
+        % Additionally, we check for NaN values to ensure the gradient is valid. The first verification
+        % can cover both cases. The second verification is to avoid the length of grad is too short.
+        if (norm(grad) <= 1e30) && (norm(grad) > 10*sqrt(n)*eps)
             % Record the estimated gradient in grad_hist.
             grad_hist = [grad_hist, grad];
             % Record the corresponding xbase in grad_xhist. As long as all batches do not achieve
             % sufficient decrease, we record the estimated gradient. Thus, xbase should be recorded
             % not xopt even if xopt is better than xbase.
             grad_xhist = [grad_xhist, xbase];
-
-            if subspace
+            
+            if subspace && (nf > (2 * n + 1))
                 terminate = true;
                 exitflag = get_exitflag("SUBSPACE");
             end
@@ -804,6 +804,8 @@ if output_xhist
 end
 output.fhist = fhist(1:nf);
 output.grad_hist = grad_hist;
+output.grad_xhist = grad_xhist;
+output.alpha_final = alpha_all;
 if use_estimated_gradient_stop
     output.grad_stop_hist = grad_stop_hist;
 end
