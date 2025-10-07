@@ -14,16 +14,18 @@ else
 end
 MaxIterations = MaxFunctionEvaluations;
 
-% BDS / NEWUOA options
+% ---- subspace solver choice (default: newuoa) ----
+if ~isfield(options,'subsolver') || isempty(options.subsolver)
+    subsolver = 'newuoa';
+else
+    subsolver = lower(string(options.subsolver));
+end
+
+% BDS / subsolver options
 if isfield(options, 'options_bds')     
     options_bds = options.options_bds;     
 else
     options_bds = struct(); 
-end
-if isfield(options, 'options_newuoa')  
-    options_newuoa  = options.options_newuoa;  
-else
-    options_newuoa  = struct();
 end
 
 % request BDS to output histories (for building subspace)
@@ -43,7 +45,7 @@ nf_rem = MaxFunctionEvaluations;        % remaining budget (after initial eval)
 grad_hist  = [];                  % collected from BDS outputs
 grad_xhist = [];
 
-smalld_cnt = 0;                % count of consecutive small steps in NEWUOA
+smalld_cnt = 0;                % count of consecutive small steps in subsolver
 should_restart_bds = false;  % whether to restart BDS (false)
 
 for iter = 1:MaxIterations
@@ -55,7 +57,7 @@ for iter = 1:MaxIterations
     
     % ========== 1) run one BDS round ==========
     % Pass remaining budget to BDS (conservative: let BDS use what's left; 
-    % NEWUOA will take care of its own budget)
+    % subsolver will take care of its own budget)
     options_bds.MaxFunctionEvaluations = min(500*n, nf_rem);
 
     if ~should_restart_bds && iter > 1
@@ -63,37 +65,34 @@ for iter = 1:MaxIterations
     end
 
     [xopt_bds, fopt_bds, exitflag_bds, out_bds] = bds(fun, xopt, options_bds);
-    bds_step = xopt_bds - xopt;
     alpha_final = out_bds.alpha_final;
-
+    bds_step = xopt_bds - xopt;
+    
     d = xopt_bds - xopt;
+
+    % adopt BDS best point
+    xopt = xopt_bds;
+    fopt = fopt_bds;
 
     % BDS accounting
     cnt_bds = out_bds.funcCount;
 
     % append BDS trajectory if provided
-    function_evals_bds = min(numel(out_bds.fhist), nf_rem);  % 直接计算并裁剪到剩余预算
+    function_evals_bds = min(numel(out_bds.fhist), nf_rem);
     fhist(nf+1:nf+function_evals_bds) = out_bds.fhist(1:function_evals_bds);
     xhist(:, nf+1:nf+function_evals_bds) = out_bds.xhist(:,1:function_evals_bds);
     nf = nf + function_evals_bds;
-
     nf_rem = nf_rem - cnt_bds;
     if nf_rem <= 0
-        xopt = xopt_bds; 
-        fopt = fopt_bds; 
         exitflag = get_exitflag("MAXFUN_REACHED");
         break;
     end
-
+    
     % If BDS did not use subspace, exit main loop
     if ~(exitflag_bds == get_exitflag("SUBSPACE")) 
         exitflag = exitflag_bds;
         break;
     end
-
-    % adopt BDS best point
-    xopt = xopt_bds;
-    fopt = fopt_bds;
     
     % collect grads/historical data for subspace. grad_hist and grad_xhist may be empty.
     if isfield(out_bds, 'grad_hist') && ~isempty(out_bds.grad_hist)
@@ -105,51 +104,92 @@ for iter = 1:MaxIterations
 
     % ========== 2) build subspace basis B (guarded) ==========
     B = [];
-    use_newuoa = false;
+    use_subspace = false;
     if exitflag_bds == get_exitflag("SUBSPACE") && ...
         (~isempty(out_bds.grad_hist) && ~isempty(out_bds.grad_xhist)) && ...
-        (size(grad_hist, 2) >=2 && size(grad_xhist,2) >=2)
-        [B, use_newuoa] = def_subspace(d, grad_hist, grad_xhist);
+        (size(grad_hist, 2) >= 2 && size(grad_xhist,2) >= 2)
+        [B, use_subspace] = def_subspace(d, grad_hist, grad_xhist);
+        if ~isempty(B) && use_subspace
+            gk = grad_hist(:,end);
+            g_sub = norm(B.'*gk);                  % ||B^T g||, 与 d-space 一致的度量
+        end
     end
     
-    if isempty(B) || ~use_newuoa
+    if isempty(B) || ~use_subspace
         % cannot form a reliable subspace this round
         should_restart_bds = false;
         continue;
     end
 
-    % ========== 3) solve subproblem by NEWUOA on subspace ==========
-    % prepare NEWUOA budget
+    % ========== 3) solve subproblem by subsolver on subspace ==========
+    % prepare subsolver budget
     dim = size(B,2);
-    maxfun_newuoa = min(500*dim, nf_rem);         % %% FIX: hard cap + remaining
-    if maxfun_newuoa <= 0
+    maxfun_subsolver = min(500*dim, nf_rem);         % %% FIX: hard cap + remaining
+    if maxfun_subsolver <= 0
         exitflag = get_exitflag("MAXFUN_REACHED");
         break;
     end
 
-    % rhobeg / rhoend sensible defaults if missing
-    rhoend_threshold = max(max(alpha_final), min(sqrt(max(alpha_final)*norm(bds_step)), 0.25*norm(bds_step)));
-    options_newuoa.rhoend = max(1e-2 * rhoend_threshold, 1e-6);
-    options_newuoa.rhobeg = max(rhoend_threshold, options_newuoa.rhoend * 10);
-    options_newuoa.maxfun = maxfun_newuoa;
-    options_newuoa.output_xhist = true;               % request NEWUOA to output trajectory
-    options_newuoa.iprint = 0;                        % print NEWUOA output
+    subfun = @(d) fun(xopt + B*d);    % subspace objective
+    s_step = max(alpha_final);
+    s_move = norm(bds_step);
+    s_base = max( s_step, min( sqrt(s_step*s_move), 0.25*s_move ) );
+
+    rho_min = max( sqrt(eps) * max(1, norm(xopt)), 1e-12 );
+    rho_end = max( 1e-2 * s_base, rho_min );
+    rho_beg = max( s_base, 10*rho_end );
+
+    switch char(subsolver)
+        case 'newuoa'
+            options_newuoa.rhoend = rho_end;      % trust-region radius at termination
+            options_newuoa.rhobeg = rho_beg;      % initial trust-region radius
+            options_newuoa.maxfun = maxfun_subsolver;
+            options_newuoa.output_xhist = true;   % request NEWUOA to output trajectory
+            options_newuoa.iprint = 0; 
+            % call NEWUOA in subspace (objective: d ↦ f(xopt + B*d))
+            [dopt, fopt_subsolver, ~, out_subsolver] = newuoa(subfun, zeros(dim,1), options_newuoa);
+        case 'bds'
+            options_bds_sub.subspace = false;                 % no nested subspace
+            options_bds_sub.MaxFunctionEvaluations = maxfun_subsolver;
+            options_bds_sub.output_xhist = true;              % request BDS to output trajectory
+            options_bds_sub.iprint = 0;                       % print BDS output
+            options_bds_sub.alpha_init = rho_beg;            % initial step size
+            options_bds_sub.StepTolerance = rho_end;           % termination by step size
+            [dopt, fopt_subsolver, ~, out_subsolver] = bds(subfun, zeros(dim,1), options_bds_sub);
+        case 'simplex'
+            c_fun = 1e-3;
+            tolx  = 0.1 * rho_end;
+            tolf  = max(c_fun * g_sub * rho_end, 1e-12);
+            options_simplex = optimset('Display','off', ...
+                            'MaxFunEvals', maxfun_subsolver, ...
+                            'MaxIter', 1e12, ...
+                            'TolX', tolx, 'TolFun', tolf);
+            [dopt, fopt_subsolver, ~, out_subsolver] = fminsearch_with_history(subfun, zeros(dim,1), options_simplex);
+        case 'bfgs'
+            c_opt = 1e-3;
+            options_bfgs = optimoptions("fminunc", ...
+                "Algorithm", "quasi-newton", ...
+                "HessUpdate", "bfgs", ...
+                "MaxFunctionEvaluations", maxfun_subsolver, ...
+                "MaxIterations", 10^20, ...
+                "StepTolerance", 0.1*rho_end, ...
+                "OptimalityTolerance", max(c_opt * g_sub, 1e-12));
+            [dopt, fopt_subsolver, ~, out_subsolver] = fminunc_with_history(subfun, zeros(dim,1), options_bfgs);
+        otherwise
+            error('bdss:unknown_subsolver', 'Unknown subsolver: %s', subsolver);
+    end
     
-    % call NEWUOA in subspace (objective: d ↦ f(xopt + B*d))
-    [dopt, fopt_newuoa, ~, out_newuoa] = newuoa( ...
-        @(d) fun(xopt + B*d), zeros(dim,1), options_newuoa);   % %% FIX: remove undefined eval_fun
-    
-    % accounting for NEWUOA
-    cnt_new = out_newuoa.funcCount;
+    % accounting for subsolver
+    cnt_new = out_subsolver.funcCount;
     nf_rem = nf_rem - cnt_new;                       % %% FIX: deduct only new counts
 
-    % append NEWUOA path (projected to R^n)
-    if isfield(out_newuoa,'fhist') && ~isempty(out_newuoa.fhist)
-        function_evals_newuoa = numel(out_newuoa.fhist);
-        function_evals_to_record = min(function_evals_newuoa, MaxFunctionEvaluations - nf);  % clip to buffer
-        fhist(nf+1:nf+function_evals_to_record) = out_newuoa.fhist(1:function_evals_to_record);
-        if isfield(out_newuoa,'xhist') && ~isempty(out_newuoa.xhist)
-            X = xopt + B * out_newuoa.xhist(:,1:function_evals_to_record);  % ▷ project subspace traj to R^n
+    % append subsolver path (projected to R^n)
+    if isfield(out_subsolver,'fhist') && ~isempty(out_subsolver.fhist)
+        function_evals_subsolver = numel(out_subsolver.fhist);
+        function_evals_to_record = min(function_evals_subsolver, MaxFunctionEvaluations - nf);  % clip to buffer
+        fhist(nf+1:nf+function_evals_to_record) = out_subsolver.fhist(1:function_evals_to_record);
+        if isfield(out_subsolver,'xhist') && ~isempty(out_subsolver.xhist)
+            X = xopt + B * out_subsolver.xhist(:,1:function_evals_to_record);  % ▷ project subspace traj to R^n
             xhist(:, nf+1:nf+function_evals_to_record) = X;
         end
         nf = nf + function_evals_to_record;
@@ -157,18 +197,19 @@ for iter = 1:MaxIterations
 
     % accept subspace step
     normd = norm(dopt);
-    if fopt_newuoa < fopt
+    if fopt_subsolver < fopt
         xopt = xopt + B*dopt; 
-        fopt = fopt_newuoa;
+        fopt = fopt_subsolver;
         smalld_cnt = 0;                                    % 成功就清零
     else
         should_restart_bds = false;                        % 失败就继续 BDS
-        if normd <= 0.1*options_newuoa.rhoend              % %% FIX: 小步但无改进
+        if normd <= 0.1 * rho_end   
+            % %% FIX: 小步但无改进
             smalld_cnt = smalld_cnt + 1;
         else
             smalld_cnt = 0;
         end
-        if smalld_cnt >= 3                                 % 三次小步退出（与 newuoas 对齐）
+        if smalld_cnt >= 3                                   % 三次小步退出（与 newuoas 对齐）
             exitflag = 2; 
             break;
         end

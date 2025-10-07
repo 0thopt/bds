@@ -329,6 +329,10 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @bdss_test;
             case 'newuoas'
                 solvers{i} = @newuoas_test;
+            case 'bdss-bds'
+                solvers{i} = @bdss_bds_test;
+            case 'dss-bds'
+                solvers{i} = @dss_bds_test;
             otherwise
                 error('Unknown solver');
         end
@@ -1384,5 +1388,24 @@ function x = newuoas_test(fun, x0)
     option.maxfun = 500*length(x0);
     option.maxiter = 500*length(x0);
     [x, ~, ~, ~] = newuoas(fun, x0, option);
+
+end
+
+function x = bdss_bds_test(fun, x0)
+
+    option.subsolver = 'bds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    x = bdss(fun, x0, option);
+
+end
+
+function x = dss_bds_test(fun, x0)
+
+    option.subsolver = 'bds';
+    option.options_bds.num_blocks = 1;
+    option.expand = 2;
+    option.shrink = 0.5;
+    x = bdss(fun, x0, option);
 
 end

@@ -385,13 +385,18 @@ for iter = 1:maxit
     % of directions evaluated in each batch during the current iteration.
     % Initialize function_values_per_batch as a cell array of length batch_size to store the function values
     % computed in each batch during the current iteration.
-    % Initialize batch_sufficient_decrease as a logical array of length batch_size, indicating whether
-    % the sufficient decrease condition is satisfied in each batch during the current iteration.
+    % Initialize batch_gradient_eligible as a logical array of length batch_size, indicating whether
+    % each block qualifies for gradient estimation based on specific criteria.
     sampled_direction_indices_per_batch = cell(1, batch_size);
     function_values_per_batch = cell(1, batch_size);
-    % True if sufficient decrease is achieved in the block, false otherwise.
-    % Default to true to avoid MaxFunctionEvaluations being 1.
-    batch_sufficient_decrease = true(1, batch_size);
+    % Determines eligibility for gradient estimation: a block qualifies when the following two conditions are met:
+    % (1) sufficient decrease criterion is not met
+    % (2) all directions in the block have been evaluated.
+    % The second condition is essential because gradient estimation requires complete
+    % directional information. Without it, we might incorrectly attempt gradient estimation
+    % when function evaluation budget is 1 and this only function evaluation does not achieve
+    % sufficient decrease. This situation is particularly critical when num_blocks = 1.
+    batch_gradient_eligible = false(1, batch_size);
 
     for i = 1:length(block_indices)
 
@@ -452,7 +457,7 @@ for iter = 1:maxit
         function_values_per_batch{i} = sub_output.fhist;
 
         % Record whether sufficient decrease was achieved in this batch.
-        batch_sufficient_decrease(i) = sub_output.sufficient_decrease;
+        batch_gradient_eligible(i) = ~sub_output.sufficient_decrease && (sub_output.nf == length(direction_indices));
 
         % Record the best function value and point encountered in the i_real-th block.
         fopt_all(i_real) = sub_fopt;
@@ -554,7 +559,7 @@ for iter = 1:maxit
     end
 
     % When sufficient decrease is not achieved in any batch, we estimate the gradient.
-    if ~any(batch_sufficient_decrease)
+    if all(batch_gradient_eligible)
         grad_info.sampled_direction_indices_per_batch = sampled_direction_indices_per_batch;
         grad_info.function_values_per_batch = function_values_per_batch;
         grad = estimate_gradient(grad_info);
