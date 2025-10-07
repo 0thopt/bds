@@ -153,8 +153,10 @@ for iter = 1:MaxIterations
             options_bds_sub.MaxFunctionEvaluations = maxfun_subsolver;
             options_bds_sub.output_xhist = true;              % request BDS to output trajectory
             options_bds_sub.iprint = 0;                       % print BDS output
-            options_bds_sub.alpha_init = rho_beg;            % initial step size
-            options_bds_sub.StepTolerance = rho_end;           % termination by step size
+            % options_bds_sub.alpha_init = rho_beg;            % initial step size
+            % options_bds_sub.StepTolerance = rho_end;           % termination by step size
+            options_bds_sub.alpha_init = 1;            % initial step size
+            options_bds_sub.StepTolerance = 1e-6;           % termination by step size
             [dopt, fopt_subsolver, ~, out_subsolver] = bds(subfun, zeros(dim,1), options_bds_sub);
         case 'simplex'
             c_fun = 1e-3;
