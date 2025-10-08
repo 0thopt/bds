@@ -79,7 +79,7 @@ switch constant_name
         constant_value = false;
     case {"bb2"}
         constant_value = false;
-    case {"subspace"}
+    case {"gradient_estimation_complete"}
         constant_value = false;
     case {"spectral_cauchy"}
         constant_value = false;

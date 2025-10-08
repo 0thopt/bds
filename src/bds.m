@@ -265,7 +265,7 @@ end
 
 % Initialize the history of function values.
 fhist = NaN(1, MaxFunctionEvaluations);
-% Initialize the fopt for each iteration. xopt_hist will be used in subspace methods.
+% Establish the history of best function values and points for each iteration.
 fopt_hist = NaN(1, MaxFunctionEvaluations);
 xopt_hist = NaN(n, MaxFunctionEvaluations);
 
@@ -285,7 +285,7 @@ grad_tol_2 = options.grad_tol_2;
 
 bb1 = options.bb1;
 bb2 = options.bb2;
-subspace = options.subspace;
+gradient_estimation_complete = options.gradient_estimation_complete;
 spectral_cauchy = options.spectral_cauchy;
 dogleg = options.dogleg;
 
@@ -574,10 +574,16 @@ for iter = 1:maxit
             % sufficient decrease, we record the estimated gradient. Thus, xbase should be recorded
             % not xopt even if xopt is better than xbase.
             grad_xhist = [grad_xhist, xbase];
-            
-            if subspace && (nf > (2 * n + 1))
+
+            % When gradient_estimation_complete is true, we check whether the estimated gradient is
+            % from the first iteration. If it is not, the solver will terminate. For now, we only
+            % focus on the case where the setting is default, i.e., num_blocks = n and each
+            % block contains only one subspace, which means that to get the estimated gradient in
+            % the first iteration, we need exactly 2*n function evaluations in the first iteration
+            % and one function evaluation for x0. That is why we check whether nf > 2*n + 1.
+            if gradient_estimation_complete && (nf > (2 * n + 1))
                 terminate = true;
-                exitflag = get_exitflag("SUBSPACE");
+                exitflag = get_exitflag("gradient_estimation_complete");
             end
             
             if size(grad_hist, 2) > 1 && (bb1 || bb2 || spectral_cauchy || dogleg) && ...
@@ -829,8 +835,8 @@ switch exitflag
         output.message = "The change of the function value is small.";
     case get_exitflag("SMALL_ESTIMATE_GRADIENT")
         output.message = "The estimated gradient is small.";
-    case get_exitflag("SUBSPACE")
-        output.message = "The algorithm is terminated by subspace method.";
+    case get_exitflag("gradient_estimation_complete")
+        output.message = "The algorithm is terminated by gradient estimation completion.";
     otherwise
         output.message = "Unknown exitflag";
 end

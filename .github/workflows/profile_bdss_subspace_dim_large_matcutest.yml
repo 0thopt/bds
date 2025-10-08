@@ -1,8 +1,8 @@
-name: Profile bdss bds with dss bds, large, matcutest
+name: Profile bdss with different subspace dimensions, large, matcutest
 
 on:
   # Trigger the workflow on # push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   # schedule:
   # - cron: '0 0 */2 * *'
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Profile bdss bds with dss bds, large, matcutest
+    name: Profile bdss with different subspace dimensions, large, matcutest
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -19,8 +19,9 @@ jobs:
         matlab: [R2024b]
         dim: [large]
         with_optim_toolbox: [yes]
-        solver: [bdss-bds]
-        competitor: [dss-bds]
+        solver: [bdss-bds-1]
+        competitor_1: [bdss-bds-2]
+        competitor_2: [bdss-bds-3]
         plibs: [matcutest]
         run_plain: [false]
         summarize_log_ratio_profiles: [false]
@@ -102,7 +103,7 @@ jobs:
               cd(fullfile(root_dir, 'tests'));
               options = struct();
               options.feature_name = '${{ matrix.feature }}';
-              options.solver_names = {'${{ matrix.solver }}', '${{ matrix.competitor }}'};
+              options.solver_names = {'${{ matrix.solver }}', '${{ matrix.competitor_1 }}', '${{ matrix.competitor_2 }}'};
               options.dim = '${{ matrix.dim }}';
               options.plibs = '${{ matrix.plibs }}';
               options.run_plain = ${{ matrix.run_plain }};
@@ -145,7 +146,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: profile_optiprofiler_${{ matrix.solver }}_${{ matrix.competitor }}_${{ matrix.plibs }}_${{ matrix.dim }}_${{ matrix.feature }}_${{ matrix.run_plain }}
+          name: profile_optiprofiler_${{ matrix.solver }}_${{ matrix.competitor_1 }}_${{ matrix.competitor_2 }}_${{ matrix.plibs }}_${{ matrix.dim }}_${{ matrix.feature }}_${{ matrix.run_plain }}
           path: ./tests/testdata/
 
   merge_artifacts:

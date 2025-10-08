@@ -40,9 +40,9 @@ field_list = {
     'grad_window_size'
     'grad_tol_1'
     'grad_tol_2'
+    'gradient_estimation_complete'
     'bb1'
     'bb2'
-    'subspace'
     'spectral_cauchy'
     'dogleg'
     };

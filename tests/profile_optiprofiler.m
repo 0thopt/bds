@@ -331,6 +331,14 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @newuoas_test;
             case 'bdss-bds'
                 solvers{i} = @bdss_bds_test;
+            case 'bdss-newuoa'
+                solvers{i} = @bdss_newuoa_test;
+            case 'bdss-bds-1'
+                solvers{i} = @bdss_bds_1_test;
+            case 'bdss-bds-2'
+                solvers{i} = @bdss_bds_2_test;
+            case 'bdss-bds-3'
+                solvers{i} = @bdss_bds_3_test;
             case 'dss-bds'
                 solvers{i} = @dss_bds_test;
             otherwise
@@ -1400,10 +1408,49 @@ function x = bdss_bds_test(fun, x0)
 
 end
 
+function x = bdss_newuoa_test(fun, x0)
+
+    option.subsolver = 'newuoa';
+    option.expand = 2;
+    option.shrink = 0.5;
+    x = bdss(fun, x0, option);
+
+end
+
 function x = dss_bds_test(fun, x0)
 
     option.subsolver = 'bds';
     option.options_bds.num_blocks = 1;
+    option.expand = 2;
+    option.shrink = 0.5;
+    x = bdss(fun, x0, option);
+
+end
+
+function x = bdss_bds_1_test(fun, x0)
+
+    option.subsolver = 'bds';
+    option.subspace_dim = 1;
+    option.expand = 2;
+    option.shrink = 0.5;
+    x = bdss(fun, x0, option);
+
+end
+
+function x = bdss_bds_2_test(fun, x0)
+
+    option.subsolver = 'bds';
+    option.subspace_dim = 2;
+    option.expand = 2;
+    option.shrink = 0.5;
+    x = bdss(fun, x0, option);
+
+end
+
+function x = bdss_bds_3_test(fun, x0)
+
+    option.subsolver = 'bds';
+    option.subspace_dim = 3;
     option.expand = 2;
     option.shrink = 0.5;
     x = bdss(fun, x0, option);
