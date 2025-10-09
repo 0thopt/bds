@@ -784,7 +784,7 @@ for iter = 1:maxit
         % Check whether the consecutive grad_window_size gradients are sufficiently small.
         if size(grad_hist, 2) > grad_window_size
             grad_window_size_hist = vecnorm(grad_hist(:, end-grad_window_size+1:end));
-            if all(grad_window_size_hist < grad_tol_1 + grad_tol_2 * max(alpha_all))
+            if all(grad_window_size_hist < grad_tol_1 + grad_tol_2 * sqrt(n) * (max(alpha_all)^2))
                 terminate = true;
                 exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
             end
