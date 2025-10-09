@@ -770,21 +770,21 @@ for iter = 1:maxit
                 end
             end
 
-            if all(alpha_all < gradient_termination_step_threshold)
-                % Smaller step sizes yield more accurate gradient estimates. We only consider
-                % gradients reliable for termination decisions when maximum step size is below
-                % gradient_termination_step_threshold. This prevents premature termination based on
-                % inaccurate gradients.
-                grad_stop_hist = [grad_stop_hist, grad];
-            end
+            % if all(alpha_all < gradient_termination_step_threshold)
+            %     % Smaller step sizes yield more accurate gradient estimates. We only consider
+            %     % gradients reliable for termination decisions when maximum step size is below
+            %     % gradient_termination_step_threshold. This prevents premature termination based on
+            %     % inaccurate gradients.
+            %     grad_stop_hist = [grad_stop_hist, grad];
+            % end
         end
     end
 
     if use_estimated_gradient_stop
         % Check whether the consecutive grad_window_size gradients are sufficiently small.
-        if size(grad_stop_hist, 2) > grad_window_size
-            grad_window_size_hist = vecnorm(grad_stop_hist(:, end-grad_window_size+1:end));
-            if all(grad_window_size_hist < grad_tol_1 * min(1, norm(grad_stop_hist(:,1))) | grad_window_size_hist < grad_tol_2 * max(1, norm(grad_stop_hist(:,1))))
+        if size(grad_hist, 2) > grad_window_size
+            grad_window_size_hist = vecnorm(grad_hist(:, end-grad_window_size+1:end));
+            if all(grad_window_size_hist < grad_tol_1 + grad_tol_2 * max(alpha_all))
                 terminate = true;
                 exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
             end
@@ -817,9 +817,9 @@ output.fhist = fhist(1:nf);
 output.grad_hist = grad_hist;
 output.grad_xhist = grad_xhist;
 output.alpha_final = alpha_all;
-if use_estimated_gradient_stop
-    output.grad_stop_hist = grad_stop_hist;
-end
+% if use_estimated_gradient_stop
+%     output.grad_stop_hist = grad_stop_hist;
+% end
 
 % Set the message according to exitflag.
 switch exitflag
