@@ -593,11 +593,9 @@ for iter = 1:maxit
                     end
                 end
                 % Check whether the consecutive grad_window_size gradients are sufficiently small.
-                if length(gradient_termination_eligible) > grad_window_size
-                    if all(gradient_termination_eligible(end-grad_window_size+1:end))
-                        terminate = true;
-                        exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
-                    end
+                if length(gradient_termination_eligible) >= grad_window_size
+                    terminate = true;
+                    exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
                 end
             end
             
