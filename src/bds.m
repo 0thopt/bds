@@ -586,8 +586,8 @@ for iter = 1:maxit
             end
 
             if use_estimated_gradient_stop
-                if grad_tol > norm(alpha_all)^2
-                    if norm(grad) < grad_tol - norm(alpha_all)^2
+                if grad_tol > norm(grad_info.step_size_per_batch)^2
+                    if norm(grad) < grad_tol - norm(grad_info.step_size_per_batch)^2
                         gradient_termination_eligible = [gradient_termination_eligible, true];
                     end
                 end
