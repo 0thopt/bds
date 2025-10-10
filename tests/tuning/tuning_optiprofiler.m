@@ -28,16 +28,15 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
             for i_solver = 1:n_solvers
                 solvers{i_solver} = @(fun, x0) cbds_window_size_grad_tol_batch_size(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol(i_solver), parameters.batch_size(i_solver));
             end
-        case ismember('grad_window_size', param_fields) && ismember('func_window_size', param_fields) ...
+        case ismember('grad_window_size', param_fields) ...
             && ismember('grad_tol', param_fields) ...
-            && ismember('func_tol_1', param_fields) && ismember('func_tol_2', param_fields) ...
+            && ismember('func_window_size', param_fields) && ismember('func_tol_1', param_fields) && ismember('func_tol_2', param_fields) ...
             && ~ismember('rotation', param_fields)
             for i_solver = 1:n_solvers
                 solvers{i_solver} = @(fun, x0) cbds_window_size_grad_tol_func_tol(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol(i_solver), parameters.func_window_size(i_solver), parameters.func_tol_1(i_solver), parameters.func_tol_2(i_solver));
             end
-        case ismember('grad_window_size', param_fields) && ismember('func_window_size', param_fields) ...
-            && ismember('grad_tol', param_fields) ...
-            && ismember('func_tol_1', param_fields) && ismember('func_tol_2', param_fields) ...
+        case ismember('grad_window_size', param_fields) && ismember('grad_tol', param_fields) ...
+            && ismember('func_window_size', param_fields)  && ismember('func_tol_1', param_fields) && ismember('func_tol_2', param_fields) ...
             && ismember('rotation', param_fields)
             for i_solver = 1:n_solvers
                 solvers{i_solver} = @(fun, x0) cbds_rotation_window_size_grad_tol_func_tol(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol(i_solver), parameters.func_window_size(i_solver), parameters.func_tol_1(i_solver), parameters.func_tol_2(i_solver), parameters.rotation(i_solver));
@@ -496,7 +495,6 @@ function x = cbds_window_size_grad_tol_func_tol(fun, x0, grad_window_size, grad_
         option.func_tol_2 = func_tol_2;
         option.use_function_value_stop = true;
     end
-
     % % When the feature is linearly transformed, the default stopping criteria may even trigger too early.
     % % So we set a smaller step tolerance and a larger maximum number of function evaluations to see the effect
     % % of the parameters.
@@ -539,7 +537,6 @@ function x = cbds_rotation_window_size_grad_tol_func_tol(fun, x0, grad_window_si
         option.direction_set = Q;
         rng(oldState);
     end
-
     % % When the feature is linearly transformed, the default stopping criteria may even trigger too early.
     % % So we set a smaller step tolerance and a larger maximum number of function evaluations to see the effect
     % % of the parameters.
