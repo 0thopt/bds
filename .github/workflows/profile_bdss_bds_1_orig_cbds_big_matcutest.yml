@@ -1,26 +1,31 @@
-name: Rotation with func 20-6-9 and grad 1-3, large
+name: Profile bdss bds 1 and original cbds, big, matcutest
 
 on:
-  # Trigger the workflow on push or pull request
-  # push:
+  # Trigger the workflow on # push or pull request
+  push:
   # Trigger the workflow manually
   # schedule:
-  # - cron: '0 6 */1 * *'
+  # - cron: '0 0 */2 * *'
   workflow_dispatch:
 
 jobs:
   test:
-    name: Rotation with func 20-6-9 and grad 1-3, large
+    name: Profile bdss bds 1 and original cbds, big, matcutest
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
         matlab: [R2024b]
-        dim: [large]
-        plibs: [matcutest]
+        dim: [big]
         with_optim_toolbox: [yes]
-        feature: [plain, perturbed_x0_0.001, perturbed_x0_1, perturbed_x0_10, perturbed_x0_100, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, permuted, linearly_transformed, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
+        solver: [bdss-bds-1]
+        competitor: [cbds-orig]
+        plibs: [matcutest]
+        run_plain: [false]
+        summarize_log_ratio_profiles: [false]
+        feature: [plain, perturbed_x0_0.001, perturbed_x0_1, perturbed_x0_10, perturbed_x0_100, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, permuted, linearly_transformed,rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
+
 
     steps:
       - name: Check out repository
@@ -35,6 +40,18 @@ jobs:
           path: optiprofiler
           submodules: recursive
           ref: 8bb36d319b027a1863831c275927868eec8e8da0
+
+      - name: Clone newuoas
+        uses: actions/checkout@v4
+        with:
+          repository: newuoas/newuoas
+          path: newuoas
+
+      - name: Clone PRIMA
+        uses: actions/checkout@v4
+        with:
+          repository: libprima/prima
+          path: prima
 
       - name: Install Texlive
         run: sudo apt-get update && sudo apt-get install texlive
@@ -66,34 +83,38 @@ jobs:
               % Setup optiprofiler
               cd(fullfile(root_dir, 'optiprofiler'));
               setup
-              cd(root_dir);
+
+              % Setup prima
+              cd(fullfile(root_dir, 'prima'));
+              setup newuoa
+
+              % Setup newuoas
+              cd(fullfile(root_dir, 'newuoas'));
+              addpath(pwd);
   
               % Setup bds
+              cd(root_dir);
               setup
               cd(fullfile(root_dir, 'tests', 'competitors'));
               addpath(pwd);
   
               % profile
-              addpath(fullfile(root_dir, 'tests'));
-              cd(fullfile(root_dir, 'tests', 'tuning'));
-              parameters.func_window_size = [20 1e8];
-              parameters.func_tol_1 = [1e-6 1e-30];
-              parameters.func_tol_2 = [1e-9 1e-30];
-              parameters.grad_window_size = [1 1e8];
-              parameters.grad_tol = [1e-3 1e-30];
-              parameters.rotation = [true, true];
+              cd(fullfile(root_dir, 'tests'));
               options = struct();
-              options.solver_names = {'cbds-tuning-rotation', 'cbds-default'};
-              options.plibs = '${{ matrix.plibs }}';
-              options.dim = '${{ matrix.dim }}';
               options.feature_name = '${{ matrix.feature }}';
-              tuning_optiprofiler(parameters, options);
+              options.solver_names = {'${{ matrix.solver }}', '${{ matrix.competitor }}'};
+              options.dim = '${{ matrix.dim }}';
+              options.plibs = '${{ matrix.plibs }}';
+              options.run_plain = ${{ matrix.run_plain }};
+              options.summarize_log_ratio_profiles = ${{ matrix.summarize_log_ratio_profiles }};
+              profile_optiprofiler(options);
+              cd(fullfile(root_dir, 'tests'));
+              ls -R
               cd(root_dir);
-
 
       - name: Change the summary file name
         run: |
-          cd ./tests/tuning/tuning_data
+          cd ./tests/testdata/
           ls -R
           find . -type f -name 'summary.pdf' | while read -r file; do
             # Obtain the parent directory and name
@@ -124,8 +145,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: profile_optiprofiler_cbds_rotation_func_20_tol_06_09_grad_01_tol_03_${{ matrix.dim }}_${{ matrix.feature }}
-          path: ./tests/tuning/tuning_data/**
+          name: profile_optiprofiler_${{ matrix.solver }}_${{ matrix.competitor }}_${{ matrix.plibs }}_${{ matrix.dim }}_${{ matrix.feature }}_${{ matrix.run_plain }}
+          path: ./tests/testdata/
 
   merge_artifacts:
     name: Merge Artifacts
@@ -147,20 +168,21 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          path: tests/tuning/tuning_data/downloaded_artifacts
+          path: tests/testdata/downloaded_artifacts
 
       - name: List all files
         run: |
-          cd tests/tuning/tuning_data/downloaded_artifacts
+          cd tests/testdata/downloaded_artifacts
           ls -R
 
       - name: Merge PDF files
         run: |
-          cp tests/tools/merge_pdf.sh tests/tuning/tuning_data/downloaded_artifacts
-          cd tests/tuning/tuning_data/downloaded_artifacts/
+          cp tests/tools/merge_pdf.sh tests/testdata/downloaded_artifacts
+          cp tests/tools/get_base_info.sh tests/testdata/downloaded_artifacts
+          cd tests/testdata/downloaded_artifacts/
 
-          ARTIFACT_NAME=$(ls | grep "profile_optiprofiler" | head -n 1)
-          BASE_INFO=$(echo $ARTIFACT_NAME | sed -n 's/.*optiprofiler_\([^_]*_[^_]*_\(small\|big\|large\)\).*/\1/p')
+          source ./get_base_info.sh
+          echo $BASE_INFO
 
           # Replace all '-' with '_' in BASE_INFO
           BASE_INFO=$(echo $BASE_INFO | sed 's/-/_/g')
@@ -174,13 +196,14 @@ jobs:
                   cp "$f" summary/
               fi
           done
+          
           cd summary
           ls
           bash ../merge_pdf.sh
-          mv merged.pdf "summary_cbds_rotation_func_20_tol_06_09_grad_01_tol_03_large.pdf"
+          mv merged.pdf "summary_${BASE_INFO}.pdf"
           cd ..
           if [ -d "summary" ]; then
-            mv summary "summary_cbds_rotation_func_20_tol_06_09_grad_01_tol_03_large"
+            mv summary "summary_${BASE_INFO}"
           fi
 
       - name: Upload merged artifact
@@ -188,13 +211,13 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: merged_profiles_cbds_rotation_func_20_tol_06_09_grad_01_tol_03_large
-          path: tests/tuning/tuning_data/downloaded_artifacts/**
+          name: merged_profiles_${{ env.BASE_INFO }}
+          path: tests/testdata/downloaded_artifacts/**
 
       - name: Upload summary files
         uses: actions/upload-artifact@v4
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: summary_files_cbds_rotation_func_20_tol_06_09_grad_01_tol_03_large
-          path: tests/tuning/tuning_data/downloaded_artifacts/summary_cbds_rotation_func_20_tol_06_09_grad_01_tol_03_large/**
+          name: summary_files_${{ env.BASE_INFO }}
+          path: tests/testdata/downloaded_artifacts/summary_${{ env.BASE_INFO }}/**

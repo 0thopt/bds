@@ -163,17 +163,19 @@ if isfield(options, "reduction_factor")
     end
 end
 
-if isfield(options, "StepTolerance")
-    if ~(isrealscalar(options.StepTolerance) && options.StepTolerance >= 0)
-        error("options.StepTolerance should be a real number greater than or equal to 0.");
+if isfield(options, "alpha_init")
+    if ~((isrealscalar(options.alpha_init) && options.alpha_init > 0) || ...
+        (isnumvec(options.alpha_init) && length(options.alpha_init) == options.num_blocks && all(options.alpha_init > 0)) || ...
+        (ischarstr(options.alpha_init) && strcmpi(options.alpha_init, "auto")))
+        error("options.alpha_init should be a positive scalar or a positive real vector with length equal to num_blocks or a string 'auto'.");
     end
 end
 
-if isfield(options, "alpha_init")
-    if ~((isrealscalar(options.alpha_init) && options.alpha_init > 0) || ...
-        (isnumvec(options.alpha_init) && length(options.alpha_init) == options.     num_blocks && all(options.alpha_init > 0)) || ...
-        (ischarstr(options.alpha_init) && strcmpi(options.alpha_init, "auto")))
-        error("options.alpha_init should be a positive scalar or a positive real vector with length equal to num_blocks or a string 'auto'.");
+if isfield(options, "StepTolerance") && isfield(options, "num_blocks")
+    if ~((isrealscalar(options.StepTolerance) && options.StepTolerance > 0) || ...
+        (isnumvec(options.StepTolerance) && length(options.StepTolerance) == options.num_blocks && all(options.StepTolerance > 0)) || ...
+        (ischarstr(options.StepTolerance) && strcmpi(options.StepTolerance, "auto")))
+        error("options.StepTolerance should be a positive scalar or a positive real vector with length equal to num_blocks or a string 'auto'.");
     end
 end
 

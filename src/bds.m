@@ -77,10 +77,11 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               expanded if the reduction is at least
 %                               reduction_factor(3) * forcing_function.
 %                               Default: [0, eps, eps]. See also forcing_function.
-%   StepTolerance               Lower bound of the step size. If the step size is
-%                               smaller than StepTolerance, then the algorithm
-%                               terminates.A (small) positive number.
-%                               Default: 1e-10.
+%   StepTolerance               Termination threshold for step size. The algorithm terminates
+%                               when the step size for each block falls below their corresponding
+%                               value. It can be a positive scalar (applied to all blocks) or a
+%                               vector with length equal to the number of blocks.
+%                               Default: 1e-6.
 %   alpha_init                  Initial step size. If alpha_init is a positive
 %                               scalar, then the initial step size of each block
 %                               is set to alpha_init. If alpha_init is a vector,
@@ -149,10 +150,8 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %   grad_window_size            The number of iterations to consider when checking
 %                               whether the estimated gradient has changed significantly.
 %                               It should be a positive integer. Default: 1.
-%   grad_tol                  The first tolerance for the estimated gradient change.
+%   grad_tol                    The tolerance for the estimated gradient.
 %                               It should be a positive number. Default: 1e-3.
-%   grad_tol_2                  The second tolerance for the estimated gradient change.
-%                               It should be a positive number. Default: 1e-6.
 %
 %   [XOPT, FOPT] = BDS(...) returns an approximate minimizer XOPT and its function value FOPT.
 %
@@ -256,8 +255,6 @@ if  output_alpha_hist
     alpha_hist(:, 1) = alpha_all(:);
 end
 
-gradient_termination_step_threshold = sqrt(max(alpha_all) * alpha_tol);
-
 output_xhist = options.output_xhist;
 if output_xhist
     xhist = NaN(n, MaxFunctionEvaluations);
@@ -282,11 +279,11 @@ use_estimated_gradient_stop = options.use_estimated_gradient_stop;
 grad_window_size = options.grad_window_size;
 grad_tol = options.grad_tol;
 
-bb1 = options.bb1;
-bb2 = options.bb2;
-gradient_estimation_complete = options.gradient_estimation_complete;
-spectral_cauchy = options.spectral_cauchy;
-dogleg = options.dogleg;
+% bb1 = options.bb1;
+% bb2 = options.bb2;
+% gradient_estimation_complete = options.gradient_estimation_complete;
+% spectral_cauchy = options.spectral_cauchy;
+% dogleg = options.dogleg;
 
 grad_hist = [];
 grad_xhist = [];
@@ -497,8 +494,8 @@ for iter = 1:maxit
             break;
         end
 
-        % Terminate the computations if the largest step size is below StepTolerance.
-        if max(alpha_all) < alpha_tol
+        % Terminate the computations if the step size for each block falls below their corresponding thresholds.
+        if all(alpha_all < alpha_tol)
             terminate = true;
             exitflag = get_exitflag("SMALL_ALPHA");
             break;
@@ -586,6 +583,10 @@ for iter = 1:maxit
             end
 
             if use_estimated_gradient_stop
+                % Notice that we use grad_info.step_size_per_batch not alpha_all since step size
+                % has already been updated in the current iteration. The error between estimated
+                % gradient and true gradient should come from the step size of finite difference.
+                % That is why we use grad_info.step_size_per_batch.
                 if grad_tol > norm(grad_info.step_size_per_batch)^2
                     if norm(grad) < grad_tol - norm(grad_info.step_size_per_batch)^2
                         gradient_termination_eligible = [gradient_termination_eligible, true];

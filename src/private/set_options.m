@@ -228,6 +228,20 @@ else
         options.alpha_init = ones(options.num_blocks, 1);
     end
 
+    % Set the step size threshold for termination. The algorithm terminates when the step size for each block
+    % falls below their corresponding threshold. If StepTolerance is not provided, it is set to 1e-6 for each block.
+    if isfield(options, "StepTolerance")
+        if isscalar(options.StepTolerance)
+            options.StepTolerance = options.StepTolerance * ones(options.num_blocks, 1);
+        elseif length(options.StepTolerance) == options.num_blocks
+            options.StepTolerance = options.StepTolerance(:);
+        else
+            error('StepTolerance should be a positive scalar or a vector with length equal to the number of blocks.');
+        end
+    else
+        options.StepTolerance = 1e-6 * ones(options.num_blocks, 1);
+    end
+
     % The above procedures handle some fields that depend on problem-specific information and are not 
     % determined solely by user input. To avoid resetting their default values, we remove these fields from options.
     field_list = setdiff(field_list, {'Algorithm', 'block_visiting_pattern', 'num_blocks', 'direction_set', ...
