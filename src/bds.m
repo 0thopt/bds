@@ -279,6 +279,8 @@ use_estimated_gradient_stop = options.use_estimated_gradient_stop;
 grad_window_size = options.grad_window_size;
 grad_tol = options.grad_tol;
 
+gradient_estimation_complete = options.gradient_estimation_complete;
+
 % bb1 = options.bb1;
 % bb2 = options.bb2;
 % gradient_estimation_complete = options.gradient_estimation_complete;

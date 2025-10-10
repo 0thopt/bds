@@ -214,6 +214,7 @@ for iter = 1:MaxIterations
     % accept subspace step
     normd = norm(dopt);
     if fopt_subsolver < fopt
+        should_restart_bds = true;
         xopt = xopt + B*dopt; 
         fopt = fopt_subsolver;
         % Reset counter on success
