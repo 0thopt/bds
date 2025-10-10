@@ -1,4 +1,4 @@
-function [xopt, fopt, exitflag, output] = bdss(fun, x0, options)
+function [xopt, fopt, exitflag, output] = bdss_backup(fun, x0, options)
 
 % ---------- defaults ----------
 if nargin < 3
@@ -153,7 +153,7 @@ for iter = 1:MaxIterations
             options_newuoa.output_xhist = true;   % request NEWUOA to output trajectory
             options_newuoa.iprint = 0; 
             % call NEWUOA in subspace (objective: d ↦ f(xopt + B*d))
-            [dopt, f_sub, ~, out_subsolver] = newuoa(subfun, zeros(dim,1), options_newuoa);
+            [dopt, fopt_subsolver, ~, out_subsolver] = newuoa(subfun, zeros(dim,1), options_newuoa);
         case 'bds'
             options_bds_sub.gradient_estimation_complete = false; % do not need gradient estimation in subsolver
             options_bds_sub.MaxFunctionEvaluations = maxfun_subsolver;
@@ -171,7 +171,7 @@ for iter = 1:MaxIterations
             options_bds_sub.StepTolerance = rho_end;           % termination by step size
             % options_bds_sub.alpha_init = 1;            % initial step size
             % options_bds_sub.StepTolerance = 1e-6;           % termination by step size
-            [dopt, f_sub, ~, out_subsolver] = bds(subfun, zeros(dim,1), options_bds_sub);
+            [dopt, fopt_subsolver, ~, out_subsolver] = bds(subfun, zeros(dim,1), options_bds_sub);
         case 'simplex'
             c_fun = 1e-3;
             tolx  = 0.1 * rho_end;
@@ -180,7 +180,7 @@ for iter = 1:MaxIterations
                             'MaxFunEvals', maxfun_subsolver, ...
                             'MaxIter', 1e12, ...
                             'TolX', tolx, 'TolFun', tolf);
-            [dopt, f_sub, ~, out_subsolver] = fminsearch_with_history(subfun, zeros(dim,1), options_simplex);
+            [dopt, fopt_subsolver, ~, out_subsolver] = fminsearch_with_history(subfun, zeros(dim,1), options_simplex);
         case 'bfgs'
             c_opt = 1e-3;
             options_bfgs = optimoptions("fminunc", ...
@@ -190,7 +190,7 @@ for iter = 1:MaxIterations
                 "MaxIterations", 10^20, ...
                 "StepTolerance", 0.1*rho_end, ...
                 "OptimalityTolerance", max(c_opt * g_sub, 1e-12));
-            [dopt, f_sub, ~, out_subsolver] = fminunc_with_history(subfun, zeros(dim,1), options_bfgs);
+            [dopt, fopt_subsolver, ~, out_subsolver] = fminunc_with_history(subfun, zeros(dim,1), options_bfgs);
         otherwise
             error('bdss:unknown_subsolver', 'Unknown subsolver: %s', subsolver);
     end
@@ -213,60 +213,28 @@ for iter = 1:MaxIterations
 
     % accept subspace step
     normd = norm(dopt);
-    eta = 1e-12 * max(1, abs(fopt)); 
-    f_old = fopt;
-
-
-    sig_dec = (f_sub < fopt - eta);
-    if sig_dec
-
-        s_sub  = B*dopt;
-        norm_s = norm(s_sub);
-        big_step = (norm_s >= 0.5 * rho_beg);
-        if exist('g_sub','var') && g_sub > 0
-            sig_drop = (f_old - f_sub) >= 1e-3 * g_sub * rho_end;
-        else
-            sig_drop = true;
-        end
-        should_restart_bds = (big_step && sig_drop);
-
-        % 再真正接受，覆盖 fopt
-        xopt = xopt + B*dopt;  
-        fopt = f_sub;
-        smalld_cnt = 0;
+    if fopt_subsolver < fopt
+        should_restart_bds = true;
+        xopt = xopt + B*dopt; 
+        fopt = fopt_subsolver;
+        % Reset counter on success
+        smalld_cnt = 0;                                    
     else
-        % no acceptance; count small steps
+        % No improvement from subsolver, let BDS continue with its own step size strategy
+        % in the next iteration.
+        should_restart_bds = false;
         if normd <= 0.1 * rho_end
+            % Small step but no improvement
             smalld_cnt = smalld_cnt + 1;
         else
             smalld_cnt = 0;
         end
+        % Count small steps. If it reaches 3 times, terminate(keep consistent with newuoas)
         if smalld_cnt >= 3
-            exitflag = 2; break
+            exitflag = 2; 
+            break;
         end
     end
-    % if fopt_subsolver < fopt
-    %     should_restart_bds = true;
-    %     xopt = xopt + B*dopt; 
-    %     fopt = fopt_subsolver;
-    %     % Reset counter on success
-    %     smalld_cnt = 0;                                    
-    % else
-    %     % No improvement from subsolver, let BDS continue with its own step size strategy
-    %     % in the next iteration.
-    %     should_restart_bds = false;
-    %     if normd <= 0.1 * rho_end
-    %         % Small step but no improvement
-    %         smalld_cnt = smalld_cnt + 1;
-    %     else
-    %         smalld_cnt = 0;
-    %     end
-    %     % Count small steps. If it reaches 3 times, terminate(keep consistent with newuoas)
-    %     if smalld_cnt >= 3
-    %         exitflag = 2; 
-    %         break;
-    %     end
-    % end
 
     if nf_rem <= 0
         exitflag = get_exitflag("MAXFUN_REACHED");
