@@ -149,7 +149,7 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %   grad_window_size            The number of iterations to consider when checking
 %                               whether the estimated gradient has changed significantly.
 %                               It should be a positive integer. Default: 1.
-%   grad_tol_1                  The first tolerance for the estimated gradient change.
+%   grad_tol                  The first tolerance for the estimated gradient change.
 %                               It should be a positive number. Default: 1e-3.
 %   grad_tol_2                  The second tolerance for the estimated gradient change.
 %                               It should be a positive number. Default: 1e-6.
@@ -280,8 +280,7 @@ func_tol_2 = options.func_tol_2;
 
 use_estimated_gradient_stop = options.use_estimated_gradient_stop;
 grad_window_size = options.grad_window_size;
-grad_tol_1 = options.grad_tol_1;
-grad_tol_2 = options.grad_tol_2;
+grad_tol = options.grad_tol;
 
 bb1 = options.bb1;
 bb2 = options.bb2;
@@ -587,8 +586,8 @@ for iter = 1:maxit
             end
 
             if use_estimated_gradient_stop
-                if grad_tol_1 - norm(alpha_all)^2 > eps
-                    if norm(grad) < grad_tol_1 - norm(alpha_all)^2
+                if grad_tol > norm(alpha_all)^2
+                    if norm(grad) < grad_tol - norm(alpha_all)^2
                         gradient_termination_eligible = [gradient_termination_eligible, true];
                     end
                 end
