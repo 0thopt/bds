@@ -53,7 +53,6 @@ grad_hist  = [];                  % collected from BDS outputs
 grad_xhist = [];
 
 smalld_cnt = 0;                % count of consecutive small steps in subsolver
-should_restart_bds = false;  % whether to use the default initial step size in BDS
 
 for iter = 1:MaxIterations
 
@@ -66,7 +65,7 @@ for iter = 1:MaxIterations
     % Pass remaining budget to BDS (conservative: let BDS use what's left)
     options_bds.MaxFunctionEvaluations = nf_rem;
 
-    if ~should_restart_bds && iter > 1
+    if iter > 1
         options_bds.alpha_init = alpha_final; % warm start BDS with last round's final step size
     end
 
@@ -122,8 +121,6 @@ for iter = 1:MaxIterations
     end
     
     if isempty(B) || ~use_subspace
-        % cannot form a reliable subspace this round
-        should_restart_bds = false;
         continue;
     end
 
@@ -214,15 +211,11 @@ for iter = 1:MaxIterations
     % accept subspace step
     normd = norm(dopt);
     if fopt_subsolver < fopt
-        % should_restart_bds = true;
         xopt = xopt + B*dopt; 
         fopt = fopt_subsolver;
         % Reset counter on success
         smalld_cnt = 0;                                    
     else
-        % No improvement from subsolver, let BDS continue with its own step size strategy
-        % in the next iteration.
-        should_restart_bds = false;
         if normd <= 0.1 * rho_end
             % Small step but no improvement
             smalld_cnt = smalld_cnt + 1;
