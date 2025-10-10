@@ -264,12 +264,8 @@ constant_name = "grad_window_size";
 constant_value = 1;
 verifyEqual(testcase, get_default_constant(constant_name), constant_value)
 
-constant_name = "grad_tol_1";
+constant_name = "grad_tol";
 constant_value = 1e-3;
-verifyEqual(testcase, get_default_constant(constant_name), constant_value)
-
-constant_name = "grad_tol_2";
-constant_value = 1e-6;
 verifyEqual(testcase, get_default_constant(constant_name), constant_value)
 
 end
