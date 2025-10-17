@@ -171,7 +171,6 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %   xhist            History of points visited (if output_xhist is true).
 %   alpha_hist       History of step size for every iteration (if output_alpha_hist is true).
 %   blocks_hist      History of blocks visited (if output_block_hist is true).
-%   grad_stop_hist   History of estimated gradients used for stopping decisions (if use_estimated_gradient_stop is true).
 %   funcCount        The number of function evaluations.
 %   message          The information of EXITFLAG.
 %
@@ -218,6 +217,7 @@ end
 
 % Get the direction set.
 D = get_direction_set(n, options);
+positive_direction_set = D(:, 1:2:end);
 
 block_visiting_pattern = options.block_visiting_pattern;
 num_blocks = options.num_blocks;
@@ -280,12 +280,6 @@ grad_window_size = options.grad_window_size;
 grad_tol = options.grad_tol;
 
 gradient_estimation_complete = options.gradient_estimation_complete;
-
-% bb1 = options.bb1;
-% bb2 = options.bb2;
-% gradient_estimation_complete = options.gradient_estimation_complete;
-% spectral_cauchy = options.spectral_cauchy;
-% dogleg = options.dogleg;
 
 grad_hist = [];
 grad_xhist = [];
@@ -589,8 +583,9 @@ for iter = 1:maxit
                 % has already been updated in the current iteration. The error between estimated
                 % gradient and true gradient should come from the step size of finite difference.
                 % That is why we use grad_info.step_size_per_batch.
-                if grad_tol > norm(grad_info.step_size_per_batch)^2
-                    if norm(grad) < grad_tol - norm(grad_info.step_size_per_batch)^2
+                grad_error = get_gradient_error_bound(grad_info.step_size_per_batch, grouped_direction_indices, n, positive_direction_set);
+                if grad_tol >= grad_error
+                    if grad_error + norm(grad) < grad_tol
                         gradient_termination_eligible = [gradient_termination_eligible, true];
                     end
                 end
@@ -600,198 +595,7 @@ for iter = 1:maxit
                     exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
                 end
             end
-            
-            % if size(grad_hist, 2) > 1 && (bb1 || bb2 || spectral_cauchy || dogleg) && ...
-            %         norm(grad_xhist(:, end) - grad_xhist(:, end-1)) > 1e-10
 
-            %     s = grad_xhist(:, end) - grad_xhist(:, end-1);
-            %     y = grad_hist(:,   end) - grad_hist(:,   end-1);
-            %     g  = grad_hist(:,   end);
-
-            %     if spectral_cauchy
-            %         % ---- Spectral–Cauchy trust step (zero new params) ----
-            %         ns = norm(s);
-            %         if ns > 0
-            %             u   = s / ns;
-            %             sTy = s' * y;
-            %             phi = sTy / (ns^2);          % rank-1 曲率（沿 s 的二阶）
-            %             ng  = norm(g);
-            %             Delta_k  = max(alpha_all);
-
-            %             if (phi > 0) && (ng > 0) && (abs(u' * g) > eps * ng)
-            %                 tau_curve = (ng^2) / (phi * (u' * g)^2);
-            %                 tau_rad   = Delta_k / ng;
-            %                 tau       = min(tau_curve, tau_rad);
-            %             elseif ng > 0
-            %                 tau = Delta_k / ng;            % 退化为 Cauchy 半径步
-            %             else
-            %                 tau = 0;
-            %             end
-
-            %             if (tau > 0) && (nf < MaxFunctionEvaluations)
-            %                 p_sc = - tau * g;
-            %                 x_sc = grad_xhist(:, end) + p_sc;
-
-            %                 [~, f_sc_real] = eval_fun(fun, x_sc);
-            %                 nf = nf + 1;
-            %                 fhist(nf) = f_sc_real;
-            %                 if output_xhist, xhist(:, nf) = x_sc; end
-
-            %                 nps = norm(p_sc);
-            %                 % 若你用非单调/GLL，请把右侧 fbase 改成 f_ref
-            %                 if f_sc_real + forcing_function(nps) < fbase
-            %                     xbase = x_sc;  fbase = f_sc_real;
-
-            %                     if f_sc_real < fopt, fopt = f_sc_real; xopt = x_sc; end
-            %                     if iprint >= 2
-            %                         fprintf("Spectral-Cauchy: tau = %23.16E, ||p|| = %23.16E\n", tau, nps);
-            %                         fprintf("Function number %d    F = %23.16E\n", nf, f_sc_real);
-            %                         fprintf("The corresponding X is:\n"); print_aligned_vector(x_sc); fprintf("\n");
-            %                     end
-            %                 end
-
-            %                 if nf >= MaxFunctionEvaluations
-            %                     terminate = true;
-            %                     exitflag = get_exitflag("MAXFUN_REACHED");
-            %                 end
-            %             end
-            %         end
-            %     elseif dogleg
-            %         % ---- 2D Dogleg trust step (closed-form; no line search/backtracking) ----
-            %         ns = norm(s);       % ||x_k - x_{k-1}||
-            %         ng = norm(g);       % ||g_k||
-            %         if ng > 0
-            %             Delta_k = max(alpha_all);           % 你的当前网格半径 Δk
-            %             % 端点1：Cauchy 边界步（一定在球面上）
-            %             pU = - (Delta_k / ng) * g;
-
-            %             if ns > 0
-            %                 u   = s / ns;
-            %                 phi = (s' * y) / (ns^2);        % 沿 s 的 rank-1 曲率
-            %             else
-            %                 phi = -Inf;                     % 无 s 信息→直接用边界步
-            %             end
-
-            %             if phi > 0
-            %                 % 端点2：一维牛顿步（若在球内优先选它）
-            %                 pB = - (u' * g) / phi * u;
-
-            %                 if norm(pB) <= Delta_k
-            %                     p = pB;                     % 球内→最优即 pB
-            %                 else
-            %                     % 折线路径 p(τ) = pU + τ (pB - pU)，求与球面的交点（闭式）
-            %                     d   = pB - pU;
-            %                     a   = d' * d;
-            %                     if a <= 0
-            %                         p = pU;                 % 数值退化：回退边界步
-            %                     else
-            %                         b   = 2 * (pU' * d);
-            %                         c   = (pU' * pU) - Delta_k^2;
-            %                         disc = b*b - 4*a*c; if disc < 0, disc = 0; end
-            %                         tau  = (-b + sqrt(disc)) / (2*a);   % 0 < tau < 1
-            %                         if tau < 0, tau = 0; elseif tau > 1, tau = 1; end
-            %                         p = pU + tau * d;       % 边界上的最优点
-            %                     end
-            %                 end
-            %             else
-            %                 % 负/不可靠曲率 → 自动退化为边界 Cauchy 步
-            %                 p = pU;
-            %             end
-                        
-            %             % —— 单次函数评估（预算守卫）——
-            %             x_try = grad_xhist(:, end) + p;
-            %             if nf < MaxFunctionEvaluations
-            %                 [~, f_try] = eval_fun(fun, x_try);
-            %                 nf = nf + 1;
-            %                 fhist(nf) = f_try;
-            %                 if output_xhist, xhist(:, nf) = x_try; end
-
-            %                 % —— 严格充分下降（与你主流程一致的二次 forcing）——
-            %                 % 若你用非单调/GLL，请把右侧 fbase 换成 f_ref
-            %                 if f_try + 1e-3 * forcing_function(norm(p)) < fbase
-            %                     xbase = x_try;  fbase = f_try;
-
-            %                     if f_try < fopt, fopt = f_try; xopt = x_try; end
-            %                     if iprint >= 2
-            %                         fprintf("Dogleg2D: ||p|| = %23.16E\n", norm(p));
-            %                         fprintf("Function number %d    F = %23.16E\n", nf, f_try);
-            %                         fprintf("The corresponding X is:\n");
-            %                         print_aligned_vector(x_try); fprintf("\n");
-            %                     end
-            %                 end
-
-            %                 if nf >= MaxFunctionEvaluations
-            %                     terminate = true;
-            %                     exitflag = get_exitflag("MAXFUN_REACHED");
-            %                 end
-            %             end
-            %         end
-            %     else
-            %         % ---- 你原有的 BB1/BB2 实现（保持原样）----
-            %         bb_ok = false;
-            %         if bb1
-            %             denom = s' * y;
-            %             if denom > eps * norm(s) * norm(y)
-            %                 bb_step_size = (s' * s) / denom;
-            %                 bb_ok = isfinite(bb_step_size) && (bb_step_size > 0);
-            %             end
-            %         else  % BB2
-            %             yy = y' * y;
-            %             if yy > eps
-            %                 bb_step_size = (s' * y) / yy;
-            %                 bb_ok = isfinite(bb_step_size) && (bb_step_size > 0);
-            %             end
-            %         end
-
-            %         if bb_ok
-            %             p_bb    = - bb_step_size * grad_hist(:, end);
-            %             % 你当前版本这里有“截到 Δk”的逻辑；若保持不截断，可删掉下一段
-            %             nbb     = norm(p_bb);
-            %             % Delta_k = max(alpha_all);
-            %             % if nbb > Delta_k && nbb > 0
-            %             %     p_bb  = (Delta_k / nbb) * p_bb;
-            %             %     nbb   = Delta_k;
-            %             % end
-
-            %             x_bb = grad_xhist(:, end) + p_bb;
-
-            %             if nf < MaxFunctionEvaluations
-            %                 [~, f_bb_real] = eval_fun(fun, x_bb);
-            %                 nf = nf + 1;
-            %                 fhist(nf) = f_bb_real;
-            %                 if output_xhist, xhist(:, nf) = x_bb; end
-
-            %                 % 严格验收：直接用 forcing_function(norm(p))
-            %                 if f_bb_real + forcing_function(nbb) < fbase
-            %                     xbase = x_bb;  fbase = f_bb_real;
-
-            %                     if iprint >= 2
-            %                         fprintf("BB step size = %23.16E\n", bb_step_size);
-            %                         fprintf("Function number %d    F = %23.16E\n", nf, f_bb_real);
-            %                         fprintf("The corresponding X is:\n");
-            %                         print_aligned_vector(x_bb); fprintf("\n");
-            %                     end
-
-            %                     if f_bb_real < fopt, fopt = f_bb_real; xopt = x_bb; end
-            %                 end
-
-            %                 if nf >= MaxFunctionEvaluations
-            %                     terminate = true;
-            %                     exitflag = get_exitflag("MAXFUN_REACHED");
-            %                 end
-            %             end
-            %         end
-            %         % ---- 你原有的 BB1/BB2 实现结束 ----
-            %     end
-            % end
-
-            % if all(alpha_all < gradient_termination_step_threshold)
-            %     % Smaller step sizes yield more accurate gradient estimates. We only consider
-            %     % gradients reliable for termination decisions when maximum step size is below
-            %     % gradient_termination_step_threshold. This prevents premature termination based on
-            %     % inaccurate gradients.
-            %     grad_stop_hist = [grad_stop_hist, grad];
-            % end
         end
     end
 
@@ -821,9 +625,6 @@ output.fhist = fhist(1:nf);
 output.grad_hist = grad_hist;
 output.grad_xhist = grad_xhist;
 output.alpha_final = alpha_all;
-% if use_estimated_gradient_stop
-%     output.grad_stop_hist = grad_stop_hist;
-% end
 
 % Set the message according to exitflag.
 switch exitflag

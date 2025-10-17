@@ -1,0 +1,22 @@
+function upper_bound = get_gradient_error_bound(alpha_all, direction_indices_per_block, n, positive_direction_set)
+
+    % Create full alpha vector for all n directions
+    alpha_full = zeros(n, 1);
+    num_blocks = length(direction_indices_per_block);
+    % Map each block's alpha value to the corresponding directions
+    for i = 1:num_blocks
+        % Get the direction indices for the current block
+        indices = direction_indices_per_block{i};
+        % Convert to positive direction indices (odd columns correspond to positive directions)
+        pos_indices = ceil(indices/2);
+        % Map the current block's alpha value to the corresponding directions
+        alpha_full(pos_indices) = alpha_all(i);
+    end
+
+    alpha_powers = alpha_full.^4;    
+    direction_norms_powers = vecnorm(positive_direction_set).^6;
+
+    % Assume lipschitz constant of the Hessian is 1.
+    upper_bound = (1 / (6 * svds(positive_direction_set, 1, "smallest"))) * sqrt(sum(direction_norms_powers .* alpha_powers'));
+
+end

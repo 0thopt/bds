@@ -10,49 +10,82 @@ function test_gradient(n, seed)
         seed = yw;
     end
 
-    if nargin < 1
-        n = randi(1000); % Randomly choose a dimension between 1 and 1000
-    end
-
     % Save current random number generator state
     oldState = rng();
     
     % Set the random seed for reproducibility
     rng(seed);
 
+    if nargin < 1
+        n = randi(100); % Randomly choose a dimension between 1 and 100
+    end
+
+    % Randomly choose the number of blocks and batch size.
+    % num_blocks should be at most n and at least 1.
+    % batch_size should be at least 1 and at most num_blocks.
+    num_blocks = randi(n);
+    batch_size = randi(num_blocks);
+
+    % Randomly generate step sizes for each block.
+    alpha_all = 0.01 + 0.09 * rand(num_blocks, 1);
+
+    direction_selection_probability_matrix = (batch_size / num_blocks) * eye(n);
+    grad_info.direction_selection_probability_matrix = direction_selection_probability_matrix;
+
+    % Divide the direction set into num_blocks blocks.
+    direction_indices_per_block = divide_direction_set(n, num_blocks);
+
+    % Create full alpha vector for all n directions
+    alpha_full = zeros(n, 1);
+    % Map each block's alpha value to the corresponding directions
+    for i = 1:num_blocks
+        % Get the direction indices for the current block
+        indices = direction_indices_per_block{i};
+        % Convert to positive direction indices (odd columns correspond to positive directions)
+        pos_indices = ceil(indices/2);
+        % Map the current block's alpha value to the corresponding directions
+        alpha_full(pos_indices) = alpha_all(i);
+    end
+
     % Randomly generate a point in n-dimensional space.
     x = randn(n, 1);
     options.direction_set = randn(n, n);
-    
-    % Let each batch has their own step size. We only test the case where batch_size is equal to n since it
-    % is deterministic.
-    grad_info.step_size_per_batch = 0.01 + 0.09 * rand(n, 1);
-    % Give estimate_gradient.m enough information.
+    % Get the complete direction set (both positive and negative directions).
     grad_info.complete_direction_set = get_direction_set(n, options);
     positive_direction_set = grad_info.complete_direction_set(:, 1:2:end);
-    grad_info.sampled_direction_indices_per_batch = divide_direction_set(n, n);
-    % Since the batch_size is equal to n, every direction should be visited when all directions fail to get
-    % sufficient decrease.
-    grad_info.direction_selection_probability_matrix = eye(n);
 
-    % Use different way from bds.m to compute function values and divide those function values into corresponding batches.
-    grad_info.function_values_per_batch = cellfun(@(batch_idx, b) arrayfun(@(d) ...
-        cubic_function_with_gradient(x + grad_info.step_size_per_batch(b) * grad_info.complete_direction_set(:, batch_idx(d))), ...
-        1:length(batch_idx)), ...
-        grad_info.sampled_direction_indices_per_batch, num2cell(1:length(grad_info.sampled_direction_indices_per_batch)), ...
-        'UniformOutput', false);
+    % If batch_size equals num_blocks, the gradient estimation is deterministic.
+    % Otherwise, we perform multiple repetitions to estimate the gradient.
+    if batch_size == num_blocks
+        num_repetitions = 1;
+    else
+        num_repetitions = 50;
+    end
 
-    grad_info.n = n;
-    estimate_grad = estimate_gradient(grad_info);
-    [~, true_grad] = cubic_function_with_gradient(x);
+    grad = [];
+    for i = 1:num_repetitions
+        grad = [grad, gradient_generator(n, num_blocks, batch_size, direction_indices_per_block, alpha_all, @(z) random_cubic_function_with_gradient(z), x, grad_info)];
+    end
+    estimated_grad = mean(grad, 2);
+    grad_cov = cov(grad');
 
-    alpha_powers = grad_info.step_size_per_batch.^4;
+    alpha_powers = alpha_full.^4;    
     direction_norms_powers = vecnorm(positive_direction_set).^6;
 
-    grad_diff = norm(estimate_grad - true_grad);
-    theoretical_bound = (1 / (6 * min(svd(positive_direction_set)))) * sqrt(sum(direction_norms_powers .* alpha_powers'));
-    assert(grad_diff <= theoretical_bound - 1e-10, ...
-        'Gradient estimation error does not match theoretical bound with tolerance 1e-10');
+    [~, true_grad] = random_cubic_function_with_gradient(x);
+    
+    grad_diff = norm(estimated_grad - true_grad);
+    if batch_size == num_blocks
+        theoretical_bound = (1 / (6 * svds(positive_direction_set, 1, "smallest"))) * sqrt(sum(direction_norms_powers .* alpha_powers'));
+        assert(grad_diff <= theoretical_bound, 'Gradient estimation error does not match theoretical bound');
+    else
+        theoretical_bound = (1 / (6 * svds(positive_direction_set * direction_selection_probability_matrix  * positive_direction_set', 1, "smallest"))) ...
+        * svds(positive_direction_set, 1, "largest") ...
+        * sqrt((batch_size / num_blocks)^2 * sum(direction_norms_powers .* alpha_powers'));
+        chi2_val = chi2inv_simple(0.95, n);
+        assert(grad_diff <= (theoretical_bound + sqrt(chi2_val / num_repetitions) * sqrt(trace(grad_cov))), ...
+        'Gradient estimation error does not match theoretical bound');
+    end
 
     fprintf('Test passed! Actual gradient difference: %e, Theoretical bound: %e\n', grad_diff, theoretical_bound);
     
@@ -61,8 +94,38 @@ function test_gradient(n, seed)
     
 end
 
-function [f, grad] = cubic_function_with_gradient(x)
-    % A simple cubic function whose lipschitz constant of the hessian is 1.
-    f = sum(x.^3) / 6;
-    grad = 0.5 * x.^2;
+function [f, grad] = random_cubic_function_with_gradient(x)
+    % Simple random cubic function with non-diagonal Hessian
+    % Maintains Lipschitz constant of Hessian = 1
+    
+    time_zone = "Asia/Shanghai";
+
+    dt = datetime("now", "TimeZone", time_zone);
+    yw = 100*mod(year(dt), 100) + week(dt);
+    seed = yw;
+    
+    n = length(x);
+
+    % Save current random number generator state
+    oldState = rng();
+    
+    rng(seed);
+    
+    % Generate a random orthogonal matrix from Haar measure.
+    [Q, R] = qr(randn(n, n));
+    Q = Q*diag(sign(diag(R)));
+
+    y = Q' * x;
+    f = sum(y.^3) / 6;
+    grad_y = 0.5 * y.^2;
+    
+    grad = Q * grad_y;
+
+    rng(oldState);
+end
+
+function x = chi2inv_simple(p, v)
+    % Compute inverse CDF of Chi-square(v) via fzero + gammainc
+    f = @(x) gammainc(x/2, v/2) - p;
+    x = fzero(f, [0, 10*v]);
 end

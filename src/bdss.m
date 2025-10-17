@@ -1,4 +1,4 @@
-function [xopt, fopt, exitflag, output] = bdss_backup(fun, x0, options)
+function [xopt, fopt, exitflag, output] = bdss(fun, x0, options)
 
 % ---------- defaults ----------
 if nargin < 3
@@ -66,7 +66,7 @@ for iter = 1:MaxIterations
     options_bds.MaxFunctionEvaluations = nf_rem;
 
     if iter > 1
-        options_bds.alpha_init = alpha_final; % warm start BDS with last round's final step size
+        options_bds.alpha_init = alpha_final; % always start BDS with last round's final step size
     end
 
     [xopt_bds, fopt_bds, exitflag_bds, out_bds] = bds(fun, xopt, options_bds);

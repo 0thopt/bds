@@ -1,4 +1,4 @@
-function [xopt, fopt, exitflag, output] = bdss(fun, x0, options)
+function [xopt, fopt, exitflag, output] = bdss_backup(fun, x0, options)
 
 % ---------- defaults ----------
 if nargin < 3
