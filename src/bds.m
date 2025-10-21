@@ -449,7 +449,7 @@ for iter = 1:maxit
         function_values_per_batch{i} = sub_output.fhist;
 
         % Record whether sufficient decrease was achieved in this batch.
-        batch_gradient_eligible(i) = ~sub_output.sufficient_decrease && (sub_output.nf == length(direction_indices));
+        batch_gradient_eligible(i) = (sub_output.nf == length(direction_indices)) && ~sub_output.sufficient_decrease;
 
         % Record the best function value and point encountered in the i_real-th block.
         fopt_all(i_real) = sub_fopt;
@@ -583,12 +583,14 @@ for iter = 1:maxit
                 % has already been updated in the current iteration. The error between estimated
                 % gradient and true gradient should come from the step size of finite difference.
                 % That is why we use grad_info.step_size_per_batch.
-                grad_error = get_gradient_error_bound(grad_info.step_size_per_batch, grouped_direction_indices, n, positive_direction_set);
-                if grad_tol >= grad_error
-                    if grad_error + norm(grad) < grad_tol
-                        gradient_termination_eligible = [gradient_termination_eligible, true];
-                    end
+                grad_error = get_gradient_error_bound(grad_info.step_size_per_batch, ...
+                                                    batch_size, grouped_direction_indices, n, ...
+                                                    positive_direction_set, direction_selection_probability_matrix);
+                % if grad_tol >= grad_error
+                if grad_error + norm(grad) < grad_tol
+                    gradient_termination_eligible = [gradient_termination_eligible, true];
                 end
+                % end
                 % Check whether the consecutive grad_window_size gradients are sufficiently small.
                 if length(gradient_termination_eligible) >= grad_window_size
                     terminate = true;

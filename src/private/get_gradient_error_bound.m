@@ -1,4 +1,4 @@
-function upper_bound = get_gradient_error_bound(alpha_all, direction_indices_per_block, n, positive_direction_set)
+function upper_bound = get_gradient_error_bound(alpha_all, batch_size, direction_indices_per_block, n, positive_direction_set, direction_selection_probability_matrix)
 
     % Create full alpha vector for all n directions
     alpha_full = zeros(n, 1);
@@ -16,7 +16,13 @@ function upper_bound = get_gradient_error_bound(alpha_all, direction_indices_per
     alpha_powers = alpha_full.^4;    
     direction_norms_powers = vecnorm(positive_direction_set).^6;
 
-    % Assume lipschitz constant of the Hessian is 1.
-    upper_bound = (1 / (6 * svds(positive_direction_set, 1, "smallest"))) * sqrt(sum(direction_norms_powers .* alpha_powers'));
+    % A very naive assumption that the lipschitz constant of hessian is 1.
+    if batch_size == num_blocks
+        upper_bound = (1 / (6 * svds(positive_direction_set, 1, "smallest"))) * sqrt(sum(direction_norms_powers .* alpha_powers'));
+    else
+        upper_bound = (1 / (6 * svds(positive_direction_set * direction_selection_probability_matrix  * positive_direction_set', 1, "smallest"))) ...
+        * svds(positive_direction_set, 1, "largest") ...
+        * sqrt((batch_size / num_blocks)^2 * sum(direction_norms_powers .* alpha_powers'));
+    end
 
 end

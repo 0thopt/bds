@@ -47,6 +47,10 @@ jobs:
           repository: newuoas/newuoas
           path: newuoas
 
+      - name: modify newuoas
+        run: |
+          cd ./newuoas && sed -i '/if (normd ~= normd || f ~= f || f > fx || (normd > 0 && f == fx))/i\    if f >= fx\n        f = fx;\n        dopt = zeros(dim, 1);\n    end\n    normd = norm(dopt);' newuoas.m && cat newuoas.m
+
       - name: Clone PRIMA
         uses: actions/checkout@v4
         with:

@@ -49,6 +49,7 @@ function test_gradient(n, seed)
 
     % Randomly generate a point in n-dimensional space.
     x = randn(n, 1);
+    
     options.direction_set = randn(n, n);
     % Get the complete direction set (both positive and negative directions).
     grad_info.complete_direction_set = get_direction_set(n, options);
@@ -67,7 +68,6 @@ function test_gradient(n, seed)
         grad = [grad, gradient_generator(n, num_blocks, batch_size, direction_indices_per_block, alpha_all, @(z) random_cubic_function_with_gradient(z), x, grad_info)];
     end
     estimated_grad = mean(grad, 2);
-    grad_cov = cov(grad');
 
     alpha_powers = alpha_full.^4;    
     direction_norms_powers = vecnorm(positive_direction_set).^6;
@@ -77,15 +77,12 @@ function test_gradient(n, seed)
     grad_diff = norm(estimated_grad - true_grad);
     if batch_size == num_blocks
         theoretical_bound = (1 / (6 * svds(positive_direction_set, 1, "smallest"))) * sqrt(sum(direction_norms_powers .* alpha_powers'));
-        assert(grad_diff <= theoretical_bound, 'Gradient estimation error does not match theoretical bound');
     else
         theoretical_bound = (1 / (6 * svds(positive_direction_set * direction_selection_probability_matrix  * positive_direction_set', 1, "smallest"))) ...
         * svds(positive_direction_set, 1, "largest") ...
         * sqrt((batch_size / num_blocks)^2 * sum(direction_norms_powers .* alpha_powers'));
-        chi2_val = chi2inv_simple(0.95, n);
-        assert(grad_diff <= (theoretical_bound + sqrt(chi2_val / num_repetitions) * sqrt(trace(grad_cov))), ...
-        'Gradient estimation error does not match theoretical bound');
     end
+    assert(grad_diff <= theoretical_bound, 'Test failed! Actual gradient difference: %e exceeds Theoretical bound: %e', grad_diff, theoretical_bound);
 
     fprintf('Test passed! Actual gradient difference: %e, Theoretical bound: %e\n', grad_diff, theoretical_bound);
     
@@ -122,10 +119,4 @@ function [f, grad] = random_cubic_function_with_gradient(x)
     grad = Q * grad_y;
 
     rng(oldState);
-end
-
-function x = chi2inv_simple(p, v)
-    % Compute inverse CDF of Chi-square(v) via fzero + gammainc
-    f = @(x) gammainc(x/2, v/2) - p;
-    x = fzero(f, [0, 10*v]);
 end
