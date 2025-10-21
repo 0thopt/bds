@@ -60,9 +60,13 @@ for j = 1:length(sorted_sampled_dimension_indices)
     sampled_directional_derivatives(j) = estimate_directional_derivative(sorted_sampled_dimension_indices(j), step_size_per_batch, function_values_per_batch, sampled_direction_indices_per_batch);
 end
 
-% Why use the backslash operator instead of lsqminnorm? Since complete_basis_directions is invertible and
-% direction_selection_probability_matrix is a diagonal matrix with strictly positive diagonal elements, the matrix
-% complete_basis_directions * direction_selection_probability_matrix * complete_basis_directions' is guaranteed to be positive definite.
+% Why use the backslash operator instead of lsqminnorm?
+% When the batch size is smaller than the number of blocks, we have an underdetermined system.
+% The backslash operator provides a basic solution that minimizes the 2-norm of the error,
+% which better preserves the expected value property - the expectation of our estimated gradient 
+% equals the true gradient with error bounded by step size and the Lipschitz constant of the Hessian.
+% Using lsqminnorm would give the minimum-norm solution, which may introduce unnecessary bias
+% in the gradient estimate by prioritizing smaller gradient components.
 grad = (complete_basis_directions * direction_selection_probability_matrix * complete_basis_directions') \ (sampled_basis_directions * sampled_directional_derivatives);
 
 end

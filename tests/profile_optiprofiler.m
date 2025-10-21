@@ -1395,6 +1395,7 @@ function x = newuoas_test(fun, x0)
 
     option.maxfun = 500*length(x0);
     option.maxiter = 500*length(x0);
+    option.debug = false;
     [x, ~, ~, ~] = newuoas(fun, x0, option);
 
 end
