@@ -2,7 +2,7 @@ name: cbds with grad 1, 1x, 6x, big
 
 on:
   # Trigger the workflow on push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   # schedule:
   # - cron: '0 6 */1 * *'
