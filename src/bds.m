@@ -277,13 +277,13 @@ func_tol_2 = options.func_tol_2;
 
 use_estimated_gradient_stop = options.use_estimated_gradient_stop;
 grad_window_size = options.grad_window_size;
-grad_tol = options.grad_tol;
+grad_tol_1 = options.grad_tol_1;
+grad_tol_2 = options.grad_tol_2;
 
 gradient_estimation_complete = options.gradient_estimation_complete;
 
 grad_hist = [];
 grad_xhist = [];
-gradient_termination_eligible = [];
 
 grad_info = struct();
 grad_info.n = n;
@@ -586,16 +586,34 @@ for iter = 1:maxit
                 grad_error = get_gradient_error_bound(grad_info.step_size_per_batch, ...
                                                     batch_size, grouped_direction_indices, n, ...
                                                     positive_direction_set, direction_selection_probability_matrix);
-                % if grad_tol >= grad_error
-                if grad_error + norm(grad) < grad_tol
-                    gradient_termination_eligible = [gradient_termination_eligible, true];
+
+
+            if use_estimated_gradient_stop
+                % Calculate gradient norm once
+                current_grad_norm = norm(grad);
+                
+                % Check first termination condition if we have enough gradient history
+                should_terminate = false;
+                if size(grad_hist, 2) > grad_window_size
+                    % Calculate recent gradient norms once
+                    recent_grad_norms = vecnorm(grad_hist(:, end-grad_window_size+1:end), 2, 1);
+                    grad_change = max(recent_grad_norms) - min(recent_grad_norms);
+                    if current_grad_norm * grad_tol_1 < grad_change
+                        should_terminate = true;
+                    end
                 end
-                % end
-                % Check whether the consecutive grad_window_size gradients are sufficiently small.
-                if length(gradient_termination_eligible) >= grad_window_size
+                
+                % Check second termination condition
+                if grad_error + current_grad_norm < grad_tol_2
+                    should_terminate = true;
+                end
+                
+                % Set termination flag if any condition is met
+                if should_terminate
                     terminate = true;
                     exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
                 end
+            end
             end
 
         end

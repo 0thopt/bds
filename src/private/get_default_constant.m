@@ -71,17 +71,11 @@ switch constant_name
         constant_value = false;
     case {"grad_window_size"}
         constant_value = 1;
-    case {"grad_tol"}
-        constant_value = 1e-3;
-    case {"bb1"}
-        constant_value = false;
-    case {"bb2"}
-        constant_value = false;
+    case {"grad_tol_1"}
+        constant_value = 1e-6;
+    case {"grad_tol_2"}
+        constant_value = 1e-1;
     case {"gradient_estimation_complete"}
-        constant_value = false;
-    case {"spectral_cauchy"}
-        constant_value = false;
-    case {"dogleg"}
         constant_value = false;
     otherwise
         error("Unknown constant name")

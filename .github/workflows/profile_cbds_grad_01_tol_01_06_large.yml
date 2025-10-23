@@ -1,8 +1,8 @@
-name: cbds with grad 5, 2x, large
+name: cbds with grad 1, 1x, 6x, large
 
 on:
   # Trigger the workflow on push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   # schedule:
   # - cron: '0 6 */1 * *'
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: cbds with grad window size 5, tol 02, large
+    name: cbds with grad window size 1, tol 01, 06, large
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -77,8 +77,9 @@ jobs:
               % profile
               addpath(fullfile(root_dir, 'tests'));
               cd(fullfile(root_dir, 'tests', 'tuning'));
-              parameters.grad_window_size = [5 1e8];
-              parameters.grad_tol = [1e-2 1e-30];
+              parameters.grad_window_size = [1 1e8];
+              parameters.grad_tol_1 = [1e-1 1e-30];
+              parameters.grad_tol_2 = [1e-6 1e-30];
               options = struct();
               options.solver_names = {'cbds-grad', 'cbds-default'};
               options.plibs = '${{ matrix.plibs }}';
@@ -121,7 +122,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: profile_optiprofiler_cbds_grad_window_size_05_tol_02_${{ matrix.dim }}_${{ matrix.feature }}
+          name: profile_optiprofiler_cbds_grad_window_size_01_tol_01_06_${{ matrix.dim }}_${{ matrix.feature }}
           path: ./tests/tuning/tuning_data/**
 
   merge_artifacts:
@@ -174,10 +175,10 @@ jobs:
           cd summary
           ls
           bash ../merge_pdf.sh
-          mv merged.pdf "summary_cbds_grad_window_size_05_tol_02_large.pdf"
+          mv merged.pdf "summary_cbds_grad_window_size_01_tol_01_06_large.pdf"
           cd ..
           if [ -d "summary" ]; then
-            mv summary "summary_cbds_grad_window_size_05_tol_02_large"
+            mv summary "summary_cbds_grad_window_size_01_tol_01_06_large"
           fi
 
       - name: Upload merged artifact
@@ -185,7 +186,7 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: merged_profiles_cbds_grad_window_size_05_tol_02_large
+          name: merged_profiles_cbds_grad_window_size_01_tol_01_06_large
           path: tests/tuning/tuning_data/downloaded_artifacts/**
 
       - name: Upload summary files
@@ -193,5 +194,5 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: summary_files_cbds_grad_window_size_05_tol_02_large
-          path: tests/tuning/tuning_data/downloaded_artifacts/summary_cbds_grad_window_size_05_tol_02_large/**
+          name: summary_files_cbds_grad_window_size_01_tol_01_06_large
+          path: tests/tuning/tuning_data/downloaded_artifacts/summary_cbds_grad_window_size_01_tol_01_06_large/**
