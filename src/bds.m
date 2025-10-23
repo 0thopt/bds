@@ -284,6 +284,7 @@ gradient_estimation_complete = options.gradient_estimation_complete;
 
 grad_hist = [];
 grad_xhist = [];
+grad_error_hist = [];
 
 grad_info = struct();
 grad_info.n = n;
@@ -586,22 +587,39 @@ for iter = 1:maxit
                 grad_error = get_gradient_error_bound(grad_info.step_size_per_batch, ...
                                                     batch_size, grouped_direction_indices, n, ...
                                                     positive_direction_set, direction_selection_probability_matrix);
+                grad_error_hist = [grad_error_hist, grad_error];
 
                 % Calculate gradient norm once
                 current_grad_norm = norm(grad);
                 
                 % Check first termination condition if we have enough gradient history
                 should_terminate = false;
-                
-                if size(grad_hist, 2) > grad_window_size
+
+                if size(grad_hist, 2) >= max(2, grad_window_size)
                     % Calculate recent gradient norms once
                     recent_grad_norms = vecnorm(grad_hist(:, end-grad_window_size+1:end), 2, 1);
-                    grad_change = max(recent_grad_norms) - min(recent_grad_norms);
-                    if grad_change < grad_tol_1 * current_grad_norm
+                    recent_grad_errors = grad_error_hist(end-grad_window_size+1:end);
+
+                    % --- Error weighting: larger errors receive smaller weights ---
+                    % Use median to normalize errors, avoiding scale issues and providing a lower bound protection
+                    err_scale = max(eps, median(recent_grad_errors));
+                    e = max(eps, recent_grad_errors ./ err_scale);
+
+                    w = 1 ./ (1 + e);   % Larger errors => smaller weights
+                    w = w / sum(w);     % Normalize
+
+                    % Weighted mean/variance/relative fluctuation
+                    w_mean = sum(w .* recent_grad_norms);
+                    w_var  = sum(w .* (recent_grad_norms - w_mean).^2);
+                    w_std  = sqrt(w_var);
+                    rel_var = w_std / max(eps, w_mean);
+                    
+                    % Relative fluctuation is small enough => stable
+                    if rel_var < grad_tol_1
                         should_terminate = true;
                     end
                 end
-                
+
                 % Check second termination condition
                 if grad_error + current_grad_norm < grad_tol_2
                     should_terminate = true;
