@@ -246,6 +246,10 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
     if ismember('grad_tol_2', param_fields)
         options.benchmark_id = append_param_to_id(options.benchmark_id, 'grad_tol_2', parameters.grad_tol_2(1));
     end
+    if ismember('maxfun_factor', param_fields)
+        options.benchmark_id = append_param_to_id(options.benchmark_id, 'maxfun_factor', parameters.maxfun_factor(1));
+        options.max_eval_factor = max(parameters.maxfun_factor);
+    end
     options.benchmark_id = [options.benchmark_id, '_', time_str];
     
     if ~isfield(options, 'savepath')
@@ -594,6 +598,8 @@ function benchmark_id = append_param_to_id(benchmark_id, param_name, param_value
         param_str = strrep(param_str, '.', '');
     elseif strcmp(param_name, 'shrink')
         param_str = param_str(3:end); % Remove '0.'
+    elseif strcmp(param_name, 'maxfun_factor')
+        param_str = sprintf('%d', round(param_value));
     elseif contains(param_name, 'tol')
         if param_value > 1e-10
             param_str = sprintf('0%d', int32(-log10(param_value)));
