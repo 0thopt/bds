@@ -279,6 +279,7 @@ use_estimated_gradient_stop = options.use_estimated_gradient_stop;
 grad_window_size = options.grad_window_size;
 grad_tol_1 = options.grad_tol_1;
 grad_tol_2 = options.grad_tol_2;
+counter = 0;
 
 gradient_estimation_complete = options.gradient_estimation_complete;
 
@@ -592,47 +593,49 @@ for iter = 1:maxit
                 % Calculate gradient norm once
                 current_grad_norm = norm(grad);
                 
-                % Check first termination condition if we have enough gradient history
-                should_terminate = false;
+                % % Check first termination condition if we have enough gradient history
+                % should_terminate = false;
 
-                if size(grad_hist, 2) >= max(2, grad_window_size)
-                    % Calculate recent gradient norms once
-                    recent_grad_norms = vecnorm(grad_hist(:, end-grad_window_size+1:end), 2, 1);
-                    recent_grad_errors = grad_error_hist(end-grad_window_size+1:end);
+                % if size(grad_hist, 2) >= max(2, grad_window_size)
+                %     % Calculate recent gradient norms once
+                %     recent_grad_norms = vecnorm(grad_hist(:, end-grad_window_size+1:end), 2, 1);
+                %     recent_grad_errors = grad_error_hist(end-grad_window_size+1:end);
 
-                    snr = recent_grad_norms ./ max(eps, recent_grad_errors);
-                    % ---- Adaptive low-SNR truncation ----
-                    tau = 0.75;  % Truncation ratio, larger means stricter
-                    snr_med = median(snr);
-                    mask_keep = snr >= tau * snr_med;
+                %     snr = recent_grad_norms ./ max(eps, recent_grad_errors);
+                %     % ---- Adaptive low-SNR truncation ----
+                %     tau = 0.75;  % Truncation ratio, larger means stricter
+                %     snr_med = median(snr);
+                %     mask_keep = snr >= tau * snr_med;
 
-                    % Only when all samples pass, the window is valid
-                    if all(mask_keep)
-                        % Weighted smoothing stability (same as before)
-                        beta = 2;
-                        w = snr.^beta;
-                        w = w / sum(w);
-                        w_mean = sum(w .* recent_grad_norms);
-                        w_var  = sum(w .* (recent_grad_norms - w_mean).^2);
-                        rel_var_snr = sqrt(w_var) / max(eps, w_mean);
+                %     % Only when all samples pass, the window is valid
+                %     if all(mask_keep)
+                %         % Weighted smoothing stability (same as before)
+                %         beta = 2;
+                %         w = snr.^beta;
+                %         w = w / sum(w);
+                %         w_mean = sum(w .* recent_grad_norms);
+                %         w_var  = sum(w .* (recent_grad_norms - w_mean).^2);
+                %         rel_var_snr = sqrt(w_var) / max(eps, w_mean);
 
-                        should_terminate = (rel_var_snr < grad_tol_1);
-                        % if should_terminate
-                        %     keyboard
-                        % end
-                    else
-                        % If there are low-SNR samples, do not consider termination.
-                        should_terminate = false;
-                    end
-                end
+                %         should_terminate = (rel_var_snr < grad_tol_1);
+                %         % if should_terminate
+                %         %     keyboard
+                %         % end
+                %     else
+                %         % If there are low-SNR samples, do not consider termination.
+                %         should_terminate = false;
+                %     end
+                % end
 
                 % % Check second termination condition
                 if grad_error + current_grad_norm < grad_tol_2
-                    should_terminate = true;
+                    counter = counter + 1;
+                else
+                    counter = 0;
                 end
                 
                 % Set termination flag if any condition is met
-                if should_terminate
+                if counter >= grad_window_size
                     terminate = true;
                     exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
                 end

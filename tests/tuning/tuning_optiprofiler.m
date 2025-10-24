@@ -19,9 +19,14 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
                 solvers{i_solver} = @(fun, x0) cbds_window_size_fun_tol(fun, x0, parameters.func_window_size(i_solver), parameters.func_tol_1(i_solver), parameters.func_tol_2(i_solver));
             end
         case ismember('grad_window_size', param_fields) && ~ismember('func_window_size', param_fields) ... 
-            && ismember('grad_tol_1', param_fields) && ismember('grad_tol_2', param_fields) && ~ismember('batch_size', param_fields)
+            && ismember('grad_tol_1', param_fields) && ismember('grad_tol_2', param_fields) && ~ismember('batch_size', param_fields) && ~ismember('maxfun_factor', param_fields)
             for i_solver = 1:n_solvers
                 solvers{i_solver} = @(fun, x0) cbds_window_size_grad_tol(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol_1(i_solver), parameters.grad_tol_2(i_solver));
+            end
+        case ismember('grad_window_size', param_fields) && ~ismember('func_window_size', param_fields) ... 
+            && ismember('grad_tol_1', param_fields) && ismember('grad_tol_2', param_fields) && ~ismember('batch_size', param_fields) && ismember('maxfun_factor', param_fields)
+            for i_solver = 1:n_solvers
+                solvers{i_solver} = @(fun, x0) cbds_window_size_grad_tol_maxfun_factor(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol_1(i_solver), parameters.grad_tol_2(i_solver), parameters.maxfun_factor(i_solver));
             end
         case ismember('grad_window_size', param_fields) && ~ismember('func_window_size', param_fields) ...
             && ismember('grad_tol_1', param_fields) && ismember('grad_tol_2', param_fields) && ismember('batch_size', param_fields)
@@ -442,6 +447,27 @@ function x = cbds_window_size_grad_tol(fun, x0, grad_window_size, grad_tol_1, gr
         option.grad_tol_2 = grad_tol_2;
         option.use_estimated_gradient_stop = true;
     end
+    
+    x = bds(fun, x0, option);
+    
+    
+end
+
+function x = cbds_window_size_grad_tol_maxfun_factor(fun, x0, grad_window_size, grad_tol_1, grad_tol_2, maxfun_factor)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    if grad_window_size > 1e5 || grad_tol_1 == 1e-30 || grad_tol_2 == 1e-30
+        option.use_estimated_gradient_stop = false;
+    else
+        option.grad_window_size = grad_window_size;
+        option.grad_tol_1 = grad_tol_1;
+        option.grad_tol_2 = grad_tol_2;
+        option.use_estimated_gradient_stop = true;
+    end
+    option.StepTolerance = eps;
+    option.MaxFunctionEvaluations = maxfun_factor * numel(x0);
     
     x = bds(fun, x0, option);
     
