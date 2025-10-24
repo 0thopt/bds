@@ -600,23 +600,21 @@ for iter = 1:maxit
                     recent_grad_norms = vecnorm(grad_hist(:, end-grad_window_size+1:end), 2, 1);
                     recent_grad_errors = grad_error_hist(end-grad_window_size+1:end);
 
-                    % --- Error weighting: larger errors receive smaller weights ---
-                    % Use median to normalize errors, avoiding scale issues and providing a lower bound protection
-                    err_scale = max(eps, median(recent_grad_errors));
-                    e = max(eps, recent_grad_errors ./ err_scale);
+                    snr = recent_grad_norms ./ max(eps, recent_grad_errors);
+                    snr_med = median(snr);
+                    mask = (snr >= max(3, 1.5 * snr_med)) & isfinite(snr);
+                    norms_ok = recent_grad_norms(mask);
 
-                    w = 1 ./ (1 + e);   % Larger errors => smaller weights
-                    w = w / sum(w);     % Normalize
+                    if numel(norms_ok) >= 2
+                        % Equal weighting (or you can continue using your previous error weighting, both are acceptable)
+                        mu   = mean(norms_ok);
+                        s2   = mean((norms_ok - mu).^2);
+                        w_std = sqrt(max(0, s2));
+                        rel_var = w_std / max(eps, mu);
 
-                    % Weighted mean/variance/relative fluctuation
-                    w_mean = sum(w .* recent_grad_norms);
-                    w_var  = sum(w .* (recent_grad_norms - w_mean).^2);
-                    w_std  = sqrt(w_var);
-                    rel_var = w_std / max(eps, w_mean);
-                    
-                    % Relative fluctuation is small enough => stable
-                    if rel_var < grad_tol_1
-                        should_terminate = true;
+                        if rel_var < grad_tol_1
+                            should_terminate = true;
+                        end
                     end
                 end
 
