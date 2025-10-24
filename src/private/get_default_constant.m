@@ -71,10 +71,8 @@ switch constant_name
         constant_value = false;
     case {"grad_window_size"}
         constant_value = 1;
-    case {"grad_tol_1"}
-        constant_value = 1e-1;
-    case {"grad_tol_2"}
-        constant_value = 1e-6;
+    case {"grad_tol"}
+        constant_value = 1e-3;
     case {"gradient_estimation_complete"}
         constant_value = false;
     otherwise
