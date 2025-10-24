@@ -601,24 +601,32 @@ for iter = 1:maxit
                     recent_grad_errors = grad_error_hist(end-grad_window_size+1:end);
 
                     snr = recent_grad_norms ./ max(eps, recent_grad_errors);
+                    % ---- Adaptive low-SNR truncation ----
+                    tau = 0.75;  % Truncation ratio, larger means stricter
                     snr_med = median(snr);
-                    mask = (snr >= max(3, 1.5 * snr_med)) & isfinite(snr);
-                    norms_ok = recent_grad_norms(mask);
+                    mask_keep = snr >= tau * snr_med;
 
-                    if numel(norms_ok) >= 2
-                        % Equal weighting (or you can continue using your previous error weighting, both are acceptable)
-                        mu   = mean(norms_ok);
-                        s2   = mean((norms_ok - mu).^2);
-                        w_std = sqrt(max(0, s2));
-                        rel_var = w_std / max(eps, mu);
+                    % Only when all samples pass, the window is valid
+                    if all(mask_keep)
+                        % Weighted smoothing stability (same as before)
+                        beta = 2;
+                        w = snr.^beta;
+                        w = w / sum(w);
+                        w_mean = sum(w .* recent_grad_norms);
+                        w_var  = sum(w .* (recent_grad_norms - w_mean).^2);
+                        rel_var_snr = sqrt(w_var) / max(eps, w_mean);
 
-                        if rel_var < grad_tol_1
-                            should_terminate = true;
-                        end
+                        should_terminate = (rel_var_snr < grad_tol_1);
+                        % if should_terminate
+                        %     keyboard
+                        % end
+                    else
+                        % If there are low-SNR samples, do not consider termination.
+                        should_terminate = false;
                     end
                 end
 
-                % Check second termination condition
+                % % Check second termination condition
                 if grad_error + current_grad_norm < grad_tol_2
                     should_terminate = true;
                 end
