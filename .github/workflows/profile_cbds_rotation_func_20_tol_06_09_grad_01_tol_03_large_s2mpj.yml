@@ -1,8 +1,8 @@
-name: Rotation with func 20-6-9 and grad 1-3, large
+name: Rotation with func 20-6-9 and grad 1-3, large, s2mpj
 
 on:
   # Trigger the workflow on push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   # schedule:
   # - cron: '0 6 */1 * *'
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Rotation with func 20-6-9 and grad 1-3, large
+    name: Rotation with func 20-6-9 and grad 1-3, large, s2mpj
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -18,7 +18,7 @@ jobs:
         os: [ubuntu-latest]
         matlab: [R2024b]
         dim: [large]
-        plibs: [matcutest]
+        plibs: [s2mpj]
         with_optim_toolbox: [yes]
         feature: [plain, perturbed_x0_0.001, perturbed_x0_1, perturbed_x0_10, perturbed_x0_100, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, permuted, linearly_transformed, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
 
@@ -177,10 +177,10 @@ jobs:
           cd summary
           ls
           bash ../merge_pdf.sh
-          mv merged.pdf "summary_cbds_rotation_func_20_tol_06_09_grad_01_tol_03_large.pdf"
+          mv merged.pdf "summary_cbds_rotation_func_20_tol_06_09_grad_01_tol_03_large_s2mpj.pdf"
           cd ..
           if [ -d "summary" ]; then
-            mv summary "summary_cbds_rotation_func_20_tol_06_09_grad_01_tol_03_large"
+            mv summary "summary_cbds_rotation_func_20_tol_06_09_grad_01_tol_03_large_s2mpj"
           fi
 
       - name: Upload merged artifact
@@ -188,7 +188,7 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: merged_profiles_cbds_rotation_func_20_tol_06_09_grad_01_tol_03_large
+          name: merged_profiles_cbds_rotation_func_20_tol_06_09_grad_01_tol_03_large_s2mpj
           path: tests/tuning/tuning_data/downloaded_artifacts/**
 
       - name: Upload summary files
@@ -196,5 +196,5 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: summary_files_cbds_rotation_func_20_tol_06_09_grad_01_tol_03_large
-          path: tests/tuning/tuning_data/downloaded_artifacts/summary_cbds_rotation_func_20_tol_06_09_grad_01_tol_03_large/**
+          name: summary_files_cbds_rotation_func_20_tol_06_09_grad_01_tol_03_large_s2mpj
+          path: tests/tuning/tuning_data/downloaded_artifacts/summary_cbds_rotation_func_20_tol_06_09_grad_01_tol_03_large_s2mpj/**

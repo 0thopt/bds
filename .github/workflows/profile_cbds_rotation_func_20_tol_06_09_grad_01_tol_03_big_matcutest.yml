@@ -1,8 +1,8 @@
-name: Rotation with func 20-6-9 and grad 1-3, big
+name: Rotation with func 20-6-9 and grad 1-3, big, matcutest
 
 on:
   # Trigger the workflow on push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   # schedule:
   # - cron: '0 6 */1 * *'
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Rotation with func 20-6-9 and grad 1-3, big
+    name: Rotation with func 20-6-9 and grad 1-3, big, matcutest
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -177,10 +177,10 @@ jobs:
           cd summary
           ls
           bash ../merge_pdf.sh
-          mv merged.pdf "summary_cbds_rotation_func_20_tol_06_09_grad_01_tol_03_big.pdf"
+          mv merged.pdf "summary_cbds_rotation_func_20_tol_06_09_grad_01_tol_03_big_matcutest.pdf"
           cd ..
           if [ -d "summary" ]; then
-            mv summary "summary_cbds_rotation_func_20_tol_06_09_grad_01_tol_03_big"
+            mv summary "summary_cbds_rotation_func_20_tol_06_09_grad_01_tol_03_big_matcutest"
           fi
 
       - name: Upload merged artifact
@@ -188,7 +188,7 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: merged_profiles_cbds_rotation_func_20_tol_06_09_grad_01_tol_03_big
+          name: merged_profiles_cbds_rotation_func_20_tol_06_09_grad_01_tol_03_big_matcutest
           path: tests/tuning/tuning_data/downloaded_artifacts/**
 
       - name: Upload summary files
@@ -196,5 +196,5 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: summary_files_cbds_rotation_func_20_tol_06_09_grad_01_tol_03_big
-          path: tests/tuning/tuning_data/downloaded_artifacts/summary_cbds_rotation_func_20_tol_06_09_grad_01_tol_03_big/**
+          name: summary_files_cbds_rotation_func_20_tol_06_09_grad_01_tol_03_big_matcutest
+          path: tests/tuning/tuning_data/downloaded_artifacts/summary_cbds_rotation_func_20_tol_06_09_grad_01_tol_03_big_matcutest/**

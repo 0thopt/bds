@@ -38,14 +38,14 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
             && ismember('func_tol_1', param_fields) && ismember('func_tol_2', param_fields) ...
             && ~ismember('rotation', param_fields)
             for i_solver = 1:n_solvers
-                solvers{i_solver} = @(fun, x0) cbds_window_size_grad_tol_func_tol(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol(i_solver), parameters.func_window_size(i_solver), parameters.func_tol_1(i_solver), parameters.func_tol_2(i_solver), options.feature_name);
+                solvers{i_solver} = @(fun, x0) cbds_window_size_grad_tol_func_tol(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol(i_solver), parameters.func_window_size(i_solver), parameters.func_tol_1(i_solver), parameters.func_tol_2(i_solver));
             end
         case ismember('grad_window_size', param_fields) && ismember('func_window_size', param_fields) ...
             && ismember('grad_tol', param_fields) ...
             && ismember('func_tol_1', param_fields) && ismember('func_tol_2', param_fields) ...
             && ismember('rotation', param_fields)
             for i_solver = 1:n_solvers
-                solvers{i_solver} = @(fun, x0) cbds_rotation_window_size_grad_tol_func_tol(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol(i_solver), parameters.func_window_size(i_solver), parameters.func_tol_1(i_solver), parameters.func_tol_2(i_solver), options.feature_name, parameters.rotation(i_solver));
+                solvers{i_solver} = @(fun, x0) cbds_rotation_window_size_grad_tol_func_tol(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol(i_solver), parameters.func_window_size(i_solver), parameters.func_tol_1(i_solver), parameters.func_tol_2(i_solver), parameters.rotation(i_solver));
             end
     end
 
@@ -505,7 +505,7 @@ function x = cbds_window_size_grad_tol_batch_size(fun, x0, grad_window_size, gra
     
 end
 
-function x = cbds_window_size_grad_tol_func_tol(fun, x0, grad_window_size, grad_tol, func_window_size, func_tol_1, func_tol_2, feature_name)
+function x = cbds_window_size_grad_tol_func_tol(fun, x0, grad_window_size, grad_tol, func_window_size, func_tol_1, func_tol_2)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
@@ -538,7 +538,7 @@ function x = cbds_window_size_grad_tol_func_tol(fun, x0, grad_window_size, grad_
     
 end
 
-function x = cbds_rotation_window_size_grad_tol_func_tol(fun, x0, grad_window_size, grad_tol, func_window_size, func_tol_1, func_tol_2, feature_name, rotation)
+function x = cbds_rotation_window_size_grad_tol_func_tol(fun, x0, grad_window_size, grad_tol, func_window_size, func_tol_1, func_tol_2, rotation)
 
     option.Algorithm = 'cbds';
     option.expand = 2;

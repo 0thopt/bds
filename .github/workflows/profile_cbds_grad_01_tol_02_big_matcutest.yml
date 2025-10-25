@@ -175,10 +175,10 @@ jobs:
           cd summary
           ls
           bash ../merge_pdf.sh
-          mv merged.pdf "summary_cbds_grad_window_size_01_tol_02_big.pdf"
+          mv merged.pdf "summary_cbds_grad_window_size_01_tol_02_big_matcutest.pdf"
           cd ..
           if [ -d "summary" ]; then
-            mv summary "summary_cbds_grad_window_size_01_tol_02_big"
+            mv summary "summary_cbds_grad_window_size_01_tol_02_big_matcutest"
           fi
 
       - name: Upload merged artifact
@@ -186,7 +186,7 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: merged_profiles_cbds_grad_window_size_01_tol_02_big
+          name: merged_profiles_cbds_grad_window_size_01_tol_02_big_matcutest
           path: tests/tuning/tuning_data/downloaded_artifacts/**
 
       - name: Upload summary files
@@ -194,5 +194,5 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: summary_files_cbds_grad_window_size_01_tol_02_big
-          path: tests/tuning/tuning_data/downloaded_artifacts/summary_cbds_grad_window_size_01_tol_02_big/**
+          name: summary_files_cbds_grad_window_size_01_tol_02_big_matcutest
+          path: tests/tuning/tuning_data/downloaded_artifacts/summary_cbds_grad_window_size_01_tol_02_big_matcutest/**
