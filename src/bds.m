@@ -278,7 +278,7 @@ func_tol_2 = options.func_tol_2;
 use_estimated_gradient_stop = options.use_estimated_gradient_stop;
 grad_window_size = options.grad_window_size;
 grad_tol = options.grad_tol;
-counter = 0;
+grad_stop_counter = 0;
 
 gradient_estimation_complete = options.gradient_estimation_complete;
 
@@ -590,13 +590,13 @@ for iter = 1:maxit
                 grad_error_hist = [grad_error_hist, grad_error];
 
                 if grad_error + norm(grad) < grad_tol
-                    counter = counter + 1;
+                    grad_stop_counter = grad_stop_counter + 1;
                 else
-                    counter = 0;
+                    grad_stop_counter = 0;
                 end
                 
                 % Set termination flag if any condition is met
-                if counter >= grad_window_size
+                if grad_stop_counter >= grad_window_size
                     terminate = true;
                     exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
                 end
