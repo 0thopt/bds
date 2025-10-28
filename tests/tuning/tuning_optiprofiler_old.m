@@ -18,29 +18,34 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
             for i_solver = 1:n_solvers
                 solvers{i_solver} = @(fun, x0) cbds_window_size_fun_tol(fun, x0, parameters.func_window_size(i_solver), parameters.func_tol_1(i_solver), parameters.func_tol_2(i_solver));
             end
-        case ismember('grad_window_size', param_fields) && ~ismember('func_window_size', param_fields) ... 
-            && ismember('grad_tol_1', param_fields) && ismember('grad_tol_2', param_fields) && ~ismember('batch_size', param_fields)
+        case ~ismember('func_window_size', param_fields) && ~ismember('batch_size', param_fields) && ~ismember('maxfun_factor', param_fields) ...
+            && ismember('grad_tol', param_fields) && ismember('grad_window_size', param_fields)
             for i_solver = 1:n_solvers
-                solvers{i_solver} = @(fun, x0) cbds_window_size_grad_tol(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol_1(i_solver), parameters.grad_tol_2(i_solver));
+                solvers{i_solver} = @(fun, x0) cbds_window_size_grad_tol(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol(i_solver));
             end
-        case ismember('grad_window_size', param_fields) && ~ismember('func_window_size', param_fields) ...
-            && ismember('grad_tol_1', param_fields) && ismember('grad_tol_2', param_fields) && ismember('batch_size', param_fields)
+        case ~ismember('func_window_size', param_fields) && ~ismember('batch_size', param_fields) ...
+            && ismember('grad_tol', param_fields) && ismember('grad_window_size', param_fields) && ismember('maxfun_factor', param_fields)
             for i_solver = 1:n_solvers
-                solvers{i_solver} = @(fun, x0) cbds_window_size_grad_tol_batch_size(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol_1(i_solver), parameters.grad_tol_2(i_solver), parameters.batch_size(i_solver));
+                solvers{i_solver} = @(fun, x0) cbds_window_size_grad_tol_maxfun_factor(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol(i_solver), parameters.maxfun_factor(i_solver));
+            end
+        case ~ismember('func_window_size', param_fields) ...
+            && ismember('grad_tol', param_fields) && ismember('grad_window_size', param_fields) && ismember('batch_size', param_fields)
+            for i_solver = 1:n_solvers
+                solvers{i_solver} = @(fun, x0) cbds_window_size_grad_tol_batch_size(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol(i_solver), parameters.batch_size(i_solver));
             end
         case ismember('grad_window_size', param_fields) && ismember('func_window_size', param_fields) ...
-            && ismember('grad_tol_1', param_fields) && ismember('grad_tol_2', param_fields) ...
+            && ismember('grad_tol', param_fields) ...
             && ismember('func_tol_1', param_fields) && ismember('func_tol_2', param_fields) ...
             && ~ismember('rotation', param_fields)
             for i_solver = 1:n_solvers
-                solvers{i_solver} = @(fun, x0) cbds_window_size_grad_tol_func_tol(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol_1(i_solver), parameters.grad_tol_2(i_solver), parameters.func_window_size(i_solver), parameters.func_tol_1(i_solver), parameters.func_tol_2(i_solver), options.feature_name);
+                solvers{i_solver} = @(fun, x0) cbds_window_size_grad_tol_func_tol(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol(i_solver), parameters.func_window_size(i_solver), parameters.func_tol_1(i_solver), parameters.func_tol_2(i_solver));
             end
         case ismember('grad_window_size', param_fields) && ismember('func_window_size', param_fields) ...
-            && ismember('grad_tol_1', param_fields) && ismember('grad_tol_2', param_fields) ...
+            && ismember('grad_tol', param_fields) ...
             && ismember('func_tol_1', param_fields) && ismember('func_tol_2', param_fields) ...
             && ismember('rotation', param_fields)
             for i_solver = 1:n_solvers
-                solvers{i_solver} = @(fun, x0) cbds_rotation_window_size_grad_tol_func_tol(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol_1(i_solver), parameters.grad_tol_2(i_solver), parameters.func_window_size(i_solver), parameters.func_tol_1(i_solver), parameters.func_tol_2(i_solver), options.feature_name, parameters.rotation(i_solver));
+                solvers{i_solver} = @(fun, x0) cbds_rotation_window_size_grad_tol_func_tol(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol(i_solver), parameters.func_window_size(i_solver), parameters.func_tol_1(i_solver), parameters.func_tol_2(i_solver), parameters.rotation(i_solver));
             end
     end
 
@@ -235,18 +240,19 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
         end
         options.benchmark_id = append_param_to_id(options.benchmark_id, 'grad_window_size', formatted_value);
     end
-    if ismember('grad_tol_1', param_fields)
-        options.benchmark_id = append_param_to_id(options.benchmark_id, 'grad_tol_1', parameters.grad_tol_1(1));
+    if ismember('grad_tol', param_fields)
+        options.benchmark_id = append_param_to_id(options.benchmark_id, 'grad_tol', parameters.grad_tol(1));
     end
-    if ismember('grad_tol_2', param_fields)
-        options.benchmark_id = append_param_to_id(options.benchmark_id, 'grad_tol_2', parameters.grad_tol_2(1));
+    if ismember('maxfun_factor', param_fields)
+        options.benchmark_id = append_param_to_id(options.benchmark_id, 'maxfun_factor', parameters.maxfun_factor(1));
+        options.max_eval_factor = max(parameters.maxfun_factor);
     end
     options.benchmark_id = [options.benchmark_id, '_', time_str];
     
     if ~isfield(options, 'savepath')
         options.savepath = fullfile(fileparts(mfilename('fullpath')), 'tuning_data');
     end
-
+    
     if isfield(options, 'plibs') && strcmpi(options.plibs, 'matcutest')
         options.excludelist = {'ARGTRIGLS',...
         'BROWNAL',...
@@ -429,17 +435,16 @@ function x = cbds_window_size_fun_tol(fun, x0, func_window_size, func_tol_1, fun
     
 end
 
-function x = cbds_window_size_grad_tol(fun, x0, grad_window_size, grad_tol_1, grad_tol_2)
+function x = cbds_window_size_grad_tol(fun, x0, grad_window_size, grad_tol)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
     option.shrink = 0.5;
-    if grad_window_size > 1e5 || grad_tol_1 == 1e-30 || grad_tol_2 == 1e-30
+    if grad_window_size > 1e5 || grad_tol == 1e-30
         option.use_estimated_gradient_stop = false;
     else
         option.grad_window_size = grad_window_size;
-        option.grad_tol_1 = grad_tol_1;
-        option.grad_tol_2 = grad_tol_2;
+        option.grad_tol = grad_tol;
         option.use_estimated_gradient_stop = true;
     end
     
@@ -448,16 +453,35 @@ function x = cbds_window_size_grad_tol(fun, x0, grad_window_size, grad_tol_1, gr
     
 end
 
-function x = cbds_window_size_grad_tol_batch_size(fun, x0, grad_window_size, grad_tol_1, grad_tol_2, batch_size)
+function x = cbds_window_size_grad_tol_maxfun_factor(fun, x0, grad_window_size, grad_tol, maxfun_factor)
 
+    option.Algorithm = 'cbds';
     option.expand = 2;
     option.shrink = 0.5;
-    if grad_window_size > 1e5 || grad_tol_1 == 1e-30 || grad_tol_2 == 1e-30
+    if grad_window_size > 1e5 || grad_tol == 1e-30
         option.use_estimated_gradient_stop = false;
     else
         option.grad_window_size = grad_window_size;
-        option.grad_tol_1 = grad_tol_1;
-        option.grad_tol_2 = grad_tol_2;
+        option.grad_tol = grad_tol;
+        option.use_estimated_gradient_stop = true;
+    end
+    option.StepTolerance = eps;
+    option.MaxFunctionEvaluations = maxfun_factor * numel(x0);
+    
+    x = bds(fun, x0, option);
+    
+    
+end
+
+function x = cbds_window_size_grad_tol_batch_size(fun, x0, grad_window_size, grad_tol, batch_size)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    if grad_window_size > 1e5 || grad_tol == 1e-30
+        option.use_estimated_gradient_stop = false;
+    else
+        option.grad_window_size = grad_window_size;
+        option.grad_tol = grad_tol;
         option.use_estimated_gradient_stop = true;
     end
     switch batch_size
@@ -481,17 +505,16 @@ function x = cbds_window_size_grad_tol_batch_size(fun, x0, grad_window_size, gra
     
 end
 
-function x = cbds_window_size_grad_tol_func_tol(fun, x0, grad_window_size, grad_tol_1, grad_tol_2, func_window_size, func_tol_1, func_tol_2, feature_name)
+function x = cbds_window_size_grad_tol_func_tol(fun, x0, grad_window_size, grad_tol, func_window_size, func_tol_1, func_tol_2)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
     option.shrink = 0.5;
-    if grad_window_size > 1e5 || grad_tol_1 == 1e-30 || grad_tol_2 == 1e-30
+    if grad_window_size > 1e5 || grad_tol == 1e-30
         option.use_estimated_gradient_stop = false;
     else
         option.grad_window_size = grad_window_size;
-        option.grad_tol_1 = grad_tol_1;
-        option.grad_tol_2 = grad_tol_2;
+        option.grad_tol = grad_tol;
         option.use_estimated_gradient_stop = true;
     end
     if func_window_size > 1e5 || func_tol_1 == 1e-30 || func_tol_2 == 1e-30
@@ -515,20 +538,19 @@ function x = cbds_window_size_grad_tol_func_tol(fun, x0, grad_window_size, grad_
     
 end
 
-function x = cbds_rotation_window_size_grad_tol_func_tol(fun, x0, grad_window_size, grad_tol_1, grad_tol_2, func_window_size, func_tol_1, func_tol_2, feature_name, rotation)
+function x = cbds_rotation_window_size_grad_tol_func_tol(fun, x0, grad_window_size, grad_tol, func_window_size, func_tol_1, func_tol_2, rotation)
 
     option.Algorithm = 'cbds';
     option.expand = 2;
     option.shrink = 0.5;
-    if grad_window_size > 1e5 || grad_tol_1 == 1e-30 || grad_tol_2 == 1e-30
+    if grad_window_size > 1e5 || grad_tol == 1e-30
         option.use_estimated_gradient_stop = false;
     else
         option.grad_window_size = grad_window_size;
-        option.grad_tol_1 = grad_tol_1;
-        option.grad_tol_2 = grad_tol_2;
+        option.grad_tol = grad_tol;
         option.use_estimated_gradient_stop = true;
     end
-    if func_window_size > 1e5 || func_tol_1 == 1e-30 || func_tol_2 == 1e-30
+    if func_window_size > 1e5 || func_tol_1 == 1e-30
         option.use_function_value_stop = false;
     else
         option.func_window_size = func_window_size;
@@ -568,6 +590,8 @@ function benchmark_id = append_param_to_id(benchmark_id, param_name, param_value
         param_str = strrep(param_str, '.', '');
     elseif strcmp(param_name, 'shrink')
         param_str = param_str(3:end); % Remove '0.'
+    elseif strcmp(param_name, 'maxfun_factor')
+        param_str = sprintf('%d', round(param_value));
     elseif contains(param_name, 'tol')
         if param_value > 1e-10
             param_str = sprintf('0%d', int32(-log10(param_value)));

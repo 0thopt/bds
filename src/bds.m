@@ -262,9 +262,8 @@ end
 
 % Initialize the history of function values.
 fhist = NaN(1, MaxFunctionEvaluations);
-% Establish the history of best function values and points for each iteration.
-fopt_hist = NaN(1, MaxFunctionEvaluations);
-xopt_hist = NaN(n, MaxFunctionEvaluations);
+% Establish the history of best function values for each iteration.
+fopt_hist = [];
 
 output_block_hist = options.output_block_hist;
 % Initialize the history of blocks visited.
@@ -277,14 +276,16 @@ func_tol_2 = options.func_tol_2;
 
 use_estimated_gradient_stop = options.use_estimated_gradient_stop;
 grad_window_size = options.grad_window_size;
-grad_tol = options.grad_tol;
-grad_stop_counter = 0;
+grad_tol_1 = options.grad_tol_1;
+grad_tol_2 = options.grad_tol_2;
+norm_grad_hist = [];
 
 gradient_estimation_complete = options.gradient_estimation_complete;
 
 grad_hist = [];
 grad_xhist = [];
 grad_error_hist = [];
+
 
 grad_info = struct();
 grad_info.n = n;
@@ -326,7 +327,6 @@ xopt = xbase;
 fopt = fbase;
 % Initialize
 fopt_hist(1) = fopt;
-xopt_hist(:, 1) = xopt;
 
 terminate = false;
 % If MaxFunctionEvaluations is reached at the very first function evaluation
@@ -534,18 +534,22 @@ for iter = 1:maxit
         end
     end
 
-    % Track the best function value observed and the corresponding point in this iteration.
-    fopt_hist(iter + 1) = fopt;
-    xopt_hist(:, iter + 1) = xopt;
+    % Track the best function value observed among the latest func_window_size iterations.
+    fopt_hist = [fopt_hist, fopt];
+    % Why func_window_size + 1? Because the function value of the initial point has already been recorded
+    % before the iterations start. fopt_hist should always contain the latest func_window_size function values
+    % and the initial function value, which makes its length func_window_size + 1.
+    if length(fopt_hist) > func_window_size + 1
+        fopt_hist = fopt_hist(end - func_window_size : end);
+    end
 
-    % Check if the optimization should stop due to insufficient change in the objective function
-    % over the last func_window_size iterations. If the change is below a specified threshold,
-    % terminate the optimization. This check is performed after the current iteration is complete,
-    % ensuring fopt_hist includes the latest function value.
-    if use_function_value_stop && iter > func_window_size
-        func_change = max(fopt_hist(iter-func_window_size+2:iter+1)) - min(fopt_hist(iter-func_window_size+2:iter+1));
-        if func_change < func_tol_1 * min(1, abs(fopt_hist(iter))) || ...
-                func_change < func_tol_2 * max(1, abs(fopt_hist(iter)))
+    % If the change is below a specified threshold, terminate the optimization. 
+    % This check is performed after the current iteration is complete, ensuring fopt_hist includes the latest 
+    % function value.
+    if use_function_value_stop && length(fopt_hist) > func_window_size
+        func_change = max(fopt_hist) - min(fopt_hist);
+        if func_change < func_tol_1 * min(1, abs(fopt_hist(end))) || ...
+                func_change < func_tol_2 * max(1, abs(fopt_hist(end)))
             terminate = true;
             exitflag = get_exitflag("SMALL_OBJECTIVE_CHANGE");
         end
@@ -580,26 +584,30 @@ for iter = 1:maxit
             end
 
             if use_estimated_gradient_stop
-                % Notice that we use grad_info.step_size_per_batch not alpha_all since step size
-                % has already been updated in the current iteration. The error between estimated
-                % gradient and true gradient should come from the step size of finite difference.
-                % That is why we use grad_info.step_size_per_batch.
+                % Note that we use grad_info.step_size_per_batch instead of alpha_all because the 
+                % step size has already been updated in the current iteration. The error between 
+                % the estimated gradient and the true gradient should be based on the step size used
+                % in the finite difference calculation, which corresponds to the step size from the
+                % previous iteration. This is why we rely on grad_info.step_size_per_batch.
                 grad_error = get_gradient_error_bound(grad_info.step_size_per_batch, ...
                                                     batch_size, grouped_direction_indices, n, ...
                                                     positive_direction_set, direction_selection_probability_matrix);
-                grad_error_hist = [grad_error_hist, grad_error];
 
-                if grad_error + norm(grad) < grad_tol
-                    grad_stop_counter = grad_stop_counter + 1;
-                else
-                    grad_stop_counter = 0;
-                end
+                norm_grad_hist = [norm_grad_hist, (norm(grad) + grad_error)];
                 
-                % Set termination flag if any condition is met
-                if grad_stop_counter >= grad_window_size
-                    terminate = true;
-                    exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
+                if length(norm_grad_hist) > grad_window_size
+                    if all(norm_grad_hist < grad_tol_1 * min(1, norm(grad_hist(:,1))) ...
+                        | norm_grad_hist < grad_tol_2 * max(1, norm(grad_hist(:,1))))
+                        terminate = true;
+                        exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
+                    end
                 end
+
+                % norm_grad_hist = [norm_grad_hist(2:end), norm(grad)];  % Keep only the latest grad_window_size entries
+                
+                % % Set termination flag if any condition is met
+                % if grad_stop_counter >= grad_window_size
+
             end
         end
     end

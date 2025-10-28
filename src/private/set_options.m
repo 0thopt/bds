@@ -38,7 +38,8 @@ field_list = {
     'func_tol_2'
     'use_estimated_gradient_stop'
     'grad_window_size'
-    'grad_tol'
+    'grad_tol_1'
+    'grad_tol_2'
     'gradient_estimation_complete'
     };
 
