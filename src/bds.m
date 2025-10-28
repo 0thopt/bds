@@ -592,8 +592,10 @@ for iter = 1:maxit
                 grad_error = get_gradient_error_bound(grad_info.step_size_per_batch, ...
                                                     batch_size, grouped_direction_indices, n, ...
                                                     positive_direction_set, direction_selection_probability_matrix);
-
-                norm_grad_hist = [norm_grad_hist, (norm(grad) + grad_error)];
+                
+                if grad_error < 1e-1 * norm(grad)
+                    norm_grad_hist = [norm_grad_hist, (norm(grad) + grad_error)];
+                end
                 
                 if length(norm_grad_hist) > grad_window_size
                     if all(norm_grad_hist(end-grad_window_size+1:end) < grad_tol_1 * min(1, norm_grad_hist(1)) ...
