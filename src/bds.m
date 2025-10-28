@@ -596,8 +596,8 @@ for iter = 1:maxit
                 norm_grad_hist = [norm_grad_hist, (norm(grad) + grad_error)];
                 
                 if length(norm_grad_hist) > grad_window_size
-                    if all(norm_grad_hist < grad_tol_1 * min(1, norm(grad_hist(:,1))) ...
-                        | norm_grad_hist < grad_tol_2 * max(1, norm(grad_hist(:,1))))
+                    if all(norm_grad_hist(end-grad_window_size+1:end) < grad_tol_1 * min(1, norm_grad_hist(1)) ...
+                        | norm_grad_hist(end-grad_window_size+1:end) < grad_tol_2 * max(1, norm_grad_hist(1)))
                         terminate = true;
                         exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
                     end
