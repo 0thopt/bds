@@ -593,11 +593,11 @@ for iter = 1:maxit
                                                     batch_size, grouped_direction_indices, n, ...
                                                     positive_direction_set, direction_selection_probability_matrix);
                 
-                if grad_error < max(1e-6, 1e-3 * norm(grad))
-                    norm_grad_hist = [norm_grad_hist, (norm(grad) + grad_error)];
+                % if grad_error < max(1e-9, 1e-6 * norm(grad))
+                norm_grad_hist = [norm_grad_hist, (norm(grad) + grad_error)];
                 % else
                 %     fprintf("Warning: The estimated gradient might be inaccurate. \n");
-                end
+                % end
                 
                 if length(norm_grad_hist) > grad_window_size
                     if all(norm_grad_hist(end-grad_window_size+1:end) < grad_tol_1 * min(1, norm_grad_hist(1)) ...
