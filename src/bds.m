@@ -593,27 +593,23 @@ for iter = 1:maxit
                                                     batch_size, grouped_direction_indices, n, ...
                                                     positive_direction_set, direction_selection_probability_matrix);
                 
+                % Discard very large gradient errors to avoid unreliable stopping criteria.
                 if grad_error < max(1e-3, 1e-1 * norm(grad))
                     norm_grad_hist = [norm_grad_hist, (norm(grad) + grad_error)];
-                % else
-                %     fprintf("Warning: The estimated gradient might be inaccurate. \n");
                 end
-                
+
                 if length(norm_grad_hist) > grad_window_size
-                    reference_grad_norm = median(norm_grad_hist(1:grad_window_size));
-                    % if all(norm_grad_hist(end-grad_window_size+1:end) < grad_tol_1 * min(1, norm_grad_hist(1)) ...
-                    %     | norm_grad_hist(end-grad_window_size+1:end) < grad_tol_2 * max(1, norm_grad_hist(1)))
-                    if all(norm_grad_hist(end-grad_window_size+1:end) < grad_tol_1 * min(1, reference_grad_norm) ...
-                        | norm_grad_hist(end-grad_window_size+1:end) < grad_tol_2 * max(1, reference_grad_norm))
+                    % Compute the change in the estimated gradient over the last grad_window_size iterations.
+                    grad_change = max(norm_grad_hist(end-grad_window_size+1:end)) - ...
+                                min(norm_grad_hist(end-grad_window_size+1:end));
+                    
+
+                    if grad_change < grad_tol_1 * min(1, norm_grad_hist(end)) || ...
+                    grad_change < grad_tol_2 * max(1, norm_grad_hist(end))
                         terminate = true;
                         exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
                     end
                 end
-
-                % norm_grad_hist = [norm_grad_hist(2:end), norm(grad)];  % Keep only the latest grad_window_size entries
-                
-                % % Set termination flag if any condition is met
-                % if grad_stop_counter >= grad_window_size
 
             end
         end

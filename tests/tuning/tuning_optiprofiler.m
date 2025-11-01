@@ -250,6 +250,11 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
         options.benchmark_id = append_param_to_id(options.benchmark_id, 'maxfun_factor', parameters.maxfun_factor(1));
         options.max_eval_factor = max(parameters.maxfun_factor);
     end
+
+    if isfield(options, 'plibs')
+        options.benchmark_id = [options.benchmark_id, '_', options.plibs];
+    end
+
     options.benchmark_id = [options.benchmark_id, '_', time_str];
     
     if ~isfield(options, 'savepath')
