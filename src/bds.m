@@ -546,7 +546,7 @@ for iter = 1:maxit
     % If the change is below a specified threshold, terminate the optimization. 
     % This check is performed after the current iteration is complete, ensuring fopt_hist includes the latest 
     % function value.
-    if use_function_value_stop && length(fopt_hist) > func_window_size
+    if use_function_value_stop
         func_change = max(fopt_hist) - min(fopt_hist);
         if func_change < func_tol_1 * min(1, abs(fopt_hist(end))) || ...
                 func_change < func_tol_2 * max(1, abs(fopt_hist(end)))
@@ -599,7 +599,7 @@ for iter = 1:maxit
                 end
 
                 if length(norm_grad_hist) > grad_window_size
-                    reference_grad_norm = mean(norm_grad_hist(1:grad_window_size));
+                    reference_grad_norm = median(norm_grad_hist(1:grad_window_size));
                     if all(norm_grad_hist(end-grad_window_size+1:end) < grad_tol_1 * min(1, reference_grad_norm) ...
                         | norm_grad_hist(end-grad_window_size+1:end) < grad_tol_2 * max(1, reference_grad_norm))
                         terminate = true;

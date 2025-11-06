@@ -2,7 +2,7 @@ name: cbds with grad 5, 3x, 6x, large, s2mpj
 
 on:
   # Trigger the workflow on push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   # schedule:
   # - cron: '0 6 */1 * *'
@@ -35,7 +35,7 @@ jobs:
           repository: optiprofiler/optiprofiler
           path: optiprofiler
           submodules: recursive
-          ref: 8bb36d319b027a1863831c275927868eec8e8da0
+          ref: b2ac3df0c7b378db8c413433236ebb46b8551f76
 
       - name: Install Texlive
         run: sudo apt-get update && sudo apt-get install texlive
