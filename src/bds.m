@@ -598,8 +598,8 @@ for iter = 1:maxit
                     norm_grad_hist = [norm_grad_hist, (norm(grad) + grad_error)];
                 end
 
-                if length(norm_grad_hist) > grad_window_size
-                    reference_grad_norm = median(norm_grad_hist);
+                if length(norm_grad_hist) >= grad_window_size
+                    reference_grad_norm = median(norm_grad_hist(end - grad_window_size + 1 : end));
                     if (norm_grad_hist(end) < grad_tol_1 * min(1, reference_grad_norm) ...
                         || norm_grad_hist(end) < grad_tol_2 * max(1, reference_grad_norm))
                         terminate = true;
