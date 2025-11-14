@@ -537,8 +537,8 @@ for iter = 1:maxit
     % Track the best function value observed among the latest func_window_size iterations.
     fopt_hist = [fopt_hist, fopt];
     % Why func_window_size + 1? Because the function value of the initial point has already been recorded
-    % before the iterations start. fopt_hist should always contain the latest func_window_size function values
-    % and the initial function value, which makes its length func_window_size + 1.
+    % before the iterations start. fopt_hist should always contain the latest func_window_size fopts
+    % and the initial function value, which makes the length of fopt_hist equal to func_window_size + 1.
     if length(fopt_hist) > func_window_size + 1
         fopt_hist = fopt_hist(end - func_window_size : end);
     end
@@ -573,12 +573,8 @@ for iter = 1:maxit
             grad_xhist = [grad_xhist, xbase];
 
             % When gradient_estimation_complete is true, we check whether the estimated gradient is
-            % from the first iteration. If it is not, the solver will terminate. For now, we only
-            % focus on the case where the setting is default, i.e., num_blocks = n and each
-            % block contains only one subspace, which means that to get the estimated gradient in
-            % the first iteration, we need exactly 2*n function evaluations in the first iteration
-            % and one function evaluation for x0. That is why we check whether nf > 2*n + 1.
-            if gradient_estimation_complete && (nf > (2 * n + 1))
+            % from the first iteration. If it is not, the solver will terminate.
+            if gradient_estimation_complete && iter > 1
                 terminate = true;
                 exitflag = get_exitflag("gradient_estimation_complete");
             end
