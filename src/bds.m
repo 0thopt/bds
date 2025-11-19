@@ -594,10 +594,9 @@ for iter = 1:maxit
                     norm_grad_hist = [norm_grad_hist, (norm(grad) + grad_error)];
                 end
 
-                if length(norm_grad_hist) >= grad_window_size
-                    reference_grad_norm = median(norm_grad_hist(end - grad_window_size + 1 : end));
-                    if (norm_grad_hist(end) < grad_tol_1 * min(1, reference_grad_norm) ...
-                        || norm_grad_hist(end) < grad_tol_2 * max(1, reference_grad_norm))
+                if length(norm_grad_hist) > grad_window_size
+                    if (norm_grad_hist((end-grad_window_size+1) :end ) < grad_tol_1 * norm_grad_hist(1) ...
+                        || (norm_grad_hist(end-grad_window_size+1 :end) < grad_tol_2 * norm_grad_hist(1)))
                         terminate = true;
                         exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
                     end
