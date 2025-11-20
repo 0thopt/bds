@@ -1,8 +1,8 @@
-name: cbds with grad 5, 3x, 6x, 500n, big, matcutest
+name: cbds with grad 10, 3x, 6x, 500n, big, matcutest
 
 on:
   # Trigger the workflow on push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   # schedule:
   # - cron: '0 6 */1 * *'
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: cbds with grad window size 5, tol 03, 06, 500n, big, matcutest
+    name: cbds with grad window size 10, tol 03, 06, 500n, big, matcutest
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -77,7 +77,7 @@ jobs:
               % profile
               addpath(fullfile(root_dir, 'tests'));
               cd(fullfile(root_dir, 'tests', 'tuning'));
-              parameters.grad_window_size = [5 1e8];
+              parameters.grad_window_size = [10 1e8];
               parameters.grad_tol_1 = [1e-3 1e-30];
               parameters.grad_tol_2 = [1e-6 1e-30];
               parameters.maxfun_factor = [500 500];
@@ -123,7 +123,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: profile_optiprofiler_cbds_grad_window_size_05_tol_03_06_500n_${{ matrix.plibs }}_${{ matrix.dim }}_${{ matrix.feature }}
+          name: profile_optiprofiler_cbds_grad_window_size_10_tol_03_06_500n_${{ matrix.plibs }}_${{ matrix.dim }}_${{ matrix.feature }}
           path: ./tests/tuning/tuning_data/**
 
   merge_artifacts:
@@ -176,10 +176,10 @@ jobs:
           cd summary
           ls
           bash ../merge_pdf.sh
-          mv merged.pdf "summary_cbds_grad_window_size_05_tol_03_06_500n_big_matcutest.pdf"
+          mv merged.pdf "summary_cbds_grad_window_size_10_tol_03_06_500n_big_matcutest.pdf"
           cd ..
           if [ -d "summary" ]; then
-            mv summary "summary_cbds_grad_window_size_05_tol_03_06_500n_big_matcutest"
+            mv summary "summary_cbds_grad_window_size_10_tol_03_06_500n_big_matcutest"
           fi
 
       - name: Upload merged artifact
@@ -187,7 +187,7 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: merged_profiles_cbds_grad_window_size_05_tol_03_06_500n_big_matcutest
+          name: merged_profiles_cbds_grad_window_size_10_tol_03_06_500n_big_matcutest
           path: tests/tuning/tuning_data/downloaded_artifacts/**
 
       - name: Upload summary files
@@ -195,5 +195,5 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: summary_files_cbds_grad_window_size_05_tol_03_06_500n_big_matcutest
-          path: tests/tuning/tuning_data/downloaded_artifacts/summary_cbds_grad_window_size_05_tol_03_06_500n_big_matcutest/**
+          name: summary_files_cbds_grad_window_size_10_tol_03_06_500n_big_matcutest
+          path: tests/tuning/tuning_data/downloaded_artifacts/summary_cbds_grad_window_size_10_tol_03_06_500n_big_matcutest/**

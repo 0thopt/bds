@@ -16,8 +16,8 @@ function upper_bound = get_gradient_error_bound(alpha_all, batch_size, direction
     alpha_powers = alpha_full.^4;    
     direction_norms_powers = vecnorm(positive_direction_set).^6;
 
-    % A very naive assumption that the lipschitz constant of hessian is 1e3.
-    lipschitz_constant = 1e3;
+    % A very naive assumption that the lipschitz constant of hessian is 1e4.
+    lipschitz_constant = 1e4;
     if batch_size == num_blocks
         upper_bound = (lipschitz_constant / (6 * svds(positive_direction_set, 1, "smallest"))) * sqrt(sum(direction_norms_powers .* alpha_powers'));
     else

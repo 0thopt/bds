@@ -590,13 +590,13 @@ for iter = 1:maxit
                                                     positive_direction_set, direction_selection_probability_matrix);
                 
                 % Discard very large gradient errors to avoid unreliable stopping criteria.
-                if grad_error < max(1e-3, 1e-1 * norm(grad))
+                if grad_error < max(1e-4, 1e-2 * norm(grad))
                     norm_grad_hist = [norm_grad_hist, (norm(grad) + grad_error)];
                 end
 
                 if length(norm_grad_hist) > grad_window_size
-                    if (norm_grad_hist((end-grad_window_size+1) :end ) < grad_tol_1 * norm_grad_hist(1) ...
-                        || (norm_grad_hist(end-grad_window_size+1 :end) < grad_tol_2 * norm_grad_hist(1)))
+                    if (all(norm_grad_hist((end-grad_window_size+1) :end ) < grad_tol_1 * norm_grad_hist(1)) ...
+                        || all(norm_grad_hist((end-grad_window_size+1) :end ) < grad_tol_2 * norm_grad_hist(1)))
                         terminate = true;
                         exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
                     end
