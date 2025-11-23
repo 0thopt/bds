@@ -541,10 +541,10 @@ for iter = 1:maxit
     % over the last func_window_size iterations. If the change is below a specified threshold,
     % terminate the optimization. This check is performed after the current iteration is complete,
     % ensuring fopt_hist includes the latest function value.
-    if use_function_value_stop && length(fopt_hist) >= func_window_size
-        func_change = max(fopt_hist(end-func_window_size+1:end)) - min(fopt_hist(end-func_window_size+1:end));
-        if func_change < func_tol_1 * min(1, abs(fopt)) || ...
-                func_change < func_tol_2 * max(1, abs(fopt))
+    if use_function_value_stop && iter > func_window_size
+        func_change = max(fopt_hist(iter-func_window_size+2:iter+1)) - min(fopt_hist(iter-func_window_size+2:iter+1));
+        if func_change < func_tol_1 * min(1, abs(fopt_hist(iter))) || ...
+                func_change < func_tol_2 * max(1, abs(fopt_hist(iter)))
             terminate = true;
             exitflag = get_exitflag("SMALL_OBJECTIVE_CHANGE");
         end
