@@ -536,12 +536,20 @@ for iter = 1:maxit
 
     % Track the best function value observed among the latest func_window_size iterations.
     fopt_hist = [fopt_hist, fopt];
-    % Why func_window_size + 1? Because the function value of the initial point has already been recorded
-    % before the iterations start. fopt_hist should always contain the latest func_window_size fopts
-    % and the initial function value, which makes the length of fopt_hist equal to func_window_size + 1.
-    if length(fopt_hist) > func_window_size + 1
-        fopt_hist = fopt_hist(end - func_window_size : end);
+
+    % Check if the optimization should stop due to insufficient change in the objective function
+    % over the last func_window_size iterations. If the change is below a specified threshold,
+    % terminate the optimization. This check is performed after the current iteration is complete,
+    % ensuring fopt_hist includes the latest function value.
+    if use_function_value_stop && length(fopt_hist) >= func_window_size
+        func_change = max(fopt_hist(end-func_window_size+1:end)) - min(fopt_hist(end-func_window_size+1:end));
+        if func_change < func_tol_1 * min(1, abs(fopt)) || ...
+                func_change < func_tol_2 * max(1, abs(fopt))
+            terminate = true;
+            exitflag = get_exitflag("SMALL_OBJECTIVE_CHANGE");
+        end
     end
+
 
     % If the change is below a specified threshold, terminate the optimization. 
     % This check is performed after the current iteration is complete, ensuring fopt_hist includes the latest 

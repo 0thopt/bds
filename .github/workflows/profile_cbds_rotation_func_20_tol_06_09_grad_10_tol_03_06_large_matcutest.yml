@@ -2,7 +2,7 @@ name: Rotation with func 20-6-9 and grad 10-3-6, large, matcutest
 
 on:
   # Trigger the workflow on push or pull request
-  push:
+  # push:
   # Trigger the workflow manually
   # schedule:
   # - cron: '0 6 */1 * *'
