@@ -583,15 +583,23 @@ for iter = 1:maxit
                 grad_error = get_gradient_error_bound(grad_info.step_size_per_batch, ...
                                                     batch_size, grouped_direction_indices, n, ...
                                                     positive_direction_set, direction_selection_probability_matrix);
-                
-                % Discard very large gradient errors to avoid unreliable stopping criteria.
-                if grad_error < max(1e-4, 1e-2 * norm(grad))
-                    norm_grad_hist = [norm_grad_hist, (norm(grad) + grad_error)];
+
+                % Define the reference norm of the estimated gradient for stopping criteria.
+                if isempty(norm_grad_hist)
+                    % Only define reference_grad_norm if grad_error is small enough
+                    if grad_error < max(1e-3, 1e-1 * norm(grad))
+                        reference_grad_norm = norm(grad) + grad_error;
+                        % Initialize norm_grad_hist with reference_grad_norm
+                        norm_grad_hist = [norm_grad_hist, reference_grad_norm];
+                    end
+                else
+                    % Only add to norm_grad_hist after reference_grad_norm is defined
+                    norm_grad_hist = [norm_grad_hist, norm(grad)];
                 end
 
                 if length(norm_grad_hist) > grad_window_size
-                    if (all(norm_grad_hist((end-grad_window_size+1) :end ) < grad_tol_1 * norm_grad_hist(1)) ...
-                        || all(norm_grad_hist((end-grad_window_size+1) :end ) < grad_tol_2 * norm_grad_hist(1)))
+                    if (all(norm_grad_hist((end-grad_window_size+1) :end ) < grad_tol_1 * min(1, reference_grad_norm)) ...
+                        || all(norm_grad_hist((end-grad_window_size+1) :end ) < grad_tol_2 * max(1, reference_grad_norm)))
                         terminate = true;
                         exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
                     end
