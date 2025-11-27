@@ -1,4 +1,4 @@
-name: cbds with grad 10, 3x, 6x, large, s2mpj
+name: Rotation with func 20-6-9 and grad 5-3-6, large, matcutest
 
 on:
   # Trigger the workflow on push or pull request
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: cbds with grad window size 10, tol 03, 06, large, s2mpj
+    name: Rotation with func 20-6-9 and grad 5-3-6, large, matcutest
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -18,10 +18,9 @@ jobs:
         os: [ubuntu-latest]
         matlab: [R2024b]
         dim: [large]
-        plibs: [s2mpj]
+        plibs: [matcutest]
         with_optim_toolbox: [yes]
         feature: [plain, perturbed_x0_0.001, perturbed_x0_1, perturbed_x0_10, perturbed_x0_100, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, permuted, linearly_transformed, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
-
 
     steps:
       - name: Check out repository
@@ -77,11 +76,15 @@ jobs:
               % profile
               addpath(fullfile(root_dir, 'tests'));
               cd(fullfile(root_dir, 'tests', 'tuning'));
-              parameters.grad_window_size = [10 1e8];
+              parameters.func_window_size = [20 1e8];
+              parameters.func_tol_1 = [1e-6 1e-30];
+              parameters.func_tol_2 = [1e-9 1e-30];
+              parameters.grad_window_size = [5 1e8];
               parameters.grad_tol_1 = [1e-3 1e-30];
               parameters.grad_tol_2 = [1e-6 1e-30];
+              parameters.rotation = [true, true];
               options = struct();
-              options.solver_names = {'cbds-grad', 'cbds-default'};
+              options.solver_names = {'cbds-tuning-rotation', 'cbds-default'};
               options.plibs = '${{ matrix.plibs }}';
               options.dim = '${{ matrix.dim }}';
               options.feature_name = '${{ matrix.feature }}';
@@ -122,7 +125,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: profile_optiprofiler_cbds_grad_window_size_10_tol_03_06_${{ matrix.plibs }}_${{ matrix.dim }}_${{ matrix.feature }}
+          name: profile_optiprofiler_cbds_rotation_func_20_tol_06_09_grad_05_tol_03_06_${{ matrix.dim }}_${{ matrix.feature }}
           path: ./tests/tuning/tuning_data/**
 
   merge_artifacts:
@@ -175,10 +178,10 @@ jobs:
           cd summary
           ls
           bash ../merge_pdf.sh
-          mv merged.pdf "summary_cbds_grad_window_size_10_tol_03_06_large_s2mpj.pdf"
+          mv merged.pdf "summary_cbds_rotation_func_20_tol_06_09_grad_05_tol_03_06_large_matcutest.pdf"
           cd ..
           if [ -d "summary" ]; then
-            mv summary "summary_cbds_grad_window_size_10_tol_03_06_large_s2mpj"
+            mv summary "summary_cbds_rotation_func_20_tol_06_09_grad_05_tol_03_06_large_matcutest"
           fi
 
       - name: Upload merged artifact
@@ -186,7 +189,7 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: merged_profiles_cbds_grad_window_size_10_tol_03_06_large_s2mpj
+          name: merged_profiles_cbds_rotation_func_20_tol_06_09_grad_05_tol_03_06_large_matcutest
           path: tests/tuning/tuning_data/downloaded_artifacts/**
 
       - name: Upload summary files
@@ -194,5 +197,5 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: summary_files_cbds_grad_window_size_10_tol_03_06_large_s2mpj
-          path: tests/tuning/tuning_data/downloaded_artifacts/summary_cbds_grad_window_size_10_tol_03_06_large_s2mpj/**
+          name: summary_files_cbds_rotation_func_20_tol_06_09_grad_05_tol_03_06_large_matcutest
+          path: tests/tuning/tuning_data/downloaded_artifacts/summary_cbds_rotation_func_20_tol_06_09_grad_05_tol_03_06_large_matcutest/**
