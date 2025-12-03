@@ -589,14 +589,13 @@ for iter = 1:maxit
                     % Only define reference_grad_norm when grad_error is small enough.
                     if grad_error < max(1e-3, 1e-1 * norm(grad))
                         reference_grad_norm = norm(grad);
+                        norm_grad_hist = [norm_grad_hist, reference_grad_norm];
                     end
                 else
-                    % Only add to norm_grad_hist after reference_grad_norm is defined.
-                    % Add norm(grad) + grad_error to norm_grad_hist to consider the error in gradient estimation.
                     norm_grad_hist = [norm_grad_hist, norm(grad) + grad_error];
                 end
 
-                if length(norm_grad_hist) >= grad_window_size
+                if length(norm_grad_hist) > grad_window_size
                     if (all(norm_grad_hist((end-grad_window_size+1) :end ) < grad_tol_1 * min(1, reference_grad_norm)) ...
                         || all(norm_grad_hist((end-grad_window_size+1) :end ) < grad_tol_2 * max(1, reference_grad_norm)))
                         terminate = true;
