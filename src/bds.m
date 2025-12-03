@@ -586,18 +586,17 @@ for iter = 1:maxit
 
                 % Define the reference norm of the estimated gradient for stopping criteria.
                 if isempty(norm_grad_hist)
-                    % Only define reference_grad_norm if grad_error is small enough
+                    % Only define reference_grad_norm when grad_error is small enough.
                     if grad_error < max(1e-3, 1e-1 * norm(grad))
-                        reference_grad_norm = norm(grad) + grad_error;
-                        % Initialize norm_grad_hist with reference_grad_norm
-                        norm_grad_hist = [norm_grad_hist, reference_grad_norm];
+                        reference_grad_norm = norm(grad);
                     end
                 else
-                    % Only add to norm_grad_hist after reference_grad_norm is defined
-                    norm_grad_hist = [norm_grad_hist, norm(grad)];
+                    % Only add to norm_grad_hist after reference_grad_norm is defined.
+                    % Add norm(grad) + grad_error to norm_grad_hist to consider the error in gradient estimation.
+                    norm_grad_hist = [norm_grad_hist, norm(grad) + grad_error];
                 end
 
-                if length(norm_grad_hist) > grad_window_size
+                if length(norm_grad_hist) >= grad_window_size
                     if (all(norm_grad_hist((end-grad_window_size+1) :end ) < grad_tol_1 * min(1, reference_grad_norm)) ...
                         || all(norm_grad_hist((end-grad_window_size+1) :end ) < grad_tol_2 * max(1, reference_grad_norm)))
                         terminate = true;
