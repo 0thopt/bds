@@ -252,6 +252,17 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
             % r1b means the batch size is equal to 1.
             case 'r1b'
                 solvers{i} = @rbds_batch_size_one_test;
+            % r1bs means the batch size is equal to 1 and the seed is fixed.
+            case 'r1bs'
+                solvers{i} = @rbds_batch_size_one_seed_test;   
+            % r1bse means the batch size is equal to 1 and the seed is fixed and the expand equals
+            % to 2 and the shrink satisfies the boundary condition of 1/n > p_0.  
+            case 'r1bse'
+                solvers{i} = @rbds_batch_size_one_seed_expand_cov_test;
+            % r1bss means the batch size is equal to 1 and the seed is fixed and the shrink equals
+            % to 0.5 and the expand satisfies the boundary condition of 1/n > p_0.  
+            case 'r1bss'
+                solvers{i} = @rbds_batch_size_one_seed_shrink_cov_test; 
             case 'pads'
                 solvers{i} = @pads_test;
             case 'pads-noisy'
@@ -1163,6 +1174,41 @@ function x = rbds_batch_size_one_test(fun, x0)
     option.shrink = 0.5;
     option.batch_size = 1;
     option.replacement_delay = 0;
+    x = bds(fun, x0, option);
+
+end
+
+function x = rbds_batch_size_one_seed_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.batch_size = 1;
+    option.replacement_delay = 0;
+    option.seed = round(1e4 * option.batch_size) + round(1e6 * option.replacement_delay) + round(sum(x0));
+    x = bds(fun, x0, option);
+
+end
+
+function x = rbds_batch_size_one_seed_expand_cov_test(fun, x0)
+
+    n = numel(x0);
+    option.expand = 2;
+    option.shrink = 2^(-1/(n+1));
+    option.batch_size = 1;
+    option.replacement_delay = 0;
+    option.seed = round(1e4 * option.batch_size) + round(1e6 * option.replacement_delay) + round(sum(x0));
+    x = bds(fun, x0, option);
+
+end
+
+function x = rbds_batch_size_one_seed_shrink_cov_test(fun, x0)
+
+    n = numel(x0);
+    option.shrink = 0.5;
+    option.expand = 0.5^(-(n+1));
+    option.batch_size = 1;
+    option.replacement_delay = 0;
+    option.seed = round(1e4 * option.batch_size) + round(1e6 * option.replacement_delay) + round(sum(x0));
     x = bds(fun, x0, option);
 
 end

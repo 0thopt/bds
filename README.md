@@ -120,7 +120,15 @@ The following tests are implemented by [Optiprofiler](https://github.com/optipro
     - [![Profile cbds and nomad, small](https://github.com/libblades/bds/actions/workflows/profile_cbds_nomad_small.yml/badge.svg)](https://github.com/libblades/bds/actions/workflows/profile_cbds_nomad_small.yml)
     - [![Profile original cbds and nomad, small](https://github.com/libblades/bds/actions/workflows/profile_orig_cbds_nomad_small.yml/badge.svg)](https://github.com/libblades/bds/actions/workflows/profile_orig_cbds_nomad_small.yml)
     - [![Profile cbds and nomad, big](https://github.com/libblades/bds/actions/workflows/profile_cbds_nomad_big.yml/badge.svg)](https://github.com/libblades/bds/actions/workflows/profile_cbds_nomad_big.yml)
-    - [![Profile original cbds and nomad, big](https://github.com/libblades/bds/actions/workflows/profile_orig_cbds_nomad_big.yml/badge.svg)](https://github.com/libblades/bds/actions/workflows/profile_orig_cbds_nomad_big.yml)      
+    - [![Profile original cbds and nomad, big](https://github.com/libblades/bds/actions/workflows/profile_orig_cbds_nomad_big.yml/badge.svg)](https://github.com/libblades/bds/actions/workflows/profile_orig_cbds_nomad_big.yml)
+    - [![Profile r1bs and r1bse, small, matcutest](https://github.com/libblades/bds/actions/workflows/profile_r1bs_r1bse_small_matcutest.yml/badge.svg)](https://github.com/libblades/bds/actions/workflows/profile_r1bs_r1bse_small_matcutest.yml)
+    - [![Profile r1bs and r1bse, small, s2mpj](https://github.com/libblades/bds/actions/workflows/profile_r1bs_r1bse_small_s2mpj.yml/badge.svg)](https://github.com/libblades/bds/actions/workflows/profile_r1bs_r1bse_small_s2mpj.yml)   
+    - [![Profile r1bs and r1bse, big, matcutest](https://github.com/libblades/bds/actions/workflows/profile_r1bs_r1bse_big_matcutest.yml/badge.svg)](https://github.com/libblades/bds/actions/workflows/profile_r1bs_r1bse_big_matcutest.yml)
+    - [![Profile r1bs and r1bse, big, s2mpj](https://github.com/libblades/bds/actions/workflows/profile_r1bs_r1bse_big_s2mpj.yml/badge.svg)](https://github.com/libblades/bds/actions/workflows/profile_r1bs_r1bse_big_s2mpj.yml)
+    - [![Profile r1bs and r1bss, small, matcutest](https://github.com/libblades/bds/actions/workflows/profile_r1bs_r1bss_small_matcutest.yml/badge.svg)](https://github.com/libblades/bds/actions/workflows/profile_r1bs_r1bss_small_matcutest.yml)
+    - [![Profile r1bs and r1bss, small, s2mpj](https://github.com/libblades/bds/actions/workflows/profile_r1bs_r1bss_small_s2mpj.yml/badge.svg)](https://github.com/libblades/bds/actions/workflows/profile_r1bs_r1bss_small_s2mpj.yml)   
+    - [![Profile r1bs and r1bss, big, matcutest](https://github.com/libblades/bds/actions/workflows/profile_r1bs_r1bss_big_matcutest.yml/badge.svg)](https://github.com/libblades/bds/actions/workflows/profile_r1bs_r1bss_big_matcutest.yml)
+    - [![Profile r1bs and r1bss, big, s2mpj](https://github.com/libblades/bds/actions/workflows/profile_r1bs_r1bss_big_s2mpj.yml/badge.svg)](https://github.com/libblades/bds/actions/workflows/profile_r1bs_r1bss_big_s2mpj.yml)     
 
 - [Tests](https://github.com/opt-lab/bds/actions) at [opt-lab/bds](https://github.com/opt-lab/bds)
 
