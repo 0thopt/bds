@@ -1,4 +1,4 @@
-name: Profile original ds and pds using optiprofiler, big
+name: Profile original ds and pds, big
 
 on:
   # Trigger the workflow on # push or pull request

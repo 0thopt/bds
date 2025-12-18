@@ -1,4 +1,4 @@
-name: Profile cbds and ds using optiprofiler, small, matcutest
+name: Profile cbds and ds, small, matcutest
 
 on:
   # Trigger the workflow on # push or pull request

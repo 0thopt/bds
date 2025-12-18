@@ -1,4 +1,4 @@
-name: Profile cbds and nomad using optiprofiler, big
+name: Profile cbds and nomad, big
 
 on:
   # Trigger the workflow on # push or pull request

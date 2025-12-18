@@ -1,4 +1,4 @@
-name: Profile r1bs and r1bss using optiprofiler, big, matcutest
+name: Profile r1bs and r1bss, big, matcutest
 
 on:
   # Trigger the workflow on # push or pull request

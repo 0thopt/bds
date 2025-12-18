@@ -1,4 +1,4 @@
-name: Profile cbds and ds using optiprofiler, small, s2mpj
+name: Profile cbds and ds, small, s2mpj
 
 on:
   # Trigger the workflow on # push or pull request

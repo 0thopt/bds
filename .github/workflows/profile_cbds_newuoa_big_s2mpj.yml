@@ -1,4 +1,4 @@
-name: Profile cbds and newuoa using optiprofiler, big, s2mpj
+name: Profile cbds and newuoa, big, s2mpj
 
 on:
   # Trigger the workflow on # push or pull request

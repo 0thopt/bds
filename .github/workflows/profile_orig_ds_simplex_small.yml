@@ -1,4 +1,4 @@
-name: Profile original ds and simplex using optiprofiler, small
+name: Profile original ds and simplex, small
 
 on:
   # Trigger the workflow on # push or pull request

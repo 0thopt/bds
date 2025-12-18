@@ -1,4 +1,4 @@
-name: Profile original cbds and newuoa using optiprofiler, small, matcutest
+name: Profile original cbds and newuoa, small, matcutest
 
 on:
   # Trigger the workflow on # push or pull request

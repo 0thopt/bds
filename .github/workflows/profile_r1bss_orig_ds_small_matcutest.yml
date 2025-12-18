@@ -1,44 +1,51 @@
-name: Profile cbds and ds, big, s2mpj
+name: Profile r1bss and original ds, small, matcutest
 
 on:
   # Trigger the workflow on # push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   schedule:
-  - cron: '0 0 */1 * *'
+  - cron: '0 18 */2 * *'
   workflow_dispatch:
 
 jobs:
   test:
-    name: Profile cbds and DS, big, s2mpj
+    name: Profile r1bs and original ds, small, matcutest
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
         matlab: [latest]
-        dim: [big]
+        dim: [small]
         with_optim_toolbox: [yes]
-        solver: [cbds]
-        competitor: [ds]
-        plibs: [s2mpj]
+        solver: [r1bss]
+        competitor: [direct-search-orig]
+        plibs: [matcutest]
         run_plain: [false]
         summarize_log_ratio_profiles: [false]
-        feature: [plain, perturbed_x0_0.001, perturbed_x0_1, perturbed_x0_10, perturbed_x0_100, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, truncated_1, truncated_2, truncated_3, truncated_4, permuted, linearly_transformed, random_nan_5, random_nan_10, random_nan_20, quantized_1, quantized_2, quantized_3, quantized_4, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
+        feature: [plain, perturbed_x0_0.001, perturbed_x0_1, perturbed_x0_10, perturbed_x0_100, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, truncated_1, truncated_2, truncated_3, truncated_4, truncated_5, truncated_6, permuted, linearly_transformed, random_nan_5, random_nan_10, random_nan_20, quantized_1, quantized_2, quantized_3, quantized_4, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          persist-credentials: false
 
       - name: Checkout OptiProfiler
         uses: actions/checkout@v4
         with:
-          repository: optiprofiler/optiprofiler
-          path: optiprofiler
-          submodules: recursive
-          ref: 8a617f4e52cb95988fe9f29949856dc2874b81e7
+            repository: optiprofiler/optiprofiler
+            path: optiprofiler
+            submodules: recursive
+            ref: 8a617f4e52cb95988fe9f29949856dc2874b81e7
+
+      - name: Clone PRIMA
+        uses: actions/checkout@v4
+        with:
+          repository: libprima/prima
+          path: prima
 
       - name: Install Texlive
         run: sudo apt-get update && sudo apt-get install texlive
@@ -69,6 +76,10 @@ jobs:
   
               % Setup optiprofiler
               cd(fullfile(root_dir, 'optiprofiler'));
+              setup
+
+              % Setup prima
+              cd(fullfile(root_dir, 'prima'));
               setup
   
               % Setup bds
@@ -163,7 +174,7 @@ jobs:
 
           source ./get_base_info.sh
           echo $BASE_INFO
-
+          
           # Replace all '-' with '_' in BASE_INFO
           BASE_INFO=$(echo $BASE_INFO | sed 's/-/_/g')
           echo "Base info extracted: ${BASE_INFO}"

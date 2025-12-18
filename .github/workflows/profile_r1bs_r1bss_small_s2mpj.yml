@@ -1,4 +1,4 @@
-name: Profile r1bs and r1bss using optiprofiler, small, s2mpj
+name: Profile r1bs and r1bss, small, s2mpj
 
 on:
   # Trigger the workflow on # push or pull request

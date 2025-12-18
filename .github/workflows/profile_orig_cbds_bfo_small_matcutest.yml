@@ -1,4 +1,4 @@
-name: Profile original cbds and bfo using optiprofiler, small, matcutest
+name: Profile original cbds and bfo, small, matcutest
 
 on:
   # Trigger the workflow on # push or pull request
