@@ -585,22 +585,16 @@ for iter = 1:maxit
                                                     positive_direction_set, direction_selection_probability_matrix);
 
 
-                % Establish the reference gradient norm used in the stopping criterion.
-                % We begin recording values into norm_grad_hist only after encountering the
-                % first estimated gradient whose error (grad_error) is sufficiently small.
-                % Once this occurs, we regard subsequent estimated gradients as reliable
-                % enough for monitoring and enable recording.
+                % Set up the reference gradient norm for the stopping criterion.
+                % Recording of norm_grad_hist starts only after the first gradient estimate
+                % with sufficiently small error is obtained, at which point gradient estimates
+                % are considered reliable for termination checks.
                 %
-                % To remain conservative, entries stored in norm_grad_hist take the form
-                % norm(grad) + grad_error.
-                % In contrast, reference_grad_norm is defined using only norm(grad),
-                % without adding the error term. This is appropriate because reference_grad_norm
-                % is fixed precisely at the moment when grad_error is already small, and thus
-                % including the error would not provide additional benefit for the thresholding.
-                %
-                % reference_grad_norm is initialized only when grad_error falls below the
-                % prescribed threshold, at which point we regard the gradient estimates as
-                % trustworthy for termination checks.
+                % For robustness, values stored in norm_grad_hist use
+                %   norm(grad) + grad_error.
+                % The reference value reference_grad_norm, however, is defined as norm(grad)
+                % alone, since it is fixed when the estimation error is already small and
+                % including the error would not improve the scaling of the threshold.
                 if ~record_gradient_norm
                     if grad_error < max(1e-3, 1e-1 * norm(grad))
                         reference_grad_norm = norm(grad);
