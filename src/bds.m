@@ -262,8 +262,6 @@ end
 
 % Initialize the history of function values.
 fhist = NaN(1, MaxFunctionEvaluations);
-% Establish the history of best function values for each iteration.
-fopt_hist = [];
 
 output_block_hist = options.output_block_hist;
 % Initialize the history of blocks visited.
@@ -273,19 +271,30 @@ use_function_value_stop = options.use_function_value_stop;
 func_window_size = options.func_window_size;
 func_tol_1 = options.func_tol_1;
 func_tol_2 = options.func_tol_2;
+% Initialize with Inf rather than NaN. In MATLAB, NaN values are ignored by
+% max/min when other finite entries are present, so a window containing NaN
+% and a single valid fopt may yield
+%     max(fopt_window) - min(fopt_window) = 0,
+% which would incorrectly indicate no objective change. Using Inf ensures that
+% the objective-change test remains inactive until the window is fully replaced
+% with valid fopt values.
+fopt_window = inf(1, func_window_size);
 
 use_estimated_gradient_stop = options.use_estimated_gradient_stop;
 grad_window_size = options.grad_window_size;
 grad_tol_1 = options.grad_tol_1;
 grad_tol_2 = options.grad_tol_2;
-norm_grad_hist = [];
+% Initialize with NaN to disable the stopping test until the window is fully replaced
+% with valid gradient norms. Since any comparison involving NaN evaluates to false,
+% the condition based on all(norm_grad_window < ·) can only be satisfied after all
+% entries have been replaced by effective gradient estimates.
+norm_grad_window = NaN(1, grad_window_size);
 record_gradient_norm = false;
 
 gradient_estimation_complete = options.gradient_estimation_complete;
 
 grad_hist = [];
 grad_xhist = [];
-
 
 grad_info = struct();
 grad_info.n = n;
@@ -325,8 +334,11 @@ end
 % corresponding function value.
 xopt = xbase;
 fopt = fbase;
-% Initialize
-fopt_hist(1) = fopt;
+% Update fopt_window with the initial objective value. Although no iteration
+% has been performed yet, the initial evaluation at x0 is treated as the
+% zeroth iteration for the purpose of the sliding window used in the
+% objective-change stopping criterion.
+fopt_window = [fopt_window(2:end), fopt];
 
 terminate = false;
 % If MaxFunctionEvaluations is reached at the very first function evaluation
@@ -535,14 +547,14 @@ for iter = 1:maxit
     end
 
     % Track the best function value observed among the latest func_window_size iterations.
-    fopt_hist = [fopt_hist, fopt];
+    fopt_window = [fopt_window(2:end), fopt];
 
     % Check if the optimization should stop due to insufficient change in the objective function
     % over the last func_window_size iterations. If the change is below a specified threshold,
     % terminate the optimization. This check is performed after the current iteration is complete,
-    % ensuring fopt_hist includes the latest function value.
-    if use_function_value_stop && length(fopt_hist) >= func_window_size
-        func_change = max(fopt_hist(end-func_window_size+1:end)) - min(fopt_hist(end-func_window_size+1:end));
+    % ensuring fopt_window includes the latest function value.
+    if use_function_value_stop
+        func_change = max(fopt_window) - min(fopt_window);
         if func_change < func_tol_1 * min(1, abs(fopt)) || ...
                 func_change < func_tol_2 * max(1, abs(fopt))
             terminate = true;
@@ -575,6 +587,7 @@ for iter = 1:maxit
             end
 
             if use_estimated_gradient_stop
+                
                 % Note that we use grad_info.step_size_per_batch instead of alpha_all because the 
                 % step size has already been updated in the current iteration. The error between 
                 % the estimated gradient and the true gradient should be based on the step size used
@@ -584,13 +597,12 @@ for iter = 1:maxit
                                                     batch_size, grouped_direction_indices, n, ...
                                                     positive_direction_set, direction_selection_probability_matrix);
 
-
                 % Set up the reference gradient norm for the stopping criterion.
-                % Recording of norm_grad_hist starts only after the first gradient estimate
+                % Recording of norm_grad_window starts only after the first gradient estimate
                 % with sufficiently small error is obtained, at which point gradient estimates
                 % are considered reliable for termination checks.
                 %
-                % For robustness, values stored in norm_grad_hist use
+                % For robustness, values stored in norm_grad_window use
                 %   norm(grad) + grad_error.
                 % The reference value reference_grad_norm, however, is defined as norm(grad)
                 % alone, since it is fixed when the estimation error is already small and
@@ -601,15 +613,22 @@ for iter = 1:maxit
                         record_gradient_norm = true;
                     end
                 else
-                    norm_grad_hist = [norm_grad_hist, norm(grad) + grad_error];
+                    norm_grad_window = [norm_grad_window(2:end), norm(grad) + grad_error];
                 end
 
-                if length(norm_grad_hist) > grad_window_size
-                    if (all(norm_grad_hist((end-grad_window_size+1) :end ) < grad_tol_1 * min(1, reference_grad_norm)) ...
-                        || all(norm_grad_hist((end-grad_window_size+1) :end ) < grad_tol_2 * max(1, reference_grad_norm)))
-                        terminate = true;
-                        exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
-                    end
+                % Stopping test over the sliding window.
+                % Two natural aggregations are possible:
+                %   (i) all(x < T1) || all(x < T2)  : requires the entire window to satisfy
+                %       a single threshold (uniform criterion).
+                %   (ii) all((x < T1) | (x < T2))   : requires each entry to satisfy at least
+                %       one of the thresholds (pointwise criterion).
+                % These are not equivalent in general. We adopt the pointwise form as suggested.
+                % if (all(norm_grad_window < grad_tol_1 * min(1, reference_grad_norm)) ...
+                %         || all(norm_grad_window < grad_tol_2 * max(1, reference_grad_norm)))
+                if record_gradient_norm && all((norm_grad_window < grad_tol_1 * min(1, reference_grad_norm)) ...
+                        | (norm_grad_window < grad_tol_2 * max(1, reference_grad_norm)))
+                    terminate = true;
+                    exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
                 end
 
             end
