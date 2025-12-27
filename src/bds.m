@@ -598,18 +598,21 @@ for iter = 1:maxit
                                                     positive_direction_set, direction_selection_probability_matrix);
 
                 % Set up the reference gradient norm for the stopping criterion.
-                % Recording of norm_grad_window starts only after the first gradient estimate
-                % with sufficiently small error is obtained, at which point gradient estimates
-                % are considered reliable for termination checks.
                 %
-                % For robustness, values stored in norm_grad_window use
+                % Recording of norm_grad_window starts only after the first gradient estimate
+                % with sufficiently small estimation error is obtained. From this point on,
+                % gradient estimates are considered reliable for termination checks.
+                %
+                % For robustness against estimation error, both the entries stored in
+                % norm_grad_window and the reference value reference_grad_norm are defined as
+                % conservative upper bounds of the true gradient norm, namely
                 %   norm(grad) + grad_error.
-                % The reference value reference_grad_norm, however, is defined as norm(grad)
-                % alone, since it is fixed when the estimation error is already small and
-                % including the error would not improve the scaling of the threshold.
+                % The reference value is fixed once at initialization and is used solely to
+                % set the scale of the stopping thresholds, ensuring consistent and robust
+                % scaling in the presence of estimation uncertainty.
                 if ~record_gradient_norm
                     if grad_error < max(1e-3, 1e-1 * norm(grad))
-                        reference_grad_norm = norm(grad);
+                        reference_grad_norm = norm(grad) + grad_error;
                         record_gradient_norm = true;
                     end
                 else

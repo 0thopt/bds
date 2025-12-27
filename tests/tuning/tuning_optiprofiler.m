@@ -38,15 +38,31 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
             end
         case ismember('grad_window_size', param_fields) && ismember('grad_tol_1', param_fields) && ismember('grad_tol_2', param_fields) ...
             && ismember('func_window_size', param_fields) && ismember('func_tol_1', param_fields) && ismember('func_tol_2', param_fields) ...
-            && ~ismember('rotation', param_fields)
+            && ~ismember('rotation', param_fields) ...
+            && ~ismember('maxfun_factor', param_fields)
             for i_solver = 1:n_solvers
                 solvers{i_solver} = @(fun, x0) cbds_window_size_grad_tol_func_tol(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol_1(i_solver), parameters.grad_tol_2(i_solver), parameters.func_window_size(i_solver), parameters.func_tol_1(i_solver), parameters.func_tol_2(i_solver), options.feature_name);
             end
         case ismember('grad_window_size', param_fields) && ismember('grad_tol_1', param_fields) && ismember('grad_tol_2', param_fields) ...
             && ismember('func_window_size', param_fields) && ismember('func_tol_1', param_fields) && ismember('func_tol_2', param_fields) ...
-            && ismember('rotation', param_fields)
+            && ~ismember('rotation', param_fields) ...
+            && ismember('maxfun_factor', param_fields)
+            for i_solver = 1:n_solvers
+                solvers{i_solver} = @(fun, x0) cbds_window_size_grad_tol_func_tol_maxfun_factor(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol_1(i_solver), parameters.grad_tol_2(i_solver), parameters.func_window_size(i_solver), parameters.func_tol_1(i_solver), parameters.func_tol_2(i_solver), options.feature_name, parameters.maxfun_factor(i_solver));
+            end
+        case ismember('grad_window_size', param_fields) && ismember('grad_tol_1', param_fields) && ismember('grad_tol_2', param_fields) ...
+            && ismember('func_window_size', param_fields) && ismember('func_tol_1', param_fields) && ismember('func_tol_2', param_fields) ...
+            && ismember('rotation', param_fields) ...
+            && ~ismember('maxfun_factor', param_fields)
             for i_solver = 1:n_solvers
                 solvers{i_solver} = @(fun, x0) cbds_rotation_window_size_grad_tol_func_tol(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol_1(i_solver), parameters.grad_tol_2(i_solver), parameters.func_window_size(i_solver), parameters.func_tol_1(i_solver), parameters.func_tol_2(i_solver), options.feature_name, parameters.rotation(i_solver));
+            end
+        case ismember('grad_window_size', param_fields) && ismember('grad_tol_1', param_fields) && ismember('grad_tol_2', param_fields) ...
+            && ismember('func_window_size', param_fields) && ismember('func_tol_1', param_fields) && ismember('func_tol_2', param_fields) ...
+            && ismember('rotation', param_fields) ...
+            && ismember('maxfun_factor', param_fields)
+            for i_solver = 1:n_solvers
+                solvers{i_solver} = @(fun, x0) cbds_rotation_window_size_grad_tol_func_tol_maxfun_factor(fun, x0, parameters.grad_window_size(i_solver), parameters.grad_tol_1(i_solver), parameters.grad_tol_2(i_solver), parameters.func_window_size(i_solver), parameters.func_tol_1(i_solver), parameters.func_tol_2(i_solver), options.feature_name, parameters.rotation(i_solver), parameters.maxfun_factor(i_solver));
             end
     end
     if ~isfield(options, 'feature_name')
@@ -293,7 +309,9 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
         'CERI651BLS',...
         'CERI651CLS',...
         'CERI651DLS',...
-        'CERI651ELS'};
+        'CERI651ELS',...
+        'MISRA1ALS',...
+        'OSBORNEA'};
     else
         options.excludelist = {'DIAMON2DLS',...
         'DIAMON2D',...
@@ -332,7 +350,9 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
         'VESUVIALS',...
         'VESUVIOLS',...
         'VESUVIOULS',...
-        'YATP1CLS'};
+        'YATP1CLS',...
+        'MISRA1ALS',...
+        'OSBORNEA'};
     end
 
     if strcmp(options.feature_name, 'custom')
@@ -556,6 +576,34 @@ function x = cbds_window_size_grad_tol_func_tol(fun, x0, grad_window_size, grad_
     
 end
 
+function x = cbds_window_size_grad_tol_func_tol_maxfun_factor(fun, x0, grad_window_size, grad_tol_1, grad_tol_2, func_window_size, func_tol_1, func_tol_2, feature_name, maxfun_factor)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    if grad_window_size > 1e5 || grad_tol_1 == 1e-30 || grad_tol_2 == 1e-30
+        option.use_estimated_gradient_stop = false;
+    else
+        option.grad_window_size = grad_window_size;
+        option.grad_tol_1 = grad_tol_1;
+        option.grad_tol_2 = grad_tol_2;
+        option.use_estimated_gradient_stop = true;
+    end
+    if func_window_size > 1e5 || func_tol_1 == 1e-30 || func_tol_2 == 1e-30
+        option.use_function_value_stop = false;
+    else
+        option.func_window_size = func_window_size;
+        option.func_tol_1 = func_tol_1;
+        option.func_tol_2 = func_tol_2;
+        option.use_function_value_stop = true;
+    end
+
+    option.StepTolerance = eps;
+    option.MaxFunctionEvaluations = maxfun_factor * numel(x0);
+    x = bds(fun, x0, option);
+    
+end
+
 function x = cbds_rotation_window_size_grad_tol_func_tol(fun, x0, grad_window_size, grad_tol_1, grad_tol_2, func_window_size, func_tol_1, func_tol_2, feature_name, rotation)
 
     option.Algorithm = 'cbds';
@@ -596,6 +644,45 @@ function x = cbds_rotation_window_size_grad_tol_func_tol(fun, x0, grad_window_si
     %     option.StepTolerance = 1e-9;
     %     option.MaxFunctionEvaluations = 1e3 * numel(x0);
     % end
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_rotation_window_size_grad_tol_func_tol_maxfun_factor(fun, x0, grad_window_size, grad_tol_1, grad_tol_2, func_window_size, func_tol_1, func_tol_2, feature_name, rotation)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    if grad_window_size > 1e5 || grad_tol_1 == 1e-30 || grad_tol_2 == 1e-30
+        option.use_estimated_gradient_stop = false;
+    else
+        option.grad_window_size = grad_window_size;
+        option.grad_tol_1 = grad_tol_1;
+        option.grad_tol_2 = grad_tol_2;
+        option.use_estimated_gradient_stop = true;
+    end
+    if func_window_size > 1e5 || func_tol_1 == 1e-30 || func_tol_2 == 1e-30
+        option.use_function_value_stop = false;
+    else
+        option.func_window_size = func_window_size;
+        option.func_tol_1 = func_tol_1;
+        option.func_tol_2 = func_tol_2;
+        option.use_function_value_stop = true;
+    end
+    n = length(x0);
+    seed = round(1e4 * option.expand) + round(1e6 * option.shrink) + n;
+    if rotation
+        oldState = rng();
+        rng(seed);
+        [Q,R] = qr(randn(n));
+        Q = Q*diag(sign(diag(R)));
+        option.direction_set = Q;
+        rng(oldState);
+    end
+
+    option.StepTolerance = eps;
+    option.MaxFunctionEvaluations = maxfun_factor * numel(x0);
+    
     x = bds(fun, x0, option);
     
 end
