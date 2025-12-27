@@ -1,8 +1,8 @@
 name: cbds with grad 02, 4x, 8x, big, s2mpj
 
 on:
-  # Trigger the workflow on # push or pull request
-  # push:
+  # Trigger the workflow on push or pull request
+  push:
   # Trigger the workflow manually
   # schedule:
   # - cron: '0 6 */1 * *'
