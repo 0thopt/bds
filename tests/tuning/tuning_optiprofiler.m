@@ -139,13 +139,6 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
         options.feature_name = 'perturbed_x0';
     end
 
-    if ~isfield(options, 'n_runs')
-        if strcmpi(options.feature_name, 'plain') || strcmpi(options.feature_name, 'quantized')
-            options.n_runs = 1;
-        else
-            options.n_runs = 2;
-        end
-    end
     options.n_runs = 1;
     if ~isfield(options, 'solver_verbose')
         options.solver_verbose = 2;
@@ -153,6 +146,13 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
     time_str = char(datetime('now', 'Format', 'yy_MM_dd_HH_mm'));
     options.silent = false;
     options.ptype = 'u';
+    if isfield(options, 'problem_names')
+        if isfield(options, 'dim')
+            options = rmfield(options, 'dim');
+        end
+        options.mindim = 1;
+        options.maxdim = 200;
+    end
     if isfield(options, 'dim')
         if strcmpi(options.dim, 'small')
             options.mindim = 2;
@@ -186,7 +186,11 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
             options.benchmark_id = [options.benchmark_id, '_', strrep(options.solver_names{i}, '-', '_')];
         end
     end
-    options.benchmark_id = [options.benchmark_id, '_', num2str(options.mindim), '_', num2str(options.maxdim), '_', num2str(options.n_runs)];
+    if isfield(options, 'problem_names')
+        options.benchmark_id = [options.benchmark_id, '_', options.problem_names{1}, '_', num2str(options.n_runs)];
+    else
+        options.benchmark_id = [options.benchmark_id, '_', num2str(options.mindim), '_', num2str(options.maxdim), '_', num2str(options.n_runs)];
+    end
     switch options.feature_name
         case 'noisy'
             options.benchmark_id = [options.benchmark_id, '_', options.feature_name, '_', int2str(int32(-log10(options.noise_level))), '_no_rotation'];
@@ -389,6 +393,10 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
             options = rmfield(options, 'noise_level');
     end
     
+    if ~isfield(options, 'seed')
+        options.seed = 0;
+    end
+
     [solver_scores, profile_scores] = benchmark(solvers, options);
 end
 
