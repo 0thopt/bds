@@ -597,22 +597,29 @@ for iter = 1:maxit
                                                     batch_size, grouped_direction_indices, n, ...
                                                     positive_direction_set, direction_selection_probability_matrix);
 
+
                 % Set up the reference gradient norm for the stopping criterion.
                 %
                 % Recording of norm_grad_window starts only after the first gradient estimate
                 % with sufficiently small estimation error is obtained. From this point on,
-                % gradient estimates are considered reliable for termination checks.
+                % gradient estimates are considered reliable enough to be used in termination
+                % checks.
                 %
-                % For robustness against estimation error, both the entries stored in
-                % norm_grad_window and the reference value reference_grad_norm are defined as
-                % conservative upper bounds of the true gradient norm, namely
+                % For robustness with respect to estimation error, the values stored in
+                % norm_grad_window are upper bounds of the true gradient norm, given by
                 %   norm(grad) + grad_error.
-                % The reference value is fixed once at initialization and is used solely to
-                % set the scale of the stopping thresholds, ensuring consistent and robust
-                % scaling in the presence of estimation uncertainty.
+                % This conservative choice prevents premature termination caused by
+                % underestimation of the gradient magnitude.
+                %
+                % The reference value reference_grad_norm serves only as a fixed scaling anchor
+                % for the stopping thresholds. It is initialized once, when the estimation
+                % error is already small relative to the gradient norm. Therefore, we define
+                % reference_grad_norm using norm(grad) alone. Including grad_error at this
+                % stage would not improve robustness and would only distort the scaling of
+                % the tolerance.
                 if ~record_gradient_norm
                     if grad_error < max(1e-3, 1e-1 * norm(grad))
-                        reference_grad_norm = norm(grad) + grad_error;
+                        reference_grad_norm = norm(grad);
                         record_gradient_norm = true;
                     end
                 else
