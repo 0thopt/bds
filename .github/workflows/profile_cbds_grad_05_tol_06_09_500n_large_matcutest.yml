@@ -1,8 +1,8 @@
 name: cbds with grad 05, 6x, 9x, 500n, large, matcutest
 
 on:
-  # Trigger the workflow on push or pull request
-  push:
+  # Trigger the workflow on # push or pull request
+  # push:
   # Trigger the workflow manually
   # schedule:
   # - cron: '0 6 */1 * *'
