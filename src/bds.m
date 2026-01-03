@@ -647,7 +647,6 @@ end
 
 % Record the number of function evaluations in output.
 output.funcCount = nf;
-keyboard
 % Truncate the histories of the blocks visited, the step sizes, the points visited,
 % and the function values.
 if output_block_hist
