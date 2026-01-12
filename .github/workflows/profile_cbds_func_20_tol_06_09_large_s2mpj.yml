@@ -1,4 +1,4 @@
-name: Profile cbds with func 20, 6x, 9x, large
+name: Profile cbds with func 20, 6x, 9x, large, s2mpj
 
 on:
   # Trigger the workflow on push or pull request
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Profile cbds with func window size 20, tol 06 and 09, large
+    name: Profile cbds with func window size 20, tol 06 and 09, large, s2mpj
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
