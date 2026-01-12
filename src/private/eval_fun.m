@@ -17,7 +17,7 @@ end
 if isnan(f_real)
     f_real = inf;
 end
-f = min([f_real, 10^30, sqrt(realmax())]);
+f = min([f_real, 1e30, sqrt(realmax())]);
 
 end
 

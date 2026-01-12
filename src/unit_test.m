@@ -132,13 +132,61 @@ end
 
 function get_default_constant_test(testcase)
 %GET_DEFAULT_CONSTANT_TEST tests the file private/get_default_constant.m.
-
 % The following tests verify the default values of parameters required by bds.
-% Some code repetition is expected. The test order matches the parameter order in 
-% get_default_constant.m. If any test fails, it indicates that a default parameter value 
-% has been modified.
+% Some code repetition is expected.
+% The test order matches the parameter order in get_default_constant.m.
+% If any test fails, it indicates that a default parameter value has been modified.
+
 constant_name = "MaxFunctionEvaluations_dim_factor";
 constant_value = 500;
+verifyEqual(testcase, get_default_constant(constant_name), constant_value)
+
+constant_name = "ftarget";
+constant_value = -inf;
+verifyEqual(testcase, get_default_constant(constant_name), constant_value)
+
+constant_name = "StepTolerance";
+constant_value = 1e-6;
+verifyEqual(testcase, get_default_constant(constant_name), constant_value)
+
+constant_name = "use_function_value_stop";
+constant_value = false;
+verifyEqual(testcase, get_default_constant(constant_name), constant_value)
+
+constant_name = "func_window_size";
+constant_value = 10;
+verifyEqual(testcase, get_default_constant(constant_name), constant_value)
+
+constant_name = "func_tol_1";
+constant_value = 1e-6;
+verifyEqual(testcase, get_default_constant(constant_name), constant_value)
+
+constant_name = "func_tol_2";
+constant_value = 1e-9;
+verifyEqual(testcase, get_default_constant(constant_name), constant_value)
+
+constant_name = "use_estimated_gradient_stop";
+constant_value = false;
+verifyEqual(testcase, get_default_constant(constant_name), constant_value)
+
+constant_name = "grad_window_size";
+constant_value = 1;
+verifyEqual(testcase, get_default_constant(constant_name), constant_value)
+
+constant_name = "grad_tol_1";
+constant_value = 1e-3;
+verifyEqual(testcase, get_default_constant(constant_name), constant_value)
+
+constant_name = "grad_tol_2";
+constant_value = 1e-6;
+verifyEqual(testcase, get_default_constant(constant_name), constant_value)
+
+constant_name = "block_visiting_pattern";
+constant_value = "sorted";
+verifyEqual(testcase, get_default_constant(constant_name), constant_value)
+
+constant_name = "alpha_init";
+constant_value = 1;
 verifyEqual(testcase, get_default_constant(constant_name), constant_value)
 
 constant_name = "ds_expand_small";
@@ -197,19 +245,15 @@ constant_name = "shrink_big_noisy";
 constant_value = 0.85;
 verifyEqual(testcase, get_default_constant(constant_name), constant_value)
 
+constant_name = "is_noisy";
+constant_value = false;
+verifyEqual(testcase, get_default_constant(constant_name), constant_value)
+
 % To ensure that the forcing function is a function handle, we use func2str to compare the function handles.
 assert(strcmp(func2str(get_default_constant("forcing_function")), func2str(@(alpha) alpha^2)));
 
 constant_name = "reduction_factor";
 constant_value = [0, eps, eps];
-verifyEqual(testcase, get_default_constant(constant_name), constant_value)
-
-constant_name = "StepTolerance";
-constant_value = 1e-6;
-verifyEqual(testcase, get_default_constant(constant_name), constant_value)
-
-constant_name = "alpha_init";
-constant_value = 1;
 verifyEqual(testcase, get_default_constant(constant_name), constant_value)
 
 constant_name = "polling_inner";
@@ -218,14 +262,10 @@ verifyEqual(testcase, get_default_constant(constant_name), constant_value)
 
 constant_name = "cycling_inner";
 constant_value = 1;
-verifyEqual(testcase, get_default_constant(constant_name), constant_value);
+verifyEqual(testcase, get_default_constant(constant_name), constant_value)
 
 constant_name = "seed";
 constant_value = "shuffle";
-verifyEqual(testcase, get_default_constant(constant_name), constant_value)
-
-constant_name = "ftarget";
-constant_value = -inf;
 verifyEqual(testcase, get_default_constant(constant_name), constant_value)
 
 constant_name = "output_xhist";
@@ -240,6 +280,10 @@ constant_name = "output_block_hist";
 constant_value = false;
 verifyEqual(testcase, get_default_constant(constant_name), constant_value)
 
+constant_name = "output_grad_hist";
+constant_value = false;
+verifyEqual(testcase, get_default_constant(constant_name), constant_value)
+
 constant_name = "iprint";
 constant_value = 0;
 verifyEqual(testcase, get_default_constant(constant_name), constant_value)
@@ -248,24 +292,8 @@ constant_name = "debug_flag";
 constant_value = false;
 verifyEqual(testcase, get_default_constant(constant_name), constant_value)
 
-constant_name = "func_window_size";
-constant_value = 10;
-verifyEqual(testcase, get_default_constant(constant_name), constant_value)
-
-constant_name = "func_tol_1";
-constant_value = 1e-6;
-verifyEqual(testcase, get_default_constant(constant_name), constant_value)
-
-constant_name = "func_tol_2";
-constant_value = 1e-9;
-verifyEqual(testcase, get_default_constant(constant_name), constant_value)
-
-constant_name = "grad_window_size";
-constant_value = 1;
-verifyEqual(testcase, get_default_constant(constant_name), constant_value)
-
-constant_name = "grad_tol";
-constant_value = 1e-3;
+constant_name = "gradient_estimation_complete";
+constant_value = false;
 verifyEqual(testcase, get_default_constant(constant_name), constant_value)
 
 end
@@ -273,20 +301,32 @@ end
 function get_exitflag_test(testcase)
 %GET_EXITFLAG_TEST tests the file private/get_exitflag.m.
 
-information = "SMALL_ALPHA";
+information = "FTARGET_REACHED";
 EXITFLAG = 0;
 verifyEqual(testcase, get_exitflag(information), EXITFLAG)
 
-information = "FTARGET_REACHED";
+information = "MAXFUN_REACHED";
 EXITFLAG = 1;
 verifyEqual(testcase, get_exitflag(information), EXITFLAG)
 
-information = "MAXFUN_REACHED";
+information = "MAXIT_REACHED";
 EXITFLAG = 2;
 verifyEqual(testcase, get_exitflag(information), EXITFLAG)
 
-information = "MAXIT_REACHED";
+information = "SMALL_ALPHA";
 EXITFLAG = 3;
+verifyEqual(testcase, get_exitflag(information), EXITFLAG)
+
+information = "SMALL_OBJECTIVE_CHANGE";
+EXITFLAG = 4;
+verifyEqual(testcase, get_exitflag(information), EXITFLAG)
+
+information = "SMALL_ESTIMATE_GRADIENT";
+EXITFLAG = 5;
+verifyEqual(testcase, get_exitflag(information), EXITFLAG)
+
+information = "GRADIENT_ESTIMATION_COMPLETE";
+EXITFLAG = 6;
 verifyEqual(testcase, get_exitflag(information), EXITFLAG)
 
 end

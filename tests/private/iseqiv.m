@@ -40,7 +40,7 @@ if single_test
 end
 
 % Set seed using pname, n, ir, ftarget, and options.Algorithm. We use the seed to make the test reproducible for 
-% randomized algorithms (including pbds and rbds).
+% randomized algorithms (including pads, pbds and rbds).
 if isfield(options, 'Algorithm')
     seed = max(0, min(2^32 - 1,  sum(pname) + n + ir + test_options.ftarget + str2double(options.Algorithm) ...
     + norm(p.x0)));
