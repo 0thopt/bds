@@ -9,7 +9,7 @@ function array = cycling(array, index, strategy)
     %   MEMORY is a boolean value. If MEMORY is true, then the output ARRAY will
     %   be obtained by permitting the ARRAY; otherwise, the input ARRAY will be
     %   discarded and the output ARRAY will be obtained by permuting sort(ARRAY).
-    %   STRATEGY is a nonnegative integer from 0 to 4, indicating the strategy of the
+    %   STRATEGY is a nonnegative integer from 0 to 3, indicating the strategy of the
     %   permutation as follows.
     %
     %

@@ -83,9 +83,13 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %   grouped_direction_indices   A cell array of length num_blocks, where each
 %                               cell contains a vector of indices corresponding
 %                               to the directions assigned to that block. Each index
-%                               should be in the range 1 to n, where n is the problem
-%                               dimension. The i-th index refers to the i-th direction
-%                               in direction_set.
+%                               is in the range 1 to n, where n is the problem
+%                               dimension. Note that each index represents both the
+%                               positive and negative directions (e.g., d_i and -d_i),
+%                               and these paired directions are always assigned to
+%                               the same block. If this field is not provided,
+%                               the directions will be divided into num_blocks blocks
+%                               as evenly as possible by divide_direction_set.m.
 %   block_visiting_pattern      block_visiting_pattern to use. It can be 'sorted' (The selected
 %                               blocks will be visited in the order of their indices),
 %                               'random' (The selected blocks will be visited in a random order),
