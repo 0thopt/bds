@@ -5,10 +5,12 @@ function [xopt, fopt, exitflag, output] = inner_direct_search(fun, ...
 %
 %   [xopt, fopt, EXITFLAG, OUTPUT] = INNER_DIRECT_SEARCH(FUN, xbase, fbase, D, ...
 %   DIRECTION_INDICES, ALPHA, OPTIONS) returns a structure OUTPUT including
-%   funcCount, fhist, xhist, success, terminate, and direction_indices, working with the 
-%   structure OPTIONS, which includes reduction_factor, ftarget, polling, cycling.
+%   fhist, xhist, nf, direction_indices, terminate, and sufficient_decrease, working with the 
+%   structure OPTIONS, which includes MaxFunctionEvaluations, ftarget, forcing_function, 
+%   reduction_factor, polling_inner, cycling_inner, iprint, FunctionEvaluations_exhausted, and 
+%   i_real.
 %
-%   DIRECTION_INDICES is the indices of directions of the current block in D.
+%   direction_indices is the indices of directions of the current block in D.
 %
 
 MaxFunctionEvaluations = options.MaxFunctionEvaluations;
@@ -37,8 +39,8 @@ nf = 0;
 fopt = fbase;
 xopt = xbase;
 % Initialize sufficient_decrease to false in case it is not set within the loop.
-% This ensures that if the algorithm terminates early (e.g., by reaching ftarget after the first evaluation),
-% sufficient_decrease remains well-defined and consistent with the algorithm's logic.
+% This ensures that if the algorithm terminates early (e.g., by reaching ftarget after the first 
+% evaluation), sufficient_decrease remains well-defined and consistent with the algorithm's logic.
 sufficient_decrease = false;
 
 for j = 1 : num_directions

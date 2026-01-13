@@ -1,21 +1,18 @@
 function options = remove_invalid_options(options, n)
 % REMOVE_INVALID_OPTIONS Validate and clean the options structure.
 %
-% This function ensures that all fields in the `options` structure have valid
-% values. If a field contains an invalid value, a warning is issued, and the
-% field is removed.
+%   This function ensures that all fields in the options structure have valid
+%   values. It assumes the options structure contains only valid fields, and
+%   removes fields with invalid values while issuing a warning.
 %
-% Inputs:
-%   - options: A structure containing the options to be validated.
+%   Inputs:
+%   - options: A structure containing the options to be validated, where
+%              fields are assumed valid but values may not be.
 %   - n: The dimension of the optimization problem.
 %
-% Outputs:
-%   - options: The validated and updated options structure, with invalid fields
-%              removed.
-%
-% Notes:
-%   - This function assumes that `options` only contains valid field names.
-%     Any unknown fields should be removed prior to calling this function.
+%   Outputs:
+%   - options: The validated and updated options structure, containing only
+%              valid fields with valid values.
 %
 
 % MaxFunctionEvaluations

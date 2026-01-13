@@ -194,7 +194,8 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %
 %   fhist            History of function values.
 %   grad_hist        History of estimated gradients (if output_grad_hist is true).
-%   grad_xhist       History of points where the estimated gradients are computed (if output_grad_hist is true).
+%   grad_xhist       History of points where the estimated gradients are computed (if output_grad_hist 
+%                    is true).
 %   xhist            History of points visited (if output_xhist is true).
 %   alpha_hist       History of step sizes for each iteration (present only if output_alpha_hist
 %                    is true).
@@ -417,15 +418,18 @@ for iter = 1:maxit
     % The length of block_indices is equal to batch_size.
     % These blocks should not have been visited in the previous replacement_delay
     % iterations when the replacement_delay is nonnegative.
-    unavailable_block_indices = unique(block_hist(max(1, (iter-replacement_delay) * batch_size) : (iter-1) * batch_size), 'stable');
+    unavailable_block_indices = unique(block_hist(max(1, (iter-replacement_delay) * batch_size) : ...
+                                (iter-1) * batch_size), 'stable');
     available_block_indices = setdiff(1:num_blocks, unavailable_block_indices);
 
     % Select batch_size blocks randomly from the available blocks. The selected blocks
     % will be visited in this iteration.
-    block_indices = available_block_indices(random_stream.randperm(length(available_block_indices), batch_size));
+    block_indices = available_block_indices(random_stream.randperm(length(available_block_indices), ...
+                    batch_size));
 
     % Compute the direction selection probability matrix.
-    direction_selection_probability_matrix = get_direction_selected_probability(n, batch_size, grouped_direction_indices, available_block_indices);
+    direction_selection_probability_matrix = get_direction_selected_probability(n, batch_size, ...
+                                            grouped_direction_indices, available_block_indices);
     grad_info.direction_selection_probability_matrix = direction_selection_probability_matrix;
 
     % Choose the block indices based on options.block_visiting_pattern.
@@ -573,11 +577,11 @@ for iter = 1:maxit
     end
 
     % Update xopt and fopt. Note that we do this only if the iteration encounters a strictly 
-    % better point. Make sure that fopt is always the minimum of fhist after the moment we update fopt.
-    % The determination between fopt_all and fopt is to avoid the case that fopt_all is
+    % better point. Make sure that fopt is always the minimum of fhist after the moment we update 
+    % fopt. The determination between fopt_all and fopt is to avoid the case that fopt_all is
     % bigger than fopt due to the update of xbase and fbase.
-    % NOTE: If the function values are complex, the min function will return the value with the smallest
-    % norm (magnitude).
+    % NOTE: If the function values are complex, the min function will return the value with the 
+    % smallest norm (magnitude).
     [~, index] = min(fopt_all, [], "omitnan");
     if fopt_all(index) < fopt
         fopt = fopt_all(index);
@@ -598,7 +602,8 @@ for iter = 1:maxit
         % Update xbase and fbase. xbase serves as the "base point" for the computation in the
         % next block, meaning that reduction will be calculated with respect to xbase, as shown above.
         % Note that their update requires a sufficient decrease if reduction_factor(1) > 0.
-        if (reduction_factor(1) <= 0 && fopt < fbase) || fopt + reduction_factor(1) * forcing_function(min(alpha_all)) < fbase
+        if (reduction_factor(1) <= 0 && fopt < fbase) || fopt + reduction_factor(1) * ...
+            forcing_function(min(alpha_all)) < fbase
             xbase = xopt;
             fbase = fopt;
         end
