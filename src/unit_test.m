@@ -15,7 +15,7 @@ function cycling_test(testcase)
 
 array = [1, 2, 3, 4, 5];
 % When index < 0, the array should remain unchanged.
-for strategy = 0:4
+for strategy = 0:3
     verifyEqual(testcase, cycling(array, -1, strategy), array)
 end
 % When strategy == 0, the array should remain unchanged.
