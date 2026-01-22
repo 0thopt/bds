@@ -23,18 +23,18 @@ iprint = options.iprint;
 FunctionEvaluations_exhausted = options.FunctionEvaluations_exhausted;
 i_real = options.i_real;
 
-% Initialize exitflag to NaN intentionally. This ensures that if the algorithm
-% terminates in an unexpected or unhandled way, the NaN value will make it clear
+% Initialize exitflag to nan intentionally. This ensures that if the algorithm
+% terminates in an unexpected or unhandled way, the nan value will make it clear
 % that no valid exit condition was met. Ideally, the algorithm should exit with
-% a proper flag set by get_exitflag.m. If exitflag remains NaN, it indicates a
+% a proper flag set by get_exitflag.m. If exitflag remains nan, it indicates a
 % potential bug or an unhandled termination case.
-exitflag = NaN;
+exitflag = nan;
 
 % Initialize some parameters before entering the loop.
 n = length(xbase);
 num_directions = length(direction_indices);
-fhist = NaN(1, num_directions);
-xhist = NaN(n, num_directions);
+fhist = nan(1, num_directions);
+xhist = nan(n, num_directions);
 nf = 0; 
 fopt = fbase;
 xopt = xbase;

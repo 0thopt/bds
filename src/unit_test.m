@@ -95,7 +95,7 @@ end
 
 function output = eval_fun_tmp(x)
 if length(x) <= 100
-    output = NaN;
+    output = nan;
 elseif length(x) <= 200
     output = inf;
 else
@@ -110,7 +110,7 @@ n = randi([1, 100]);
 x = randn(n, 1);
 f_return = 1e30;
 
-% When eval_fun processes NaN, it should return 1e30.
+% When eval_fun processes nan, it should return 1e30.
 verifyEqual(testcase, eval_fun(@eval_fun_tmp, x), f_return);
 
 n = randi([101, 200]);
@@ -154,15 +154,11 @@ constant_value = false;
 verifyEqual(testcase, get_default_constant(constant_name), constant_value)
 
 constant_name = "func_window_size";
-constant_value = 10;
+constant_value = 20;
 verifyEqual(testcase, get_default_constant(constant_name), constant_value)
 
-constant_name = "func_tol_1";
+constant_name = "func_tol";
 constant_value = 1e-6;
-verifyEqual(testcase, get_default_constant(constant_name), constant_value)
-
-constant_name = "func_tol_2";
-constant_value = 1e-9;
 verifyEqual(testcase, get_default_constant(constant_name), constant_value)
 
 constant_name = "use_estimated_gradient_stop";
@@ -173,11 +169,7 @@ constant_name = "grad_window_size";
 constant_value = 1;
 verifyEqual(testcase, get_default_constant(constant_name), constant_value)
 
-constant_name = "grad_tol_1";
-constant_value = 1e-3;
-verifyEqual(testcase, get_default_constant(constant_name), constant_value)
-
-constant_name = "grad_tol_2";
+constant_name = "grad_tol";
 constant_value = 1e-6;
 verifyEqual(testcase, get_default_constant(constant_name), constant_value)
 
@@ -376,7 +368,7 @@ D_unique = D(:, 1:2:2*n-1);
 % independent subset, sorting these indices ensures that the order of the vectors in the output matrix D 
 % is as consistent as possible with that in the input matrix A. This allows us to use isequal to verify 
 % that the odd columns of D are identical to the input matrix A. Note that get_direction_set does not alter 
-% the input matrix A unless collinearity, linear dependence, NaN, Inf, or very short columns are present.
+% the input matrix A unless collinearity, linear dependence, nan, Inf, or very short columns are present.
 % As previously discussed, the probability of such cases is negligible for random matrices with large n.
 % Therefore, we can reliably use isequal to confirm that the odd columns of D match the input matrix A.
 % We also need to check whether the odd columns of D equal to the even columns of D with a negative
@@ -399,10 +391,10 @@ if r ~= n
 end
 
 % The following tests evaluate the behavior of get_direction_set when the input matrix consists 
-% entirely of NaN values. The expected behavior is that get_direction_set should return a block 
+% entirely of nan values. The expected behavior is that get_direction_set should return a block 
 % diagonal matrix with 1 and -1.
 n = randi([1,100]);
-options.direction_set = NaN(n, n);
+options.direction_set = nan(n, n);
 D = [zeros(n) zeros(n)];
 for ii = 1:n
     D(ii, 2*ii-1) = 1;

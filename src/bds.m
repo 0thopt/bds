@@ -8,121 +8,37 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %   FUN, starting the calculations at X0. FUN must accept a vector input X and
 %   return a scalar.
 %
-%   XOPT = BDS(FUN, X0, OPTIONS) performs the computations with the options in
-%   OPTIONS. OPTIONS should be a structure with the following fields.
+%   XOPT = BDS(FUN, X0, OPTIONS) performs the optimization using the specified
+%   options in OPTIONS. 
 %
-%   MaxFunctionEvaluations      Maximum of function evaluations. A positive integer.
-%   ftarget                     Target of the function value. If the function value
-%                               is smaller than or equal to ftarget, then the
-%                               algorithm terminates. ftarget should be a real number.
-%                               Default: -Inf.
-%   StepTolerance               Termination threshold for step size. The algorithm terminates
-%                               when the step size for each block falls below their corresponding
-%                               value. It can be a positive scalar (applied to all blocks) or a
-%                               vector with length equal to the number of blocks.
-%                               Default: 1e-6.
-%   use_function_value_stop     Whether to use the function value to stop the
-%                               algorithm. If it is true, then the algorithm will
-%                               stop when the function value does not change
-%                               significantly over the last func_window_size iterations.
-%                               It is an optional termination criterion.
-%                               Default: false.
-%   func_window_size            The number of iterations to consider when checking
-%                               whether the function value has changed significantly.
-%                               It should be a positive integer. Default: 10.
-%   func_tol_1                  The first tolerance for the function value change.
-%                               It should be a positive number. Default: 1e-6.
-%   func_tol_2                  The second tolerance for the function value change.
-%                               It should be a positive number. Default: 1e-9.
-%   use_estimated_gradient_stop Whether to use the estimated gradient to stop
-%                               the algorithm. If it is true and the algorithm
-%                               is not terminated by other criteria, then the
-%                               algorithm will stop when the estimated gradient
-%                               is sufficiently small over the last grad_window_size
-%                               estimated gradients.
-%                               It is an optional termination criterion.
-%                               Default: false.
-%   grad_window_size            The number of estimated gradients to consider when checking
-%                               whether the estimated gradient has changed significantly.
-%                               It should be a positive integer. Default: 1.
-%   grad_tol_1                  The first tolerance for the estimated gradient norm.
-%                               It should be a positive number. Default: 1e-6.
-%   grad_tol_2                  The second tolerance for the estimated gradient norm.
-%                               It should be a positive number. Default: 1e-9.
-%   Algorithm                   Algorithm to use. It can be 'cbds' (sorted
-%                               blockwise direct search) 'pbds' (randomly
-%                               permuted blockwise direct search), 'rbds'
-%                               (randomized blockwise direct search), 
-%                               'pads' (parallel blockwise direct search).'ds'
-%                               (the classical direct search). If no Algorithm is specified
-%                               in the options, the default setting will be equivalent to
-%                               using 'cbds' as the input.
-%                               The detail can be found in the set_options.m file.
-%   direction_set               A matrix whose columns will be used to define
-%                               the polling directions. If options does not
-%                               contain direction_set, then the polling
-%                               directions will be {e_1, -e_1, ..., e_n, -e_n}.
-%                               Otherwise, it should be a nonsingular n-by-n matrix.
-%                               Then the polling directions will be
-%                               {d_1, -d_1, ..., d_n, -d_n}, where d_i is the
-%                               i-th column of direction_set. If direction_set
-%                               is not singular, then we will revise the
-%                               direction_set to make it linear independent.
-%                               See get_direction_set.m for details. Default: eye(n).
+%   OPTIONS should be a structure containing various fields that configure the algorithm's behavior. 
+%   The most important options correspond directly to the parameters in Algorithm 2 of 
+%   https://lht97.github.io/documents/DFOS2024.pdf, which provides a simplified and practical 
+%   framework suitable for most users. These options are highlighted below. 
+%   Additional advanced options for specific or complex use cases are introduced later.
+%
+%   expand                      Expanding factor of step size. A real number no less than 1. 
+%                               It depends on the dimension of the problem and whether the problem 
+%                               is noisy or not and the Algorithm. 
+%                               Default: 2.
+%   shrink                      Shrinking factor of step size. A positive number less than 1. It 
+%                               depends on the dimension of the problem and whether the problem is 
+%                               noisy or not and the Algorithm. 
+%                               Default: 0.5.
 %   num_blocks                  Number of blocks. A positive integer. The number of blocks
 %                               should be less than or equal to the dimension of the problem.
-%                               Default: n.
-%   batch_size                  Suppose that batch_size is k. In each iteration,
-%                               k blocks are randomly selected to visit. A positive
-%                               integer less than or equal to num_blocks.
-%                               Default: num_blocks.
-%   replacement_delay           The delay for block replacement. If a block is
-%                               selected in the current iteration, it will not
-%                               be selected in the next replacement_delay iterations.
-%                               A non-negative integer. Default: 0.
-%   grouped_direction_indices   A cell array of length num_blocks, where each
-%                               cell contains a vector of indices corresponding
-%                               to the directions assigned to that block. Each index
-%                               is in the range 1 to n, where n is the problem
-%                               dimension. Note that each index represents both the
-%                               positive and negative directions (e.g., d_i and -d_i),
-%                               and these paired directions are always assigned to
-%                               the same block. If this field is not provided,
-%                               the directions will be divided into num_blocks blocks
-%                               as evenly as possible by divide_direction_set.m.
-%   block_visiting_pattern      block_visiting_pattern to use. It can be 'sorted' (The selected
-%                               blocks will be visited in the order of their indices),
-%                               'random' (The selected blocks will be visited in a random order),
-%                               'parallel' (The selected blocks will be visited in parallel).
-%                               Default: 'sorted'.
-%                               See divide_direction_set.m for details.
-%   alpha_init                  Initial step size. If alpha_init is a positive
-%                               scalar, then the initial step size of each block
-%                               is set to alpha_init. If alpha_init is a vector,
-%                               then the initial step size of the i-th block is
+%                               Default: length(x0).
+%   alpha_init                  Initial step size. If alpha_init is a positive scalar, then the 
+%                               initial step size of each block is set to alpha_init. If alpha_init 
+%                               is a vector, then the initial step size of the i-th block is
 %                               set to alpha_init(i).
 %                               Default: 1.
-%   expand                      Expanding factor of step size. A real number
-%                               no less than 1. It depends on the dimension of
-%                               the problem and whether the problem is noisy or
-%                               not and the Algorithm. Default: 2.
-%   shrink                      Shrinking factor of step size. A positive number
-%                               less than 1. It depends on the dimension of the
-%                               problem and whether the problem is noisy or not
-%                               and the Algorithm. Default: 0.5.
-%                               It should be strictly less than StepTolerance.
-%                               A positive number. Default: 1e-3*StepTolerance.
-%   is_noisy                    A flag deciding whether the problem is noisy or
-%                               not. The value of is_noisy will be only used to
-%                               determine the values of expand and shrink now.
-%                               Default: false.
-%   forcing_function            The forcing function used for deciding whether
-%                               the step achieves a sufficient decrease. forcing_function
-%                               should be a function handle.
+%   forcing_function            The forcing function used for deciding whether the step achieves a 
+%                               sufficient decrease. forcing_function should be a function handle.
 %                               Default: @(alpha) alpha^2. See also reduction_factor.
 %   reduction_factor            Factors multiplied to the forcing function for
 %                               deciding whether a step achieves a sufficient decrease.
-%                               A 3-dimentional vector such that
+%                               A 3-dimensional vector such that
 %                               reduction_factor(1) <= reduction_factor(2) <= reduction_factor(3),
 %                               reduction_factor(1) >= 0, and reduction_factor(2) > 0.
 %                               After the "inner direct search" over each block, the base
@@ -133,17 +49,114 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               expanded if the reduction is at least
 %                               reduction_factor(3) * forcing_function.
 %                               Default: [0, eps, eps]. See also forcing_function.
+%   direction_set               A matrix whose columns will be used to define the polling directions. 
+%                               If options does not contain direction_set, then the polling
+%                               directions will be {e_1, -e_1, ..., e_n, -e_n}.
+%                               Otherwise, it should be a nonsingular n-by-n matrix. Then the 
+%                               polling directions will be {d_1, -d_1, ..., d_n, -d_n}, where d_i is
+%                               the i-th column of direction_set. If direction_set is not singular, 
+%                               then we will revise the direction_set to make it linear independent.
+%                               See get_direction_set.m for details. 
+%                               Default: eye(n).
+%
+%   The following options are advanced options for users with specific needs.
+%   Algorithm                   Algorithm to use. It can be 
+%                               'cbds' (sorted blockwise direct search) 
+%                               'pbds' (randomly permuted blockwise direct search)
+%                               'rbds' (randomized blockwise direct search), 
+%                               'pads' (parallel blockwise direct search)
+%                               'ds'   (the classical direct search). 
+%                               If no Algorithm is specified in the options, the default setting 
+%                               will be equivalent to using 'cbds' as the input.
+%                               The detail can be found in the set_options.m file.
+%   batch_size                  Suppose that batch_size is k. In each iteration, k blocks are 
+%                               randomly selected to visit. A positive integer less than or equal 
+%                               to num_blocks.
+%                               Default: num_blocks.
+%   replacement_delay           The delay for block replacement. If a block is selected in the 
+%                               current iteration, it will not be selected in the next 
+%                               replacement_delay iterations.
+%                               A non-negative integer. 
+%                               Default: floor(num_blocks / batch_size) - 1.
+%   grouped_direction_indices   A cell array of length num_blocks, where each cell contains a vector 
+%                               of indices corresponding to the directions assigned to that block. 
+%                               Each index is in the range 1 to n, where n is the problem dimension.
+%                               Note that each index represents both the positive and negative 
+%                               directions (e.g., d_i and -d_i), and these paired directions are 
+%                               always assigned to the same block. If this field is not provided,
+%                               the directions will be divided into num_blocks blocks as evenly as 
+%                               possible by divide_direction_set.m.
+%   block_visiting_pattern      block_visiting_pattern to use. It can be 
+%                               'sorted'   (The selected blocks will be visited in the order of 
+%                                          their indices)
+%                               'random'   (The selected blocks will be visited in a random order)
+%                               'parallel' (The selected blocks will be visited in parallel)
+%                               Default: 'sorted'.
+%                               See divide_direction_set.m for details.
+%                               It should be strictly less than StepTolerance.
+%                               A positive number. Default: 1e-3*StepTolerance.
+%   is_noisy                    A flag deciding whether the problem is noisy or not. The value of 
+%                               is_noisy will be only used to determine the values of expand and 
+%                               shrink now.
+%                               Default: false.
 %   polling_inner               Polling strategy in each block. It can be "complete" or
 %                               "opportunistic". Default: "opportunistic".
-%   cycling_inner               Cycling strategy employed within each block. It
-%                               is used only when polling_inner is "opportunistic".
-%                               It can be 0, 1, 2, 3. See cycling.m for details.
+%   cycling_inner               Cycling strategy employed within each block. It is used only when 
+%                               polling_inner is "opportunistic". It can be 0, 1, 2, 3. 
+%                               See cycling.m for details.
 %                               Default: 3.
-%   seed                        The seed for the random number generator. It should
-%                               be a non-negative integer. If not provided, the random
-%                               number generator will be initialized using the 'shuffle'
-%                               mode, which sets the seed based on the current time.
-%                               This ensures different random sequences across runs.
+%   seed                        The seed for the random number generator. It should be a 
+%                               non-negative integer in the range [0, 2^32 - 1]. If not provided, 
+%                               the random number generator will be initialized using the 'shuffle'
+%                               mode, which sets the seed based on the current time. This ensures 
+%                               different random sequences across runs.
+%
+%   The following options are related to the termination criteria.
+%   MaxFunctionEvaluations      Maximum of function evaluations. A positive integer.
+%   ftarget                     Target of the function value. If the function value is smaller than 
+%                               or equal to ftarget, then the algorithm terminates. 
+%                               ftarget should be a real number.
+%                               Default: -Inf.
+%   StepTolerance               Termination threshold for step size. The algorithm terminates
+%                               when the step size for each block falls below their corresponding
+%                               value. It can be a positive scalar (applied to all blocks) or a
+%                               vector with length equal to the number of blocks.
+%                               Default: 1e-6.
+%   use_function_value_stop     Whether to use the function value to stop the algorithm. If it is 
+%                               true, then the algorithm will stop when the function value does not 
+%                               change significantly over the last func_window_size iterations.
+%                               It is an optional termination criterion.
+%                               Default: false.
+%   func_window_size            The number of iterations to consider when checking
+%                               whether the function value has changed significantly.
+%                               It should be a positive integer. 
+%                               Default: 20.
+%   func_tol                    Tolerance for the function value change. The algorithm checks 
+%                               whether the change in the function value over the last 
+%                               func_window_size iterations falls within the range 
+%                               [func_tol * 1e-3, func_tol]. If the change is smaller than this 
+%                               range, the algorithm terminates. 
+%                               It should be a positive number. 
+%                               Default: 1e-6.
+%   use_estimated_gradient_stop Whether to use the estimated gradient to stop the algorithm. If it 
+%                               is true and the algorithm is not terminated by other criteria, then 
+%                               the algorithm will stop when the estimated gradient is sufficiently 
+%                               small over the last grad_window_size estimated gradients.
+%                               It is an optional termination criterion.
+%                               Default: false.
+%   grad_window_size            The number of estimated gradients to consider when checking
+%                               whether the estimated gradient has changed significantly.
+%                               It should be a positive integer. 
+%                               Default: 1.
+%   grad_tol                    Tolerance for the estimated gradient norm. The algorithm checks 
+%                               whether the norm of the estimated gradient over the last 
+%                               grad_window_size iterations falls within the range 
+%                               [grad_tol * 1e-3, grad_tol]. If the norm is smaller than this 
+%                               range, the algorithm terminates.
+%                               It should be a positive number. 
+%                               Default: 1e-6.
+%
+%   The following options are related to output and debugging.
 %   output_xhist                Whether to output the history of points visited.
 %                               Default: false.
 %   output_alpha_hist           Whether to output the history of step sizes.
@@ -167,12 +180,10 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               Default: 0.
 %                               This option is cited from
 %                               https://github.com/libprima/prima/blob/main/matlab/interfaces/newuoa.m.
-%   debug_flag                  A logical flag indicating whether to perform
-%                               additional verifications on the outputs after
-%                               the algorithm completes. If set to true, the
-%                               algorithm will execute a series of checks to
-%                               ensure the validity and consistency of the
-%                               results. This option is primarily intended for
+%   debug_flag                  A logical flag indicating whether to perform additional verifications 
+%                               on the outputs after the algorithm completes. If set to true, the
+%                               algorithm will execute a series of checks to ensure the validity and
+%                               consistency of the results. This option is primarily intended for
 %                               debugging and development purposes.
 %                               Default: false.
 %
@@ -194,12 +205,12 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %
 %   fhist            History of function values.
 %   grad_hist        History of estimated gradients (if output_grad_hist is true).
-%   grad_xhist       History of points where the estimated gradients are computed (if output_grad_hist 
-%                    is true).
+%   grad_xhist       History of points where the estimated gradients are computed (if 
+%                    output_grad_hist is true).
 %   xhist            History of points visited (if output_xhist is true).
 %   alpha_hist       History of step sizes for each iteration (present only if output_alpha_hist
 %                    is true).
-%                    Note: not all blocks are necessarily visited in every iteration. For blocks
+%                    Note that not all blocks are necessarily visited in every iteration. For blocks
 %                    that are skipped in an iteration, their entries in alpha_hist record the
 %                    step sizes carried forward from the previous iteration.
 %   blocks_hist      History of blocks visited (if output_block_hist is true).
@@ -261,21 +272,19 @@ alpha_tol = options.StepTolerance;
 % The following variables are used for the optional stopping criteria.
 use_function_value_stop = options.use_function_value_stop;
 func_window_size = options.func_window_size;
-func_tol_1 = options.func_tol_1;
-func_tol_2 = options.func_tol_2;
-% Initialize fopt_window with NaN values. This ensures that the objective-change
+func_tol = options.func_tol;
+% Initialize fopt_window with nan values. This ensures that the objective-change
 % stopping criterion remains inactive until the window is fully replaced with
-% valid fopt values. Using NaN is safer than Inf, as NaN comparisons always return
+% valid fopt values. Using nan is safer than Inf, as nan comparisons always return
 % false, preventing unintended behavior in subsequent logic.
 fopt_window = nan(1, func_window_size);
 
 use_estimated_gradient_stop = options.use_estimated_gradient_stop;
 grad_window_size = options.grad_window_size;
-grad_tol_1 = options.grad_tol_1;
-grad_tol_2 = options.grad_tol_2;
-% Initialize with NaN to disable the stopping test until the window is fully replaced
+grad_tol = options.grad_tol;
+% Initialize with nan to disable the stopping test until the window is fully replaced
 % with valid gradient norms.
-norm_grad_window = NaN(1, grad_window_size);
+norm_grad_window = nan(1, grad_window_size);
 record_gradient_norm = false;
 
 % Get the direction set.
@@ -312,9 +321,9 @@ random_stream = RandStream("mt19937ar", "Seed", seed);
 
 output_xhist = options.output_xhist;
 if output_xhist
-    xhist = NaN(n, MaxFunctionEvaluations);
+    xhist = nan(n, MaxFunctionEvaluations);
 end
-fhist = NaN(1, MaxFunctionEvaluations);
+fhist = nan(1, MaxFunctionEvaluations);
 
 output_alpha_hist = options.output_alpha_hist;
 % Record the initial step size into the alpha_hist.
@@ -324,7 +333,7 @@ end
 
 output_block_hist = options.output_block_hist;
 % Initialize the history of blocks visited.
-block_hist = NaN(1, MaxFunctionEvaluations);
+block_hist = nan(1, MaxFunctionEvaluations);
 
 output_grad_hist = options.output_grad_hist;
 
@@ -336,10 +345,11 @@ gradient_estimation_complete = options.gradient_estimation_complete;
 % Initialize gradient history variables and info structure
 grad_hist = [];
 grad_xhist = [];
+grad_iter = [];
 grad_info = struct();
 grad_info.n = n;
-grad_info.step_size_per_batch = NaN(batch_size, 1);
-grad_info.fbase_per_batch = NaN(batch_size, 1);
+grad_info.step_size_per_batch = nan(batch_size, 1);
+grad_info.fbase_per_batch = nan(batch_size, 1);
 grad_info.complete_direction_set = D;
 
 % Initialize exitflag.
@@ -405,11 +415,11 @@ num_visited_blocks = 0;
 
 % fopt_all(i) stores the best function value found in the i-th block after one iteration,
 % while xopt_all(:, i) holds the corresponding x. If a block is not visited during the iteration,
-% fopt_all(i) is set to NaN. Both fopt_all and xopt_all have a length of num_blocks, not batch_size,
+% fopt_all(i) is set to nan. Both fopt_all and xopt_all have a length of num_blocks, not batch_size,
 % as not all blocks might not be visited in each iteration, but the best function value across all
 % blocks must still be recorded.
-fopt_all = NaN(1, num_blocks);
-xopt_all = NaN(n, num_blocks);
+fopt_all = nan(1, num_blocks);
+xopt_all = nan(n, num_blocks);
 
 for iter = 1:maxit
 
@@ -428,7 +438,8 @@ for iter = 1:maxit
                     batch_size));
 
     % Compute the direction selection probability matrix.
-    direction_selection_probability_matrix = get_direction_selected_probability(n, batch_size, ...
+    % TODO: where to change there?
+    direction_selection_probability_matrix = get_direction_probability_matrix(n, batch_size, ...
                                             grouped_direction_indices, available_block_indices);
     grad_info.direction_selection_probability_matrix = direction_selection_probability_matrix;
 
@@ -504,7 +515,7 @@ for iter = 1:maxit
 
         % Store the indices of directions (with respect to the full direction set) that were 
         % evaluated in the current batch during this iteration.
-        % Note: The reason that we use sampled_direction_indices_per_batch{i} instead of
+        % Note that The reason that we use sampled_direction_indices_per_batch{i} instead of
         % sampled_direction_indices_per_batch{i_real} is similar to that for
         % grad_info.step_size_per_batch(i) explained above.
         % We use direction_indices(1:sub_output.nf) instead of sub_output.direction_indices
@@ -613,14 +624,14 @@ for iter = 1:maxit
     % over the last func_window_size iterations. If the change is below a specified threshold,
     % terminate the optimization. This check is performed after the current iteration is complete,
     % ensuring fopt_window includes the latest function value.
-    % Note: fopt - f0 is used instead of fopt to ensure translation invariance. This adjustment
+    % Note that fopt - f0 is used instead of fopt to ensure translation invariance. This adjustment
     % makes the stopping criterion depend on the relative change in the objective function,
     % unaffected by constant shifts (e.g., f(x) -> f(x) + c). Such normalization ensures consistent
     % behavior regardless of the function's translation.
     if use_function_value_stop
         func_change = max(fopt_window) - min(fopt_window);
-        if func_change < func_tol_1 * min(1, abs(fopt - f0)) || ...
-                func_change < func_tol_2 * max(1, abs(fopt - f0))
+        if func_change < func_tol * min(1, abs(fopt - f0)) || ...
+                func_change < 1e-3 * func_tol * max(1, abs(fopt - f0))
             terminate = true;
             exitflag = get_exitflag("SMALL_OBJECTIVE_CHANGE");
         end
@@ -633,7 +644,7 @@ for iter = 1:maxit
         grad = estimate_gradient(grad_info);
         % If the norm of the estimated gradient exceeds the threshold (1e30), it is discarded.
         % This threshold is chosen to maintain consistency with the standard used in eval_fun.m.
-        % Additionally, we check for NaN values to ensure the gradient is valid. The first verification
+        % Additionally, we check for nan values to ensure the gradient is valid. The first verification
         % can cover both cases. The second verification is to avoid the length of grad is too short.
         if (norm(grad) <= sqrt(n)*1e30) && (norm(grad) > 10*sqrt(n)*eps)
             % Record the estimated gradient in grad_hist.
@@ -642,6 +653,14 @@ for iter = 1:maxit
             % sufficient decrease, we record the estimated gradient. Thus, xbase should be recorded
             % not xopt even if xopt is better than xbase.
             grad_xhist = [grad_xhist, xbase];
+            % Record the iteration number corresponding to the estimated gradient.
+            % Note that the iteration number is recorded as iter-1 because the gradient is estimated
+            % based on xbase, which corresponds to the state of the algorithm at the end of
+            % the previous iteration. This is because gradient estimation occurs only when
+            % none of the selected blocks achieve sufficient decrease in the current iteration.
+            % For example, if iter = 1, the gradient corresponds to x0 (the initial point),
+            % and the iteration number is naturally iter-1 = 0.
+            grad_iter = [grad_iter, iter-1];
 
             % When gradient_estimation_complete is true, we check whether the estimated gradient is
             % from the first iteration. If it is not, the solver will terminate.
@@ -691,10 +710,8 @@ for iter = 1:maxit
                 %   (ii) all((x < T1) | (x < T2))   : requires each entry to satisfy at least
                 %       one of the thresholds (pointwise criterion).
                 % These are not equivalent in general. We adopt the pointwise form as suggested.
-                % if (all(norm_grad_window < grad_tol_1 * min(1, reference_grad_norm)) ...
-                %         || all(norm_grad_window < grad_tol_2 * max(1, reference_grad_norm)))
-                if all((norm_grad_window < grad_tol_1 * min(1, reference_grad_norm)) ...
-                        | (norm_grad_window < grad_tol_2 * max(1, reference_grad_norm)))
+                if all((norm_grad_window < grad_tol * min(1, reference_grad_norm)) ...
+                        | (norm_grad_window < 1e-3 * grad_tol * max(1, reference_grad_norm)))
                     terminate = true;
                     exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
                 end
@@ -726,6 +743,7 @@ end
 if output_grad_hist
     output.grad_hist = grad_hist;
     output.grad_xhist = grad_xhist;
+    output.grad_iter = grad_iter;
 end
 
 output.fhist = fhist(1:nf);

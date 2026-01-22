@@ -1,5 +1,6 @@
 function setup(varargin)
-%This file is based on https://github.com/libprima/prima/blob/main/setup.m, which is written by Zaikun Zhang.
+%This file is based on https://github.com/libprima/prima/blob/main/setup.m, which is written by 
+%Zaikun Zhang.
 %SETUP sets the package up for MATLAB.
 %
 %   This script can be called in the following ways.
@@ -9,14 +10,16 @@ function setup(varargin)
 %
 %   REMARKS:
 %
-%   1. To run this script, you need to have write access to the directory that
-%   contains this script and its subdirectories.
+%   To run this script, you need to have write access to the directory that contains this script 
+%   and its subdirectories.
 %
 %   ***********************************************************************
-%   Authors:    Haitian Li (hai-tian.li@connect.polyu.hk)
-%               and Zaikun ZHANG (zaikun.zhang@polyu.edu.hk)
+%   Authors:    Haitian LI (hai-tian.li@connect.polyu.hk)
+%               and Zaikun ZHANG (zhangzaikun@mail.sysu.edu.cn)
 %               Department of Applied Mathematics,
-%               The Hong Kong Polytechnic University.
+%               The Hong Kong Polytechnic University
+%               School of Mathematics,
+%               Sun Yat-sen University
 %   ***********************************************************************
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -25,8 +28,8 @@ function setup(varargin)
 
 % setup starts
 
-% path_stringName of the package. It will be used as a stamp to be included in the path_strings. Needed only
-% if `savepath` fails.
+% path_stringName of the package. It will be used as a stamp to be included in the path_strings. 
+% Needed only if `savepath` fails.
 package_name = "bds";
 
 % Check the version of MATLAB.

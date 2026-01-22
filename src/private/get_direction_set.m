@@ -37,10 +37,10 @@ else
     % options.direction_set is provided.
     valid_direction_indices = 1:n;
 
-    % Determine whether the direction set contains NaN or Inf values and replace those
+    % Determine whether the direction set contains nan or Inf values and replace those
     % elements with 0.
     if any(isnan(direction_set) | isinf(direction_set), "all")
-        warning("Some directions contain NaN or inf, which are replaced with 0.");
+        warning("Some directions contain nan or inf, which are replaced with 0.");
         direction_set(isnan(direction_set) | isinf(direction_set)) = 0;
     end
 
@@ -141,7 +141,7 @@ else
 end
 
 % Finally, set D to [d_1, -d_1, ..., d_n, -d_n], where d_i is the i-th vector in direction_set.
-D = NaN(n, 2*n);
+D = nan(n, 2*n);
 D(:, 1:2:2*n-1) = direction_set;
 D(:, 2:2:2*n) = -direction_set;
 

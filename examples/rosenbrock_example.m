@@ -1,50 +1,31 @@
-function rosenbrock_example(options, x0)
-%This file is cited from https://github.com/libprima/prima/blob/main/matlab/examples/rosenbrock_example.m, which is
-%written by Zaikun Zhang.
+function rosenbrock_example()
+%This file is based on https://github.com/libprima/prima/blob/main/matlab/examples/rosenbrock_example.m, 
+%which is written by Zaikun Zhang.
 %ROSENBROCK_EXAMPLE illustrates how to use bds.
 %
+%   N.B.: Make sure that you have installed the package by running the
+%   `setup.m` script in the root directory before trying the examples.
+%   You only need to do the installation once.
+%
 %   ***********************************************************************
-%   Authors:    Haitian Li (hai-tian.li@connect.polyu.hk)
-%               and Zaikun ZHANG (zaikun.zhang@polyu.edu.hk)
+%   Authors:    Haitian LI (hai-tian.li@connect.polyu.hk)
+%               and Zaikun ZHANG (zhangzaikun@mail.sysu.edu.cn)
 %               Department of Applied Mathematics,
 %               The Hong Kong Polytechnic University
+%               School of Mathematics,
+%               Sun Yat-sen University
 %
 %   ***********************************************************************
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Attribute: public (can be called directly by users)
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Set options to an empty structure if it is not provided.
-if nargin < 1
-    options = struct();
-end
-
-if nargin < 2
-    x0 = [0; 0; 0];  % starting point
-end
-
-%options.MaxFunctionEvaluations = 1e4;
-%options.StepTolerance = eps;
-%options.StepTolerance = 1e-6;
-
-fullpath = mfilename("fullpath");
-path_examples = fileparts(fullpath);
-path_bds = fileparts(path_examples);
-path_src = fullfile(path_bds, "src");
-path_competitors = fullfile(path_bds, "tests", "competitors");
-addpath(path_src)
-addpath(path_competitors)
+fprintf('\nMinimize the chained Rosenbrock function with three variables:\n');
+x0 = [0; 0; 0];  % starting point
 
 % The following syntax is identical to fmincon:
-[X,FVAL,EXITFLAG,OUTPUT] = bds(@chrosen, x0, options)
+[x, fx, exitflag, output] = bds(@chrosen, x0)
 
-rmpath(path_src)
-rmpath(path_competitors)
 return
 
 function f = chrosen(x)  % the subroutine defining the objective function
 f = sum((x(1:end-1)-1).^2 + 4*(x(2:end)-x(1:end-1).^2).^2);
-% f = f*(1+1e-8*randn(1));
 return
 

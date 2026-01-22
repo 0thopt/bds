@@ -31,11 +31,11 @@ switch information
     case "GRADIENT_ESTIMATION_COMPLETE"
         exitflag = 6;
     otherwise
-        exitflag = NaN;
+        exitflag = nan;
 end
 
 if isempty(exitflag) || isnan(exitflag)
-    exitflag = NaN;
+    exitflag = nan;
     disp("New break condition happens."); 
 end
 

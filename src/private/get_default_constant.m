@@ -9,18 +9,14 @@ switch constant_name
     case {"use_function_value_stop"}
         constant_value = false;
     case {"func_window_size"}
-        constant_value = 10;
-    case {"func_tol_1"}
+        constant_value = 20;
+    case {"func_tol"}
         constant_value = 1e-6;
-    case {"func_tol_2"}
-        constant_value = 1e-9;
     case {"use_estimated_gradient_stop"}
         constant_value = false;
     case {"grad_window_size"}
         constant_value = 1;
-    case {"grad_tol_1"}
-        constant_value = 1e-3;
-    case {"grad_tol_2"}
+    case {"grad_tol"}
         constant_value = 1e-6;
     case {"block_visiting_pattern"}
         constant_value = "sorted";

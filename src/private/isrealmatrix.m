@@ -13,7 +13,7 @@ elseif isnumeric(x) && isreal(x) && ismatrix(x)
     [m, n] = size(x);
 else
     isrm = false;
-    m = NaN;
-    n = NaN;
+    m = nan;
+    n = nan;
 end
 return

@@ -1,4 +1,5 @@
 function options = set_options(options, n)
+% TODO: summary of this function.
 
 % Define the list of allowed fields.
 % The order follows the documentation in bds.m.
@@ -8,12 +9,10 @@ field_list = {
     'StepTolerance'
     'use_function_value_stop'
     'func_window_size'
-    'func_tol_1'
-    'func_tol_2'
+    'func_tol'
     'use_estimated_gradient_stop'
     'grad_window_size'
-    'grad_tol_1'
-    'grad_tol_2'
+    'grad_tol'
     'Algorithm'
     'direction_set'
     'num_blocks'
@@ -56,9 +55,11 @@ end
 
 % At this point, all fields in options are valid field names, as any unknown fields
 % have already caused an error earlier. The next step ensures that
-% the values associated with these fields are valid. Any fields with invalid values
-% will be replaced with default values.
-options = remove_invalid_options(options, n);
+% the values associated with these fields are valid. If any field contains an
+% invalid value, the validate_options function will throw an error and terminate
+% execution. This strict validation ensures that the options structure is fully
+% consistent before proceeding.
+options = validate_options(options, n);
 
 % Although the field names are valid and the corresponding values are valid after the above step,
 % conflicts may arise if the user provides values for some certain fields simultaneously.
@@ -144,19 +145,17 @@ end
 
 % If replacement_delay is r, the block selected in the current iteration will not
 % be selected again in the next r iterations.
-% While a larger replacement_delay
-% can potentially improve performance, we set the default value to 0 to maintain
-% the simplicity and consistency of the algorithm.
-% Note that replacement_delay
-% cannot exceed floor(num_blocks/batch_size) - 1. If it does, it will be reset to 0.
+% While a larger replacement_delay can potentially improve performance, we set it
+% to the maximum allowable value to prioritize performance.
+% Note that replacement_delay cannot exceed floor(num_blocks/batch_size) - 1.
 if isfield(options, "replacement_delay")
     if options.replacement_delay > floor(options.num_blocks/options.batch_size) - 1
         warning('BDS:set_options:ReplacementDelayTooLarge', ...
-            'replacement_delay is too large. Defaulting to floor(num_blocks/batch_size)-1.');
-        options.replacement_delay = 0;
+            'replacement_delay is too large. Setting to the maximum allowable value.');
+        options.replacement_delay = floor(options.num_blocks/options.batch_size) - 1;
     end
 else
-    options.replacement_delay = 0;
+    options.replacement_delay = floor(options.num_blocks/options.batch_size) - 1;
 end
 
 % Set the default value of block_visiting_pattern if it is not provided.
@@ -165,13 +164,11 @@ if ~isfield(options, 'block_visiting_pattern')
 end
 
 % Set the initial step sizes.
-% If options do not contain the field of alpha_init, then the
-% initial step size of each block is set to 1. If alpha_init is a positive scalar, then the initial step
-% size of each block is set to alpha_init.
-% If alpha_init is a vector, then the initial step size
-% of the i-th block is set to alpha_init(i).
-% If alpha_init is "auto", then the initial step size is
-% set according to the coordinates of x0 with respect to the directions in D(:, 1 : 2 : 2*n-1).
+% If options do not contain the field of alpha_init, then the initial step size of each block is set
+% to 1. If alpha_init is a positive scalar, then the initial step size of each block is set to 
+% alpha_init. If alpha_init is a vector, then the initial step size of the i-th block is set to 
+% alpha_init(i). If alpha_init is "auto", then the initial step size is set according to the 
+% coordinates of x0 with respect to the directions in D(:, 1 : 2 : 2*n-1).
 if isfield(options, "alpha_init")
     if isscalar(options.alpha_init)
         options.alpha_init = options.alpha_init * ones(options.num_blocks, 1);
@@ -201,7 +198,7 @@ end
 % Set the value of expand and shrink according to the dimension of the problem
 % and whether the problem is noisy or not, also according to the Algorithm.
 % n == 1 is treated as a special case, and we consider the Algorithm to be "ds".
-if strcmpi(options.Algorithm, "ds") || n == 1
+if (isfield(options, "Algorithm") && (strcmpi(options.Algorithm, "ds"))) || n == 1
     if n <= 5
         expand = get_default_constant("ds_expand_small");
         shrink = get_default_constant("ds_shrink_small");
@@ -266,10 +263,14 @@ end
 
 % Initialize alpha_hist if output_alpha_hist is true and alpha_hist does not exceed the
 % maximum memory size allowed.
+% Both NaN and zero have the same memory allocation in MATLAB, as they are stored
+% as double-precision floating-point numbers. For the purpose of memory allocation
+% testing, either NaN or zero can be used interchangeably. Here, nan is chosen
+% arbitrarily, as the choice does not affect subsequent computations.
 if options.output_alpha_hist
     try
         % Test allocation of alpha_hist whether it exceeds the maximum memory size allowed.
-        alpha_hist_test = NaN(options.num_blocks, 500*n);
+        alpha_hist_test = nan(options.num_blocks, options.MaxFunctionEvaluations);
         clear alpha_hist_test
     catch
         options.output_alpha_hist = false;
@@ -280,7 +281,7 @@ end
 if  options.output_xhist
     try
         % Test allocation of xhist whether it exceeds the maximum memory size allowed.
-        xhist_test = NaN(n, 500*n);
+        xhist_test = nan(n, options.MaxFunctionEvaluations);
         clear xhist_test
     catch
         options.output_xhist = false;
