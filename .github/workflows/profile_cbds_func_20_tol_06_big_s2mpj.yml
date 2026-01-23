@@ -2,7 +2,7 @@ name: Profile cbds with func 20, 6x, big, s2mpj
 
 on:
   # Trigger the workflow on push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   # schedule:
   # - cron: '0 6 */1 * *'
