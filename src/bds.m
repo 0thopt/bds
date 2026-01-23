@@ -273,17 +273,20 @@ alpha_tol = options.StepTolerance;
 use_function_value_stop = options.use_function_value_stop;
 func_window_size = options.func_window_size;
 func_tol = options.func_tol;
-% Initialize fopt_window with nan values. This ensures that the objective-change
+% Initialize fopt_window with inf values. This ensures that the objective-change
 % stopping criterion remains inactive until the window is fully replaced with
-% valid fopt values. Using nan is safer than Inf, as nan comparisons always return
-% false, preventing unintended behavior in subsequent logic.
-fopt_window = nan(1, func_window_size);
+% valid fopt values. Using inf instead of nan is necessary because the subsequent
+% computation involves calculating the difference between the maximum and minimum
+% values in this array. If nan were used, the result of max and min would ignore
+% nan values and return the same valid value repeatedly, leading to an incorrect
+% difference of 0, which is not the intended behavior.
+fopt_window = inf(1, func_window_size);
 
 use_estimated_gradient_stop = options.use_estimated_gradient_stop;
 grad_window_size = options.grad_window_size;
 grad_tol = options.grad_tol;
-% Initialize with nan to disable the stopping test until the window is fully replaced
-% with valid gradient norms.
+% Initialize with nan to disable the stopping test until the window is fully replaced with
+% valid gradient norms.
 norm_grad_window = nan(1, grad_window_size);
 record_gradient_norm = false;
 
@@ -630,8 +633,8 @@ for iter = 1:maxit
     % behavior regardless of the function's translation.
     if use_function_value_stop
         func_change = max(fopt_window) - min(fopt_window);
-        if func_change < func_tol * min(1, abs(fopt - f0)) || ...
-                func_change < 1e-3 * func_tol * max(1, abs(fopt - f0))
+        if func_change < (func_tol * min(1, abs(fopt - f0))) || ...
+                func_change < (1e-3 * func_tol * max(1, abs(fopt - f0)))
             terminate = true;
             exitflag = get_exitflag("SMALL_OBJECTIVE_CHANGE");
         end
