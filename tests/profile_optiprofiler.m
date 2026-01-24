@@ -341,6 +341,8 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @bdss_bds_3_test;
             case 'dss-bds'
                 solvers{i} = @dss_bds_test;
+            case 'cbds-simplified'
+                solvers{i} = @cbds_simplified_test;
             otherwise
                 error('Unknown solver');
         end
@@ -1455,5 +1457,11 @@ function x = bdss_bds_3_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     x = bdss(fun, x0, option);
+
+end
+
+function x = cbds_simplified_test(fun, x0)
+
+    x = bds_simplified(fun, x0);
 
 end
