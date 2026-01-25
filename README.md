@@ -77,6 +77,7 @@ The following workflows are designed to evaluate the effectiveness of stopping c
 - [![Profile cbds func 20, tol 06, big, s2mpj](https://github.com/dfopt/bds/actions/workflows/profile_cbds_func_20_tol_06_big_s2mpj.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_func_20_tol_06_big_s2mpj.yml)
 - [![Profile cbds func 20, tol 06, large, matcutest](https://github.com/dfopt/bds/actions/workflows/profile_cbds_func_20_tol_06_large_matcutest.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_func_20_tol_06_large_matcutest.yml)
 - [![Profile cbds func 20, tol 06, large, s2mpj](https://github.com/dfopt/bds/actions/workflows/profile_cbds_func_20_tol_06_large_s2mpj.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_func_20_tol_06_large_s2mpj.yml)
+
 The following workflows are designed to compare original cbds with simplified cbds:
 - [![Profile original cbds and simplifed cbds using optiprofiler, small, matcutest](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_orig_cbds_simplified_small_matcutest.yml/badge.svg)](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_orig_cbds_simplified_small_matcutest.yml)
 - [![Profile original cbds and simplifed cbds using optiprofiler, big, matcutest](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_orig_cbds_simplified_big_matcutest.yml/badge.svg)](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_orig_cbds_simplified_big_matcutest.yml)
@@ -84,3 +85,7 @@ The following workflows are designed to compare original cbds with simplified cb
 - [![Profile original cbds and simplifed cbds using optiprofiler, small, s2mpj](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_orig_cbds_simplified_small_s2mpj.yml/badge.svg)](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_orig_cbds_simplified_small_s2mpj.yml)
 - [![Profile original cbds and simplifed cbds using optiprofiler, big, s2mpj](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_orig_cbds_simplified_big_s2mpj.yml/badge.svg)](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_orig_cbds_simplified_big_s2mpj.yml)
 - [![Profile original cbds and simplifed cbds using optiprofiler, large, s2mpj](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_orig_cbds_simplified_large_s2mpj.yml/badge.svg)](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_orig_cbds_simplified_large_s2mpj.yml)
+
+The following workflows are designed to see the effect of termination using function value and estimated gradient comparing with
+other solvers:
+- [![Profile original cbds and simplifed cbds using optiprofiler, large, s2mpj](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_orig_termination_simplex_small_s2mpj.yml/badge.svg)](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_orig_termination_simplex_small_s2mpj.yml)
