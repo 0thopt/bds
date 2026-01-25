@@ -343,6 +343,8 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @dss_bds_test;
             case 'cbds-simplified'
                 solvers{i} = @cbds_simplified_test;
+            case 'cbds-orig-termination'
+                solvers{i} = @cbds_orig_termination_test;
             otherwise
                 error('Unknown solver');
         end
@@ -1464,4 +1466,19 @@ function x = cbds_simplified_test(fun, x0)
 
     x = bds_simplified(fun, x0);
 
+end
+
+function x = cbds_orig_termination_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.use_function_value_stop = true;
+    option.func_window_size = 20;
+    option.func_tol = 1e-6;
+    option.use_estimated_gradient_stop = true;
+    option.grad_window_size = 1;
+    option.grad_tol = 1e-6;
+    x = bds(fun, x0, option);
+    
 end
