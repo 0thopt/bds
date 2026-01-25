@@ -42,7 +42,6 @@ function [xopt, fopt, exitflag, output]=inner_direct_search(fun, ...
     xbase, fbase, D, direction_indices, alpha, options)
 MaxFunctionEvaluations=options.MaxFunctionEvaluations;
 forcing_function=options.forcing_function;
-reduction_factor=options.reduction_factor;
 ftarget=options.ftarget;exitflag=nan;
 
 n=length(xbase);num_directions=length(direction_indices);
@@ -53,7 +52,7 @@ for j=1 : num_directions
     fhist(nf)=fnew;xhist(:, nf)=xnew;
     if fnew < fopt, xopt=xnew;fopt=fnew;end    
     if fnew <= ftarget || nf >= MaxFunctionEvaluations, break;end
-    sufficient_decrease=(fnew + reduction_factor(3) * forcing_function(alpha)/2 < fbase);
+    sufficient_decrease=(fnew + eps * forcing_function(alpha)/2 < fbase);
     if sufficient_decrease
         direction_indices=direction_indices([j, 1:j-1, j+1:end]);    
         break;
