@@ -3,7 +3,7 @@ n=length(x0);
 MaxFunctionEvaluations=500*n; maxit=MaxFunctionEvaluations;ftarget=-inf;
 alpha_tol=1e-6;alpha_all=ones(1,n);
 D=nan(n, 2*n);D(:, 1:2:2*n-1)=eye(n);D(:, 2:2:2*n)=-eye(n);
-grouped_direction_indices=arrayfun(@(i) [2*i-1, 2*i], 1:10, 'UniformOutput', false);
+grouped_direction_indices=arrayfun(@(i) [2*i-1, 2*i], 1:n, 'UniformOutput', false);
 expand=2; shrink=0.5;forcing_function=@(alpha) alpha^2;
 fhist=nan(1,MaxFunctionEvaluations);exitflag=get_exitflag("MAXIT_REACHED");terminate=false;
 fopt_all=nan(1,n);xopt_all=nan(n,n);
@@ -26,8 +26,8 @@ for iter=1:maxit
             alpha_all(i)=shrink*alpha_all(i);
         end
         if sub_output.terminate, terminate=true; exitflag=sub_exitflag; break; end
-        if all(alpha_all<alpha_tol), terminate=true; exitflag=get_exitflag("SMALL_ALPHA"); break; end
         if update_base, xbase=sub_xopt; fbase=sub_fopt; end
+        if all(alpha_all<alpha_tol), terminate=true; exitflag=get_exitflag("SMALL_ALPHA"); break; end
         if nf>=MaxFunctionEvaluations, terminate=true; exitflag=get_exitflag("MAXFUN_REACHED"); break; end
     end
 
