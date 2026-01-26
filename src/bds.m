@@ -713,7 +713,7 @@ for iter = 1:maxit
                 %   (ii) all((x < T1) | (x < T2))   : requires each entry to satisfy at least
                 %       one of the thresholds (pointwise criterion).
                 % These are not equivalent in general. We adopt the pointwise form as suggested.
-                if all((norm_grad_window < grad_tol * min(1, reference_grad_norm)) ...
+                if record_gradient_norm && all((norm_grad_window < grad_tol * min(1, reference_grad_norm)) ...
                         | (norm_grad_window < 1e-3 * grad_tol * max(1, reference_grad_norm)))
                     terminate = true;
                     exitflag = get_exitflag("SMALL_ESTIMATE_GRADIENT");
