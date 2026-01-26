@@ -2,10 +2,10 @@ name: Profile original cbds termination with simplex, small, s2mpj
 
 on:
   # Trigger the workflow on # push or pull request
-  push:
+  # push:
   # Trigger the workflow manually
-  schedule:
-  - cron: '0 0 */2 * *'
+  # schedule:
+  # - cron: '0 0 */2 * *'
   workflow_dispatch:
 
 jobs:
