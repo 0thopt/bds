@@ -88,3 +88,4 @@ Comparison of original and simplified BDS implementations:
 
 Comparison of function-value and estimated-gradient termination criteria against other solvers:
 - [![Profile original cbds termination with simplex using optiprofiler, small, s2mpj](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_orig_termination_simplex_small_s2mpj.yml/badge.svg)](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_orig_termination_simplex_small_s2mpj.yml)
+- [![Profile original cbds termination with bfgs using optiprofiler, small, matcutest](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_orig_termination_bfgs_small_matcutest.yml/badge.svg)](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_orig_termination_bfgs_small_matcutest.yml)
