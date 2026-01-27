@@ -1479,7 +1479,7 @@ function x = cbds_orig_termination_test(fun, x0)
     option.use_estimated_gradient_stop = true;
     option.grad_window_size = 1;
     option.grad_tol = 1e-6;
-    option.StepTolerance = eps;
+    option.StepTolerance = 1e-6;
     x = bds(fun, x0, option);
     
 end
