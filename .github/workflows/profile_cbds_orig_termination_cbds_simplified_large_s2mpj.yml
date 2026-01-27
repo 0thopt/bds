@@ -1,8 +1,7 @@
-name: Profile original cbds with simplified cbds, big, s2mpj
-
+name: Profile original cbds termination with simplified cbds, large, s2mpj
 on:
-  # Trigger the workflow on # push or pull request
-  # push:
+  # Trigger the workflow on push or pull request
+  push:
   # Trigger the workflow manually
   # schedule:
   # - cron: '0 0 */2 * *'
@@ -10,16 +9,16 @@ on:
 
 jobs:
   test:
-    name: Profile original cbds with simplified cbds, big, s2mpj
+    name: Profile original cbds termination with simplified cbds, large, s2mpj
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
         matlab: [latest]
-        dim: [big]
+        dim: [large]
         with_optim_toolbox: [yes]
-        solver: [cbds-orig]
+        solver: [cbds-orig-termination]
         competitor: [cbds-simplified]
         plibs: [s2mpj]
         run_plain: [false]
