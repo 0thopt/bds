@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-latest]
         matlab: [R2024b]
         with_optim_toolbox: [yes]
         Algorithm: [cbds, ds, rbds, pads]
