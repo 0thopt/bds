@@ -2,10 +2,10 @@ name: Profile r1bss and original ds, small, s2mpj
 
 on:
   # Trigger the workflow on # push or pull request
-  push:
+  # push:
   # Trigger the workflow manually
-  schedule:
-  - cron: '0 18 */2 * *'
+  # schedule:
+  # - cron: '0 18 */2 * *'
   workflow_dispatch:
 
 jobs:
