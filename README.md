@@ -40,7 +40,7 @@ The following tests are implemented by [Optiprofiler](https://github.com/optipro
 
 - [Tests](https://github.com/dfopt/bds/actions) at [dfopt/bds](https://github.com/dfopt/bds)
 
-Comparison of function-value termination criteria:
+Effectiveness of function-value termination:
 - [![Profile cbds func 10, tol 03 and 06, small, matcutest](https://github.com/dfopt/bds/actions/workflows/profile_cbds_func_10_tol_03_06_small_matcutest.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_func_10_tol_03_06_small_matcutest.yml)
 - [![Profile cbds func 10, tol 03 and 06, small, s2mpj](https://github.com/dfopt/bds/actions/workflows/profile_cbds_func_10_tol_03_06_small_s2mpj.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_func_10_tol_03_06_small_s2mpj.yml)
 - [![Profile cbds func 10, tol 03 and 06, big, matcutest](https://github.com/dfopt/bds/actions/workflows/profile_cbds_func_10_tol_03_06_big_matcutest.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_func_10_tol_03_06_big_matcutest.yml)
@@ -78,7 +78,7 @@ Comparison of function-value termination criteria:
 - [![Profile cbds func 20, tol 06, large, matcutest](https://github.com/dfopt/bds/actions/workflows/profile_cbds_func_20_tol_06_large_matcutest.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_func_20_tol_06_large_matcutest.yml)
 - [![Profile cbds func 20, tol 06, large, s2mpj](https://github.com/dfopt/bds/actions/workflows/profile_cbds_func_20_tol_06_large_s2mpj.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_func_20_tol_06_large_s2mpj.yml)
 
-Comparison of original and simplified BDS implementations:
+Comparison of full and simplified BDS implementations:
 - [![Profile original cbds and simplifed cbds using optiprofiler, small, matcutest](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_orig_cbds_simplified_small_matcutest.yml/badge.svg)](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_orig_cbds_simplified_small_matcutest.yml)
 - [![Profile original cbds and simplifed cbds using optiprofiler, big, matcutest](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_orig_cbds_simplified_big_matcutest.yml/badge.svg)](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_orig_cbds_simplified_big_matcutest.yml)
 - [![Profile original cbds and simplifed cbds using optiprofiler, large, matcutest](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_orig_cbds_simplified_large_matcutest.yml/badge.svg)](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_orig_cbds_simplified_large_matcutest.yml)
@@ -92,7 +92,7 @@ Comparison of original and simplified BDS implementations:
 - [![Profile original cbds termination with cbds simplified using optiprofiler, big, s2mpj](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_orig_termination_cbds_simplified_big_s2mpj.yml/badge.svg)](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_orig_termination_cbds_simplified_big_s2mpj.yml)
 - [![Profile original cbds termination with cbds simplified using optiprofiler, large, s2mpj](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_orig_termination_cbds_simplified_large_s2mpj.yml/badge.svg)](https://github.com/bladesopt/bds/actions/workflows/profile_cbds_orig_termination_cbds_simplified_large_s2mpj.yml)
 
-Comparison of function-value and estimated-gradient termination criteria:
+Effectiveness of function-value and estimated-gradient termination:
 - [![Profile cbds func 20 tol 06 grad 01 tol 06 500n small matcutest](https://github.com/dfopt/bds/actions/workflows/profile_cbds_func_20_tol_06_grad_01_tol_06_500n_small_matcutest.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_func_20_tol_06_grad_01_tol_06_500n_small_matcutest.yml)
 - [![Profile cbds func 20 tol 06 grad 01 tol 06 500n small s2mpj](https://github.com/dfopt/bds/actions/workflows/profile_cbds_func_20_tol_06_grad_01_tol_06_500n_small_s2mpj.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_func_20_tol_06_grad_01_tol_06_500n_small_s2mpj.yml)
 - [![Profile cbds func 20 tol 06 grad 01 tol 06 500n big matcutest](https://github.com/dfopt/bds/actions/workflows/profile_cbds_func_20_tol_06_grad_01_tol_06_500n_big_matcutest.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_func_20_tol_06_grad_01_tol_06_500n_big_matcutest.yml)
