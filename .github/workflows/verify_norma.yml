@@ -64,7 +64,7 @@ jobs:
 
             % Setup optiprofiler
             cd(fullfile(root_dir, 'optiprofiler'));
-            setup
+            setup(struct('install_matcutest', true));
             cd(root_dir);
 
             % Setup bds_development
