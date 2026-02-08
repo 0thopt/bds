@@ -58,8 +58,13 @@ end
 % ------------------------------------------------
 function f = conditional_nan(x)
     % If x(1) > 2, return NaN; otherwise, return sum of squares
-    if x(1) > 2
-        f = nan;
+    % if x(1) > 2
+    %     f = nan;
+    % else
+    %     f = sum(x.^2);
+    % end
+    if rand > 0.9
+        error('Random evaluation failure.');
     else
         f = sum(x.^2);
     end

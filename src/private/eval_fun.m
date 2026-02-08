@@ -21,3 +21,4 @@ f = min([f_real, 1e30, sqrt(realmax())]);
 
 end
 
+% TODO: return those points where the function evaluation failed or return nan.

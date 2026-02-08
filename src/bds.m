@@ -37,17 +37,22 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               sufficient decrease. forcing_function should be a function handle.
 %                               Default: @(alpha) alpha^2. See also reduction_factor.
 %   reduction_factor            Factors multiplied to the forcing function for
-%                               deciding whether a step achieves a sufficient decrease.
-%                               A 3-dimensional vector such that
+%                               deciding whether a step achieves a sufficient decrease and
+%                               for updating the step size. It should be a vector of length 3 such
+%                               that
 %                               reduction_factor(1) <= reduction_factor(2) <= reduction_factor(3),
 %                               reduction_factor(1) >= 0, and reduction_factor(2) > 0.
 %                               After the "inner direct search" over each block, the base
 %                               point is updated to the best trial point in the block if
-%                               its reduction is more than reduction_factor(1) * forcing_function;
+%                               its reduction is more than 
+%                               reduction_factor(1) * forcing_function(step size).
 %                               the step size in this block is shrunk if the reduction is at most
-%                               reduction_factor(2) * forcing_function, and it is
+%                               reduction_factor(2) * forcing_function(step size), and it is
 %                               expanded if the reduction is at least
-%                               reduction_factor(3) * forcing_function.
+%                               reduction_factor(3) * forcing_function(step size).
+%                               Note: the step size passed to forcing_function is the step size
+%                               used in the current iteration (before any update), not the updated
+%                               step size for the next iteration.
 %                               Default: [0, eps, eps]. See also forcing_function.
 %   direction_set               A matrix whose columns will be used to define the polling directions. 
 %                               If options does not contain direction_set, then the polling
@@ -190,7 +195,8 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %   [XOPT, FOPT] = BDS(...) returns an approximate minimizer XOPT and its function value FOPT.
 %
 %   [XOPT, FOPT, EXITFLAG] = BDS(...) also returns an EXITFLAG that indicates the exit
-%   condition. The possible values of EXITFLAG are 0, 1, 2, and 3.
+%   condition. The possible values of EXITFLAG are 0, 1, 2, 3, 4, 5, and 6, corresponding to the 
+%   following exit conditions.
 %
 %   0    The StepTolerance of the step size is reached.
 %   1    The target of the objective function is reached.
@@ -545,16 +551,22 @@ for iter = 1:maxit
 
         % Whether to update xbase and fbase. xbase serves as the "base point" for the computation 
         % in the next block, meaning that reduction will be calculated with respect to xbase, as 
-        % shown above. Note that their update requires a sufficient decrease if reduction_factor(1) > 0.
-        % The condition must be checked before updating alpha_all(i_real) because the sufficient 
-        % decrease is calculated based on the current step size.
-        update_base = (reduction_factor(1) <= 0 && sub_fopt < fbase) ...
-            || (sub_fopt + reduction_factor(1) * forcing_function(alpha_all(i_real)) < fbase);
-
+        % shown above. The condition must be checked before updating alpha_all(i_real) because the 
+        % sufficient decrease is calculated based on the current step size.
+        % Although eval_fun replaces all potential NaN values with 1e30 to allow algorithm 
+        % iterations, and inner_direct_search also includes similar defensive checks when updating 
+        % fopt, we apply the same NaN safeguard here. This consistent defensive practice ensures 
+        % robustness: whenever a comparison involving fopt or fbase is performed, we account for 
+        % potential NaN values. This approach anticipates possible future modifications to eval_fun 
+        % or other unforeseen edge cases.
+        update_base = (sub_fopt + reduction_factor(1) * forcing_function(alpha_all(i_real)) < fbase) ...
+                    || (isnan(fbase) && ~isnan(sub_fopt));
         % Update the step size alpha_all according to the reduction achieved.
-        if sub_fopt + reduction_factor(3) * forcing_function(alpha_all(i_real)) < fbase
+        if (sub_fopt + reduction_factor(3) * forcing_function(alpha_all(i_real)) < fbase) ...
+                || (isnan(fbase) && ~isnan(sub_fopt))
             alpha_all(i_real) = expand * alpha_all(i_real);
-        elseif sub_fopt + reduction_factor(2) * forcing_function(alpha_all(i_real)) >= fbase
+        elseif (sub_fopt + reduction_factor(2) * forcing_function(alpha_all(i_real)) >= fbase) ...
+                || (isnan(sub_fopt) && ~isnan(fbase))
             alpha_all(i_real) = shrink * alpha_all(i_real);
         end
 
@@ -656,14 +668,12 @@ for iter = 1:maxit
             % sufficient decrease, we record the estimated gradient. Thus, xbase should be recorded
             % not xopt even if xopt is better than xbase.
             grad_xhist = [grad_xhist, xbase];
-            % Record the iteration number corresponding to the estimated gradient.
-            % Note that the iteration number is recorded as iter-1 because the gradient is estimated
-            % based on xbase, which corresponds to the state of the algorithm at the end of
-            % the previous iteration. This is because gradient estimation occurs only when
-            % none of the selected blocks achieve sufficient decrease in the current iteration.
-            % For example, if iter = 1, the gradient corresponds to x0 (the initial point),
-            % and the iteration number is naturally iter-1 = 0.
-            grad_iter = [grad_iter, iter-1];
+            % Record the iteration number at which the gradient was estimated.
+            % The gradient is estimated during iteration iter when none of the selected 
+            % blocks achieve sufficient decrease. Although the estimation is based on xbase 
+            % (which may have been updated in a previous iteration), the estimation itself 
+            % occurs in the current iteration iter.
+            grad_iter = [grad_iter, iter];
 
             % When gradient_estimation_complete is true, we check whether the estimated gradient is
             % from the first iteration. If it is not, the solver will terminate.

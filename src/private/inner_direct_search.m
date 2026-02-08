@@ -66,19 +66,15 @@ for j = 1 : num_directions
         fprintf("\n");
     end
     
-    % Update the best point and the best function value.
-    if fnew < fopt
+    % Update the best point and the best function value. If fopt is nan, any non-nan fnew is better.
+    % Note: Although eval_fun replaces all potential NaN values with 1e30 to allow the algorithm to
+    % continue iterating, the condition (isnan(fopt) && ~isnan(fnew)) is retained as a safeguard.
+    % This defensive programming practice ensures robustness in case eval_fun's NaN handling is
+    % modified or edge cases are discovered in the future.
+    if (fnew < fopt) || (isnan(fopt) && ~isnan(fnew))
         xopt = xnew;
         fopt = fnew;
     end
-
-    % if nf >= MaxFunctionEvaluations
-    %     % Set fnew to fbase and sufficient_decrease to false to avoid using an uninitialized
-    %     % variable if the termination condition is reached before the first evaluation.
-    %     fnew = fbase;
-    %     sufficient_decrease = false;
-    %     break;
-    % end
     
     % Check whether ftarget or MaxFunctionEvaluations is reached immediately after every function 
     % evaluation. If one of them is reached at xnew, no further computation should be entertained 
@@ -87,8 +83,16 @@ for j = 1 : num_directions
         break;
     end
 
-    % Check whether the sufficient decrease condition is achieved.
-    sufficient_decrease = (fnew + reduction_factor(3) * forcing_function(alpha)/2 < fbase);
+    % Note that when fbase is nan, any non-nan fnew is considered to achieve sufficient decrease.
+    % Note: eval_fun already replaces all potential NaN values with 1e30 so the second clause below
+    % is not expected to trigger; it is retained as a defensive safeguard.
+    % This variable is used in two places:
+    % 1. In opportunistic polling mode: to decide whether to cycle direction indices and stop 
+    % polling.
+    % 2. In estimated gradient computation: as a condition to determine whether to use this 
+    % direction in the gradient estimation.
+    sufficient_decrease = (fnew + reduction_factor(1) * forcing_function(alpha)/2 < fbase) || ...
+                        (isnan(fbase) && ~isnan(fnew));
 
     % In the opportunistic case, if the current iteration achieves sufficient decrease,
     % stop the computations after cycling the indices of the polling directions. The reason  
@@ -100,7 +104,6 @@ for j = 1 : num_directions
     end
 
 end
-
 
 % When the algorithm reaches here, it means that one of the following cases has occurred:
 % 1. The algorithm has reached the target function value (ftarget), which is the highest priority.

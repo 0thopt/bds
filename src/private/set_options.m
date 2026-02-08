@@ -1,8 +1,33 @@
 function options = set_options(options, n)
-% TODO: summary of this function.
+% SET_OPTIONS Set and validate options for the BDS algorithm.
+%
+%   OPTIONS = SET_OPTIONS(OPTIONS, N) processes and validates the input options
+%   structure for the BDS algorithm. It performs the following tasks:
+%   1. Validate that all field names in OPTIONS are recognized.
+%   2. Validate that all field values are valid (via validate_options).
+%   3. Resolve conflicts between mutually exclusive options (e.g., Algorithm
+%      vs. block_visiting_pattern/num_blocks/batch_size).
+%   4. Set default values for missing fields based on problem dimension N and
+%      other context-specific information.
+%   5. Check memory constraints for optional output fields (output_alpha_hist,
+%      output_xhist).
+%
+%   Inputs:
+%   - options: A structure containing user-specified options for the BDS algorithm.
+%              All field names must be valid and recognized.
+%   - n: The dimension of the optimization problem.
+%
+%   Outputs:
+%   - options: A fully validated and processed options structure with all required
+%              fields set to appropriate values (either user-provided or defaults).
+%
+%   Note:
+%   - If any field name is unknown or any field value is invalid, an error is
+%     thrown and execution terminates.
+%   - If optional output fields exceed memory limits, a warning is issued and
+%     the corresponding output flag is set to false.
 
 % Define the list of allowed fields.
-% The order follows the documentation in bds.m.
 field_list = {
     'MaxFunctionEvaluations'
     'ftarget'
