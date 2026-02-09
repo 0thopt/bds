@@ -351,13 +351,18 @@ iprint = options.iprint;
 % Internal: gradient_estimation_complete
 gradient_estimation_complete = options.gradient_estimation_complete;
 
-% Initialize gradient history variables and info structure
+% Initialize gradient history variables and info structure.
+% grad_info.step_size_per_batch stores step sizes for the batch_size blocks 
+% visited in the current iteration (used for gradient estimation).
+% grad_info.step_size_per_block stores step sizes for all num_blocks blocks 
+% (used for computing gradient error bounds).
 grad_hist = [];
 grad_xhist = [];
 grad_iter = [];
 grad_info = struct();
 grad_info.n = n;
 grad_info.step_size_per_batch = nan(batch_size, 1);
+grad_info.step_size_per_block = alpha_all;
 grad_info.fbase_per_batch = nan(batch_size, 1);
 grad_info.complete_direction_set = D;
 
@@ -483,11 +488,16 @@ for iter = 1:maxit
         % Get indices of directions in the i_real-th block.
         direction_indices = grouped_direction_indices{i_real};
 
-        % Store the step size for the i_real-th block in grad_info. We use i (the batch index)
-        % instead of i_real (the global block index) because we are only concerned with the
-        % batch_size blocks visited in the current iteration. All relevant information,
-        % including length and order, is tied to batch_size, so maintaining the global
-        % order is unnecessary in this context.
+        % Store the step size for the i_real-th block in grad_info.
+        % - step_size_per_block(i_real): indexed by global block index i_real because it maintains
+        %   step sizes for ALL num_blocks blocks (used later for gradient error bound calculation
+        %   which needs the complete picture of all block step sizes).
+        % - step_size_per_batch(i): indexed by batch index i because it only stores step sizes for
+        %   the batch_size blocks visited in the current iteration. The batch index i directly
+        %   corresponds to the position in sampled_direction_indices_per_batch and 
+        %   function_values_per_batch, which are also batch_size in length (used for gradient 
+        %   estimation which only needs information about blocks visited in this iteration).
+        grad_info.step_size_per_block(i_real) = alpha_all(i_real);
         grad_info.step_size_per_batch(i) = alpha_all(i_real);
         grad_info.fbase_per_batch(i) = fbase;
 
@@ -683,13 +693,17 @@ for iter = 1:maxit
             end
 
             if use_estimated_gradient_stop
-                
-                % Note that we use grad_info.step_size_per_batch instead of alpha_all because the 
-                % step size has already been updated in the current iteration. The error between 
-                % the estimated gradient and the true gradient should be based on the step size used
-                % in the finite difference calculation, which corresponds to the step size from the
-                % previous iteration. This is why we rely on grad_info.step_size_per_batch.
-                grad_error = get_gradient_error_bound(grad_info.step_size_per_batch, ...
+
+                % Compute the gradient error bound.
+                % Note that we use grad_info.step_size_per_block (not step_size_per_batch) and
+                % grouped_direction_indices (not sampled_direction_indices_per_batch) because
+                % computing the gradient error bound requires complete information about ALL blocks,
+                % not just the batch_size blocks visited in the current iteration.
+                % step_size_per_block contains step sizes for all num_blocks blocks.
+                % grouped_direction_indices contains direction assignments for all num_blocks blocks.
+                % This is different from gradient estimation, which only needs information about
+                % the visited blocks in the current iteration.
+                grad_error = get_gradient_error_bound(grad_info.step_size_per_block, ...
                                                     batch_size, grouped_direction_indices, n, ...
                                                     positive_direction_set, ...
                                                     direction_selection_probability_matrix);

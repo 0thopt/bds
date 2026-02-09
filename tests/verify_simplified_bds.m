@@ -1,10 +1,8 @@
-function verify_bds(parameters)
-% This function tests the latest version of the BDS solver against its development version,
+function verify_simplified_bds(parameters)
+% This function tests the latest version of the BDS solver against its simplified version,
 % verifying whether they produce consistent results on CUTEst problems.
 %
 % where
-% - `Algorithm` is the name of the Algorithm to test, including "cbds", "ds", "rbds".
-%   If it is not provided, then the default Algorithm is "cbds", which is the default Algorithm of BDS.
 % - `problem_names` are the names of the problems to test.
 % - `n_runs` is the index of the first random run in iseqiv.m. Default is 1.
 % - `num_random` is the number of random runs in iseqiv.m. Default is 20.
@@ -34,20 +32,23 @@ end
 
 try
 
-    % Compile the version of norma.
-    path_norma = locate_norma();
-    path_verify_bds = fileparts(mfilename('fullpath'));
-    cd(path_norma{1});
-    setup
-    cd(path_verify_bds);
+    % % Compile the version of norma.
+    % path_norma = locate_norma();
+    % path_verify_bds = fileparts(mfilename('fullpath'));
+    % cd(path_norma{1});
+    % setup
+    % cd(path_verify_bds);
 
     % % Compile the version of modern repository.
-    path_root = fileparts(path_verify_bds);
+    path_root = fileparts(fileparts(mfilename('fullpath')));
     cd(path_root);
     setup
-    cd(path_verify_bds);
+    path_competitors = fullfile(path_root, "tests", "competitors");
+    cd(path_competitors);
+    addpath(pwd);
+    cd(path_root);
 
-    solvers = {"bds", "bds_norma"};
+    solvers = {"bds", "bds_simplified"};
 
     % Get list of problems
     if isfield(parameters, "problem_type")
@@ -161,7 +162,7 @@ try
             p = s2mpj_wrapper(problem_info);
             for i_run = n_runs:n_runs+num_random-1
                 fprintf("%d(%d). %s\n", i_problem, i_run, p.name);
-                iseqiv(solvers, p, i_run, single_test, prec, parameters);
+                iseqiv_simplified(solvers, p, i_run, single_test, prec, parameters);
             end
         end
     else
@@ -170,7 +171,7 @@ try
             p = s2mpj_wrapper(problem_info);
             for i_run = n_runs:n_runs+num_random-1
                 fprintf("%d(%d). %s\n", i_problem, i_run, p.name);
-                iseqiv(solvers, p, i_run, single_test, prec, parameters);
+                iseqiv_simplified(solvers, p, i_run, single_test, prec, parameters);
             end
         end
     end
