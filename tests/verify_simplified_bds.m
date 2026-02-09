@@ -145,7 +145,7 @@ try
     end
 
     if ~isfield(parameters, "num_random")
-        num_random = 20;
+        num_random = 5;
     else
         num_random = parameters.num_random;
     end
