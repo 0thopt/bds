@@ -70,5 +70,5 @@ jobs:
             % Run test
             cd(fullfile(root_dir, 'tests'))
             parameters.parallel = ${{ matrix.parallel }};
-            verify_bds(parameters);
+            verify_simplified_bds(parameters);
             
