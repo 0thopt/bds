@@ -120,7 +120,13 @@ try
     % necessary (for example, when a single test fails).
     parameters.olddir = old_dir;
     
-    fprintf("We will load %d problems\n\n", length(problem_names))
+    if ~isfield(parameters, "problem_name")
+         fprintf("We will load %d problems of type %s with dimension in [%d, %d]\n\n", ...
+            length(problem_names), options_s2mpj.ptype, options_s2mpj.mindim, options_s2mpj.maxdim);
+    else
+        fprintf("We will load the problem %s with the index of the random run in %d\n\n", ...
+            parameters.problem_name, parameters.i_run);
+    end
 
     % Get the number of problems.
     num_problems = length(problem_names);
@@ -156,22 +162,27 @@ try
         single_test = (num_random == 1);
     end
     
-    if parallel
-        parfor i_problem = 1:num_problems
-            problem_info = s2mpj_load(char(problem_names(i_problem)));
-            p = s2mpj_wrapper(problem_info);
-            for i_run = n_runs:n_runs+num_random-1
-                fprintf("%d(%d). %s\n", i_problem, i_run, p.name);
-                iseqiv_simplified(solvers, p, i_run, single_test, prec, parameters);
-            end
-        end
+    if isfield(parameters, 'problem_name')
+        p = s2mpj_wrapper(s2mpj_load(parameters.problem_name));
+        iseqiv_simplified(solvers, p, parameters.i_run, single_test, prec, parameters);
     else
-        for i_problem = 1:num_problems
-            problem_info = s2mpj_load(char(problem_names(i_problem)));
-            p = s2mpj_wrapper(problem_info);
-            for i_run = n_runs:n_runs+num_random-1
-                fprintf("%d(%d). %s\n", i_problem, i_run, p.name);
-                iseqiv_simplified(solvers, p, i_run, single_test, prec, parameters);
+        if parallel
+            parfor i_problem = 1:num_problems
+                problem_info = s2mpj_load(char(problem_names(i_problem)));
+                p = s2mpj_wrapper(problem_info);
+                for i_run = n_runs:n_runs+num_random-1
+                    fprintf("%d(%d). %s\n", i_problem, i_run, p.name);
+                    iseqiv_simplified(solvers, p, i_run, single_test, prec, parameters);
+                end
+            end
+        else
+            for i_problem = 1:num_problems
+                problem_info = s2mpj_load(char(problem_names(i_problem)));
+                p = s2mpj_wrapper(problem_info);
+                for i_run = n_runs:n_runs+num_random-1
+                    fprintf("%d(%d). %s\n", i_problem, i_run, p.name);
+                    iseqiv_simplified(solvers, p, i_run, single_test, prec, parameters);
+                end
             end
         end
     end

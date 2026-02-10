@@ -34,6 +34,7 @@ solver2 = str2func(solvers{2});
 options_bds = struct();
 options_bds.expand = 2;
 options_bds.shrink = 0.5;
+options_bds.output_xhist = true;
 [x1, fx1, exitflag1, output1] = solver1(p.objective, p.x0, options_bds);
 %T = toc; fprintf('\nRunning time for %s:\t %f\n', solvers{1}, T);
 %tic;

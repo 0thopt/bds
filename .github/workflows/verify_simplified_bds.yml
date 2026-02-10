@@ -1,0 +1,74 @@
+name: Verification, simplified BDS
+
+on:
+  # Trigger the workflow on push or pull request
+  push:
+  # Trigger the workflow manually
+  # schedule:
+  #  - cron: '0 22 */7 * *'
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Verify simplified BDS
+    runs-on: ${{matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        matlab: [R2024b]
+        with_optim_toolbox: [yes]
+        parallel: [true, false]
+
+    steps:
+
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Checkout OptiProfiler
+        uses: actions/checkout@v4
+        with:
+          repository: optiprofiler/optiprofiler
+          path: optiprofiler
+          ref: 675a7cd5d52f1dbb7f5fdd486406b285dc6a8bc6
+
+      - name: Cache MATLAB
+        id: cache-matlab
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.tool_cache }}/MATLAB
+          key: ${{ matrix.os }}-${{ matrix.matlab }}-${{ matrix.with_optim_toolbox }}
+
+      - name: Set up MATLAB with optimization toolbox
+        if: ${{ matrix.with_optim_toolbox == 'yes' }}
+        uses: matlab-actions/setup-matlab@v2.1.2
+        with:
+          release: ${{ matrix.matlab }}
+          products: Optimization_Toolbox
+
+      - name: Run test
+        uses: matlab-actions/run-command@v2.1.1
+        with:
+          command: |
+            root_dir = pwd()
+            ls
+
+            % Setup optiprofiler
+            cd(fullfile(root_dir, 'optiprofiler'));
+            setup(struct('install_matcutest', true));
+            cd(root_dir);
+
+            % Setup bds
+            cd (root_dir);
+            setup
+            cd(fullfile(root_dir, "tests", "competitors"));
+            addpath(pwd);
+            cd(root_dir);
+            
+            % Run test
+            cd(fullfile(root_dir, 'tests'))
+            parameters.parallel = ${{ matrix.parallel }};
+            verify_bds(parameters);
+            
