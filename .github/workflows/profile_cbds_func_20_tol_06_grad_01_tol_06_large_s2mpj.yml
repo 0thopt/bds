@@ -2,7 +2,7 @@ name: Profile cbds with func 20-6-9 and grad 1-6-9, large, s2mpj
 
 on:
   # Trigger the workflow on push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   # schedule:
   # - cron: '0 6 */1 * *'
@@ -33,8 +33,7 @@ jobs:
         with:
           repository: optiprofiler/optiprofiler
           path: optiprofiler
-          submodules: recursive
-          ref: 85f81ae01e599811ffc12964dba383e7eccc0c52
+          ref: 675a7cd5d52f1dbb7f5fdd486406b285dc6a8bc6
 
       - name: Install Texlive
         run: sudo apt-get update && sudo apt-get install texlive
@@ -65,7 +64,7 @@ jobs:
   
               % Setup optiprofiler
               cd(fullfile(root_dir, 'optiprofiler'));
-              setup
+              setup(struct('install_matcutest', true));
               cd(root_dir);
   
               % Setup bds
