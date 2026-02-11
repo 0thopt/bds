@@ -2,7 +2,7 @@ name: Profile cbds with func 20, 6x, small, s2mpj
 
 on:
   # Trigger the workflow on push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   # schedule:
   # - cron: '0 6 */1 * *'
@@ -33,7 +33,6 @@ jobs:
         with:
           repository: optiprofiler/optiprofiler
           path: optiprofiler
-          submodules: recursive
           ref: 85f81ae01e599811ffc12964dba383e7eccc0c52
 
       - name: Install Texlive
@@ -170,6 +169,7 @@ jobs:
                   cp "$f" summary/
               fi
           done
+          
           cd summary
           ls
           bash ../merge_pdf.sh

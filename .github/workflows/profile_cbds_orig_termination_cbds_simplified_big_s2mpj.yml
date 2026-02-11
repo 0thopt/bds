@@ -1,7 +1,7 @@
 name: Profile original cbds termination with simplified cbds, big, s2mpj
 on:
   # Trigger the workflow on push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   # schedule:
   # - cron: '0 0 */2 * *'
@@ -36,8 +36,7 @@ jobs:
         with:
           repository: optiprofiler/optiprofiler
           path: optiprofiler
-          submodules: recursive
-          ref: 85f81ae01e599811ffc12964dba383e7eccc0c52
+          ref: 675a7cd5d52f1dbb7f5fdd486406b285dc6a8bc6
 
       - name: Install Texlive
         run: sudo apt-get update && sudo apt-get install texlive
@@ -68,7 +67,7 @@ jobs:
   
               % Setup optiprofiler
               cd(fullfile(root_dir, 'optiprofiler'));
-              setup
+              setup(struct('install_matcutest', true));
   
               % Setup bds
               cd(root_dir);
