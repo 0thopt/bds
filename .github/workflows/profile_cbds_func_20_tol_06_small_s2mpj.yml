@@ -2,7 +2,7 @@ name: Profile cbds with func 20, 6x, small, s2mpj
 
 on:
   # Trigger the workflow on push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   # schedule:
   # - cron: '0 6 */1 * *'
@@ -64,7 +64,7 @@ jobs:
   
               % Setup optiprofiler
               cd(fullfile(root_dir, 'optiprofiler'));
-              setup
+              setup(struct('install_matcutest', true));
               cd(root_dir);
   
               % Setup bds

@@ -2,7 +2,7 @@ name: Profile cbds with grad 01, 6x, big, s2mpj
 
 on:
   # Trigger the workflow on push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   # schedule:
   # - cron: '0 6 */1 * *'
@@ -122,7 +122,7 @@ jobs:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
           name: merged_profiles_cbds_func_window_size_01_tol_06_big_s2mpj
-          path: tests/tuning/tuning_data/**
+          path: ./tests/tuning/tuning_data/**
 
       - name: Upload summary files
         uses: actions/upload-artifact@v4
@@ -130,4 +130,4 @@ jobs:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
           name: summary_files_cbds_func_window_size_01_tol_06_big_s2mpj
-          path: tests/tuning/tuning_data/downloaded_artifacts/summary_cbds_func_window_size_01_tol_06_big_s2mpj/**
+          path: ./tests/tuning/tuning_data/downloaded_artifacts/summary_cbds_func_window_size_01_tol_06_big_s2mpj/**
