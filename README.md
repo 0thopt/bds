@@ -90,17 +90,6 @@ The following tests are implemented by [Optiprofiler](https://github.com/optipro
 
 - [Tests](https://github.com/dfopt/bds/actions) at [dfopt/bds](https://github.com/dfopt/bds)
 
-    - [![Profile cbds with cycling all blocks, big](https://github.com/dfopt/bds/actions/workflows/profile_cbds_cycle_blocks_all_big.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_cycle_blocks_all_big.yml)
-    - [![Profile cbds with cycling all blocks, small](https://github.com/dfopt/bds/actions/workflows/profile_cbds_cycle_blocks_all_small.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_cycle_blocks_all_small.yml) 
-    - [![Profile cbds with cycling all blocks using strategy 1, big](https://github.com/dfopt/bds/actions/workflows/profile_cbds_cycle_blocks_single_1_big.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_cycle_blocks_single_1_big.yml)
-    - [![Profile cbds with cycling all blocks using strategy 1, small](https://github.com/dfopt/bds/actions/workflows/profile_cbds_cycle_blocks_single_1_small.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_cycle_blocks_single_1_small.yml)  
-    - [![Profile cbds with cycling all blocks using strategy 2, big](https://github.com/dfopt/bds/actions/workflows/profile_cbds_cycle_blocks_single_2_big.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_cycle_blocks_single_2_big.yml)
-    - [![Profile cbds with cycling all blocks using strategy 2, small](https://github.com/dfopt/bds/actions/workflows/profile_cbds_cycle_blocks_single_2_small.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_cycle_blocks_single_2_small.yml)   
-    - [![Profile cbds with cycling all blocks using strategy 3, big](https://github.com/dfopt/bds/actions/workflows/profile_cbds_cycle_blocks_single_3_big.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_cycle_blocks_single_3_big.yml)
-    - [![Profile cbds with cycling all blocks using strategy 3, small](https://github.com/dfopt/bds/actions/workflows/profile_cbds_cycle_blocks_single_3_small.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_cycle_blocks_single_3_small.yml)    
-    - [![Profile cbds with cycling all blocks using strategy 4, big](https://github.com/dfopt/bds/actions/workflows/profile_cbds_cycle_blocks_single_4_big.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_cycle_blocks_single_4_big.yml)
-    - [![Profile cbds with cycling all blocks using strategy 4, small](https://github.com/dfopt/bds/actions/workflows/profile_cbds_cycle_blocks_single_4_small.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_cbds_cycle_blocks_single_4_small.yml)   
-
 - [Tests](https://github.com/gradient-free-opt/bds/actions) at [gradient-free-opt/bds](https://github.com/gradient-free-opt/bds)
 
     - [![Profile cbds and simplex using optiprofiler, big](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_simplex_big.yml/badge.svg)](https://github.com/gradient-free-opt/bds/actions/workflows/profile_cbds_simplex_big.yml)
