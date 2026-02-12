@@ -123,6 +123,7 @@ jobs:
         with:
           name: merged_profiles_cbds_func_window_size_01_tol_06_small_s2mpj
           path: ./tests/tuning/tuning_data/**
+          overwrite: true  
 
       - name: Upload summary files
         uses: actions/upload-artifact@v4
@@ -131,3 +132,4 @@ jobs:
         with:
           name: summary_files_cbds_func_window_size_01_tol_06_small_s2mpj
           path: ./tests/tuning/tuning_data/downloaded_artifacts/summary_cbds_func_window_size_01_tol_06_small_s2mpj/**
+          overwrite: true
