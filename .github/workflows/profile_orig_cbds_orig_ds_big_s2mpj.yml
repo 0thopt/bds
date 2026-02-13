@@ -1,16 +1,16 @@
-name: Profile original cbds and nomad, big
+name: Profile original cbds and original ds, big, s2mpj
 
 on:
   # Trigger the workflow on # push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   schedule:
-  - cron: '0 12 */2 * *'
+  - cron: '0 18 8 * *'
   workflow_dispatch:
 
 jobs:
   test:
-    name: Profile original cbds and nomad, big
+    name: Profile original cbds and original ds, big, s2mpj
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -20,7 +20,8 @@ jobs:
         dim: [big]
         with_optim_toolbox: [yes]
         solver: [cbds-orig]
-        competitor: [nomad]
+        competitor: [direct-search-orig]
+        plibs: [s2mpj]
         run_plain: [false]
         summarize_log_ratio_profiles: [false]
         feature: [plain, perturbed_x0_0.001, perturbed_x0_1, perturbed_x0_10, perturbed_x0_100, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, truncated_1, truncated_2, truncated_3, truncated_4, permuted, linearly_transformed, random_nan_5, random_nan_10, random_nan_20, quantized_1, quantized_2, quantized_3, quantized_4, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
@@ -36,14 +37,7 @@ jobs:
         with:
           repository: optiprofiler/optiprofiler
           path: optiprofiler
-          submodules: recursive
-          ref: 85f81ae01e599811ffc12964dba383e7eccc0c52
-
-      - name: Checkout Nomad
-        uses: actions/checkout@v4
-        with:
-          repository: bbopt/nomad
-          path: nomad  
+          ref: 675a7cd5d52f1dbb7f5fdd486406b285dc6a8bc6
 
       - name: Install Texlive
         run: sudo apt-get update && sudo apt-get install texlive
@@ -65,18 +59,6 @@ jobs:
           release: ${{ matrix.matlab }}
           products: Optimization_Toolbox
 
-      - name: Set up Nomad
-        run: |
-          cd ./nomad 
-          cmake --version 
-          cmake -DTEST_OPENMP=OFF -DBUILD_INTERFACE_MATLAB=ON -S . -B build/release
-          cmake --build build/release
-          cmake --install build/release
-          find /usr/lib /lib -name "libstdc++.so.6"
-
-      - name: Set LD_PRELOAD
-        run: echo "LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6" >> $GITHUB_ENV
-
       - name: Run test
         uses: matlab-actions/run-command@v2.1.1
         with:
@@ -86,16 +68,12 @@ jobs:
   
               % Setup optiprofiler
               cd(fullfile(root_dir, 'optiprofiler'));
-              setup
+              setup(struct('install_matcutest', true));
   
               % Setup bds
               cd(root_dir);
               setup
               cd(fullfile(root_dir, 'tests', 'competitors'));
-              addpath(pwd);
-
-              % Setup nomad
-              cd(fullfile(root_dir, 'nomad', 'build', 'release', 'lib'));
               addpath(pwd);
   
               % profile
@@ -104,10 +82,7 @@ jobs:
               options.feature_name = '${{ matrix.feature }}';
               options.solver_names = {'${{ matrix.solver }}', '${{ matrix.competitor }}'};
               options.dim = '${{ matrix.dim }}';
-              options = rmfield(options, 'dim');
-              options.mindim = 6;
-              options.maxdim = 20;
-              options.n_runs = 1;
+              options.plibs = '${{ matrix.plibs }}';
               options.run_plain = ${{ matrix.run_plain }};
               options.summarize_log_ratio_profiles = ${{ matrix.summarize_log_ratio_profiles }};
               profile_optiprofiler(options);
@@ -182,10 +157,12 @@ jobs:
       - name: Merge PDF files
         run: |
           cp tests/tools/merge_pdf.sh tests/testdata/downloaded_artifacts
+          cp tests/tools/get_base_info.sh tests/testdata/downloaded_artifacts
           cd tests/testdata/downloaded_artifacts/
 
-          ARTIFACT_NAME=$(ls | grep "profile_optiprofiler" | head -n 1)
-          BASE_INFO=$(echo $ARTIFACT_NAME | sed -n 's/.*optiprofiler_\([^_]*_[^_]*_\(small\|big\)\).*/\1/p')
+          source ./get_base_info.sh
+          echo $BASE_INFO
+          
           # Replace all '-' with '_' in BASE_INFO
           BASE_INFO=$(echo $BASE_INFO | sed 's/-/_/g')
           echo "Base info extracted: ${BASE_INFO}"

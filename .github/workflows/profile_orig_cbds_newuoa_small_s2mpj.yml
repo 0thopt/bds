@@ -5,7 +5,7 @@ on:
   # push:
   # Trigger the workflow manually
   schedule:
-  - cron: '0 18 */2 * *'
+  - cron: '0 18 6 * *'
   workflow_dispatch:
 
 jobs:
@@ -38,8 +38,7 @@ jobs:
         with:
             repository: optiprofiler/optiprofiler
             path: optiprofiler
-            submodules: recursive
-            ref: 85f81ae01e599811ffc12964dba383e7eccc0c52
+            ref: 675a7cd5d52f1dbb7f5fdd486406b285dc6a8bc6
 
       - name: Clone PRIMA
         uses: actions/checkout@v4
@@ -76,7 +75,7 @@ jobs:
   
               % Setup optiprofiler
               cd(fullfile(root_dir, 'optiprofiler'));
-              setup
+              setup(struct('install_matcutest', true));
 
               % Setup prima
               cd(fullfile(root_dir, 'prima'));

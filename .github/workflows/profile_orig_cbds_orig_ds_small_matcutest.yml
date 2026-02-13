@@ -1,27 +1,27 @@
-name: Profile original cbds and ds, big, s2mpj
+name: Profile original cbds and original ds, small, matcutest
 
 on:
   # Trigger the workflow on # push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   schedule:
-  - cron: '0 8 */2 * *'
+  - cron: '0 18 8 * *'
   workflow_dispatch:
 
 jobs:
   test:
-    name: Profile original cbds and DS, big, s2mpj
+    name: Profile original cbds and original ds, small, matcutest
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
         matlab: [latest]
-        dim: [big]
+        dim: [small]
         with_optim_toolbox: [yes]
         solver: [cbds-orig]
-        competitor: [ds]
-        plibs: [s2mpj]
+        competitor: [direct-search-orig]
+        plibs: [matcutest]
         run_plain: [false]
         summarize_log_ratio_profiles: [false]
         feature: [plain, perturbed_x0_0.001, perturbed_x0_1, perturbed_x0_10, perturbed_x0_100, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, truncated_1, truncated_2, truncated_3, truncated_4, permuted, linearly_transformed, random_nan_5, random_nan_10, random_nan_20, quantized_1, quantized_2, quantized_3, quantized_4, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
@@ -37,8 +37,7 @@ jobs:
         with:
           repository: optiprofiler/optiprofiler
           path: optiprofiler
-          submodules: recursive
-          ref: 85f81ae01e599811ffc12964dba383e7eccc0c52
+          ref: 675a7cd5d52f1dbb7f5fdd486406b285dc6a8bc6
 
       - name: Install Texlive
         run: sudo apt-get update && sudo apt-get install texlive
@@ -69,10 +68,10 @@ jobs:
   
               % Setup optiprofiler
               cd(fullfile(root_dir, 'optiprofiler'));
-              setup
+              setup(struct('install_matcutest', true));
   
               % Setup bds
-              cd(root_dir);
+               cd(root_dir);
               setup
               cd(fullfile(root_dir, 'tests', 'competitors'));
               addpath(pwd);

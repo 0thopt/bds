@@ -1,7 +1,8 @@
 clear all
-options.dim = 'big';
-options.plibs = 'matcutest';
+options.dim = 'large';
+options.plibs = 's2mpj';
 options.feature_name = 'linearly_transformed';
+options.n_jobs = 1;
 
 options.solver_names = {'cbds', 'ds'};
 
