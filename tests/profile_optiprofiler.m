@@ -214,6 +214,8 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @pbds_permuted_half_n_test;
             case 'pbds-permuted-n'
                 solvers{i} = @pbds_permuted_n_test;
+            case 'rbds-orig'
+                solvers{i} = @rbds_orig_test;
             case 'rbds'
                 solvers{i} = @rbds_test;
             case 'rbds-noisy'
@@ -262,6 +264,8 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
             % to 0.5 and the expand satisfies the boundary condition of 1/n > p_0.  
             case 'r1bss'
                 solvers{i} = @rbds_batch_size_one_seed_shrink_cov_test; 
+            case 'pads-orig'
+                solvers{i} = @pads_orig_test;
             case 'pads'
                 solvers{i} = @pads_test;
             case 'pads-noisy'
@@ -1019,6 +1023,15 @@ function x = cbds_construct_directions_from_x0_test(fun, x0)
     
 end
 
+function x = rbds_orig_test(fun, x0)
+
+    option.Algorithm = 'rbds';
+    option.expand = 2;
+    option.shrink = 0.5;
+    x = bds(fun, x0, option);
+    
+end
+
 function x = rbds_test(fun, x0)
 
     option.Algorithm = 'rbds';
@@ -1177,6 +1190,15 @@ function x = rbds_batch_size_one_seed_shrink_cov_test(fun, x0)
     option.seed = round(1e4 * option.batch_size) + round(1e6 * option.replacement_delay) + round(sum(x0));
     x = bds(fun, x0, option);
 
+end
+
+function x = pads_orig_test(fun, x0)
+
+    option.Algorithm = 'pads';
+    option.expand = 2;
+    option.shrink = 0.5;
+    x = bds(fun, x0, option);
+    
 end
 
 function x = pads_test(fun, x0)
