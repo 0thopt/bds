@@ -2,10 +2,10 @@ name: Profile original cbds and bfo, big, matcutest
 
 on:
   # Trigger the workflow on # push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   schedule:
-  - cron: '0 12 */2 * *'
+  - cron: '0 18 5 * *'
   workflow_dispatch:
 
 jobs:
@@ -37,8 +37,7 @@ jobs:
         with:
           repository: optiprofiler/optiprofiler
           path: optiprofiler
-          submodules: recursive
-          ref: 85f81ae01e599811ffc12964dba383e7eccc0c52
+          ref: 675a7cd5d52f1dbb7f5fdd486406b285dc6a8bc6
 
       - name: Clone BFO
         uses: actions/checkout@v4
@@ -78,7 +77,7 @@ jobs:
   
               % Setup optiprofiler
               cd(fullfile(root_dir, 'optiprofiler'));
-              setup
+              setup(struct('install_matcutest', true));
               cd(root_dir);
 
               % Setup bfo
