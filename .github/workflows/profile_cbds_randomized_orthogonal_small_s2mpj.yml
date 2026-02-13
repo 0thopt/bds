@@ -1,16 +1,16 @@
-name: Profile cbds with different number of blocks, small
+name: Profile cbds with randomized orthogonal matrix input, small, s2mpj
 
 on:
   # Trigger the workflow on # push or pull request
   # push:
   # Trigger the workflow manually
   schedule:
-  - cron: '0 6 */1 * *'
+  - cron: '0 18 10 * *'
   workflow_dispatch:
 
 jobs:
   test:
-    name: Profile BDS with different number of blocks, small
+    name: Profile cbds with randomized orthogonal matrix input, small, s2mpj
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -19,11 +19,9 @@ jobs:
         matlab: [latest]
         dim: [small]
         with_optim_toolbox: [yes]
-        solver: [cbds-block]
-        competitor_1: [cbds-half]
-        competitor_2: [cbds-quarter]
-        competitor_3: [cbds-eighth]
-        competitor_4: [ds-block]
+        solver: [cbds]
+        competitor: [cbds-randomized-orthogonal]
+        plibs: [s2mpj]
         run_plain: [false]
         summarize_log_ratio_profiles: [false]
         feature: [plain, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, linearly_transformed, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
@@ -39,8 +37,7 @@ jobs:
         with:
           repository: optiprofiler/optiprofiler
           path: optiprofiler
-          submodules: recursive
-          ref: 85f81ae01e599811ffc12964dba383e7eccc0c52
+          ref: 675a7cd5d52f1dbb7f5fdd486406b285dc6a8bc6
 
       - name: Install Texlive
         run: sudo apt-get update && sudo apt-get install texlive
@@ -71,10 +68,10 @@ jobs:
   
               % Setup optiprofiler
               cd(fullfile(root_dir, 'optiprofiler'));
-              setup
-              cd(root_dir);
+              setup(struct('install_matcutest', true));
   
               % Setup bds
+              cd(root_dir);
               setup
               cd(fullfile(root_dir, 'tests', 'competitors'));
               addpath(pwd);
@@ -83,11 +80,11 @@ jobs:
               cd(fullfile(root_dir, 'tests'));
               options = struct();
               options.feature_name = '${{ matrix.feature }}';
-              options.solver_names = {'${{ matrix.solver }}', '${{ matrix.competitor_1 }}', '${{ matrix.competitor_2 }}', '${{ matrix.competitor_3 }}', '${{ matrix.competitor_4 }}'};
+              options.solver_names = {'${{ matrix.solver }}', '${{ matrix.competitor }}'};
               options.dim = '${{ matrix.dim }}';
+              options.plibs = '${{ matrix.plibs }}';
               options.run_plain = ${{ matrix.run_plain }};
               options.summarize_log_ratio_profiles = ${{ matrix.summarize_log_ratio_profiles }};
-              options.test_blocks = true;
               profile_optiprofiler(options);
               cd(root_dir);
               cd(fullfile(root_dir, 'tests'));
@@ -127,7 +124,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: profile_optiprofiler_${{ matrix.solver }}_${{ matrix.competitor_1 }}_${{ matrix.competitor_2 }}_${{ matrix.competitor_3 }}_${{ matrix.competitor_4 }}_${{ matrix.dim }}_${{ matrix.feature }}
+          name: profile_optiprofiler_${{ matrix.solver }}_${{ matrix.competitor }}_${{ matrix.dim }}_${{ matrix.feature }}
           path: ./tests/testdata/
 
   merge_artifacts:
@@ -160,11 +157,12 @@ jobs:
       - name: Merge PDF files
         run: |
           cp tests/tools/merge_pdf.sh tests/testdata/downloaded_artifacts
+          cp tests/tools/get_base_info.sh tests/testdata/downloaded_artifacts
           cd tests/testdata/downloaded_artifacts/
 
-          ARTIFACT_NAME=$(ls | grep "profile_optiprofiler" | head -n 1)
-          BASE_INFO=$(echo $ARTIFACT_NAME | sed -n 's/.*optiprofiler_\([^_]*_[^_]*_\(small\|big\)\).*/\1/p')
-
+          source ./get_base_info.sh
+          echo $BASE_INFO
+          
           # Replace all '-' with '_' in BASE_INFO
           BASE_INFO=$(echo $BASE_INFO | sed 's/-/_/g')
           echo "Base info extracted: ${BASE_INFO}"
@@ -180,10 +178,10 @@ jobs:
           cd summary
           ls
           bash ../merge_pdf.sh
-          mv merged.pdf "summary_cbds_num_blocks_small.pdf"
+          mv merged.pdf "summary_${BASE_INFO}.pdf"
           cd ..
           if [ -d "summary" ]; then
-            mv summary "summary_cbds_num_blocks_small"
+            mv summary "summary_${BASE_INFO}"
           fi
 
       - name: Upload merged artifact
@@ -191,7 +189,7 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: merged_profiles_cbds_num_blocks_small
+          name: merged_profiles_randomized_orthogonal_small_s2mpj
           path: tests/testdata/downloaded_artifacts/**
 
       - name: Upload summary files
@@ -199,5 +197,5 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: summary_files_cbds_num_blocks_small
-          path: tests/testdata/downloaded_artifacts/summary_cbds_num_blocks_small/**
+          name: summary_files_randomized_orthogonal_small_s2mpj
+          path: tests/testdata/downloaded_artifacts/summary_${{ env.BASE_INFO }}/**

@@ -1,57 +1,43 @@
-name: Profile cbds with rotated initial point, small
+name: Profile original cbds and original cbds direction set from x0, large, s2mpj
 
 on:
   # Trigger the workflow on # push or pull request
   # push:
   # Trigger the workflow manually
   schedule:
-  - cron: '0 15 */1 * *'
+  - cron: '0 18 10 * *'
   workflow_dispatch:
 
 jobs:
   test:
-    name: Profile cbds with rotated initial point, small
+    name: Profile original cbds and original cbds direction set from x0, large, s2mpj
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
         matlab: [latest]
-        dim: [small]
+        dim: [large]
         with_optim_toolbox: [yes]
-        solver: [cbds-rotated-initial-point]
-        competitor: [cbds-randomized-gaussian]
+        solver: [cbds-orig]
+        competitor: [cbds-orig-direction-set-from-x0]
+        plibs: [s2mpj]
         run_plain: [false]
         summarize_log_ratio_profiles: [false]
         feature: [plain, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, permuted, permuted_noisy_1e-1, permuted_noisy_1e-2, permuted_noisy_1e-3, permuted_noisy_1e-4, linearly_transformed, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
 
     steps:
-      # Check out the main branch
-      - name: Check out main branch
+      - name: Check out repository
         uses: actions/checkout@v4
         with:
-          ref: main
-
-      # Check out the development branch into a subdirectory
-      - name: Check out development branch into subdirectory
-        uses: actions/checkout@v4
-        with:
-          ref: development        
-          path: development
-          fetch-depth: 0 # get all history for all branches and tags
-          
-      # Check out specific commit in the development branch
-      - name: Check out specific commit
-        working-directory: development
-        run: git checkout 68dcb09c302269e2771a72286410bdeb00b92a72
+          submodules: recursive
       
       - name: Checkout OptiProfiler
         uses: actions/checkout@v4
         with:
           repository: optiprofiler/optiprofiler
           path: optiprofiler
-          submodules: recursive
-          ref: 85f81ae01e599811ffc12964dba383e7eccc0c52
+          ref: 675a7cd5d52f1dbb7f5fdd486406b285dc6a8bc6
 
       - name: Install Texlive
         run: sudo apt-get update && sudo apt-get install texlive
@@ -82,10 +68,10 @@ jobs:
   
               % Setup optiprofiler
               cd(fullfile(root_dir, 'optiprofiler'));
-              setup
+              setup(struct('install_matcutest', true));
+              cd(root_dir);
   
               % Setup bds
-              cd(root_dir);
               setup
 
               % Set up the path for the development branch
@@ -98,6 +84,7 @@ jobs:
               options.feature_name = '${{ matrix.feature }}';
               options.solver_names = {'${{ matrix.solver }}', '${{ matrix.competitor }}'};
               options.dim = '${{ matrix.dim }}';
+              options.plibs = '${{ matrix.plibs }}';
               options.run_plain = ${{ matrix.run_plain }};
               options.summarize_log_ratio_profiles = ${{ matrix.summarize_log_ratio_profiles }};
               profile_optiprofiler(options);
@@ -139,7 +126,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: profile_optiprofiler_${{ matrix.solver }}_${{ matrix.competitor }}_${{ matrix.dim }}_${{ matrix.feature }}
+          name: profile_optiprofiler_${{ matrix.solver }}_${{ matrix.competitor }}_${{ matrix.feature }}_${{ matrix.dim }}
           path: ./tests/testdata/
 
   merge_artifacts:
@@ -172,11 +159,12 @@ jobs:
       - name: Merge PDF files
         run: |
           cp tests/tools/merge_pdf.sh tests/testdata/downloaded_artifacts
+          cp tests/tools/get_base_info.sh tests/testdata/downloaded_artifacts
           cd tests/testdata/downloaded_artifacts/
 
-          ARTIFACT_NAME=$(ls | grep "profile_optiprofiler" | head -n 1)
-          BASE_INFO=$(echo $ARTIFACT_NAME | sed -n 's/.*optiprofiler_\([^_]*_[^_]*_\(small\|big\)\).*/\1/p')
-
+          source ./get_base_info.sh
+          echo $BASE_INFO
+          
           # Replace all '-' with '_' in BASE_INFO
           BASE_INFO=$(echo $BASE_INFO | sed 's/-/_/g')
           echo "Base info extracted: ${BASE_INFO}"
@@ -192,10 +180,10 @@ jobs:
           cd summary
           ls
           bash ../merge_pdf.sh
-          mv merged.pdf "summary_${BASE_INFO}.pdf"
+          mv merged.pdf "summary_orig_cbds_orig_cbds_direction_set_from_x0_large_s2mpj.pdf"
           cd ..
           if [ -d "summary" ]; then
-            mv summary "summary_${BASE_INFO}"
+            mv summary "summary_orig_cbds_orig_cbds_direction_set_from_x0_large_s2mpj"
           fi
 
       - name: Upload merged artifact
@@ -203,7 +191,7 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: merged_profiles_${{ env.BASE_INFO }}
+          name: merged_profiles_orig_cbds_orig_cbds_direction_set_from_x0_large_s2mpj
           path: tests/testdata/downloaded_artifacts/**
 
       - name: Upload summary files
@@ -211,5 +199,5 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: summary_files_${{ env.BASE_INFO }}
-          path: tests/testdata/downloaded_artifacts/summary_${{ env.BASE_INFO }}/**
+          name: summary_files_orig_cbds_orig_cbds_direction_set_from_x0_large_s2mpj
+          path: tests/testdata/downloaded_artifacts/summary_orig_cbds_orig_cbds_direction_set_from_x0_large_s2mpj/**

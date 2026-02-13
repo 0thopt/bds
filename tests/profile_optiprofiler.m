@@ -117,7 +117,7 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
             options.solver_names(strcmpi(options.solver_names, 'fd-bfgs')) = {'adaptive-fd-bfgs'};
         end
         bds_Algorithms = {'ds', 'ds-randomized-orthogonal', 'pbds', 'rbds', 'pads', 'scbds', 'cbds', 'cbds-randomized-orthogonal',...
-         'cbds-randomized-gaussian', 'cbds-permuted', 'cbds-rotated-initial-point'};
+         'cbds-randomized-gaussian', 'cbds-permuted'};
         if any(ismember(bds_Algorithms, options.solver_names))
             % options.solver_names(strcmpi(options.solver_names, 'ds')) = {'ds-noisy'};
             % Temporarily, we will use the label 'ds'.
@@ -133,7 +133,6 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
             options.solver_names(strcmpi(options.solver_names, 'cbds-randomized-orthogonal')) = {'cbds-randomized-orthogonal-noisy'};
             options.solver_names(strcmpi(options.solver_names, 'cbds-randomized-gaussian')) = {'cbds-randomized-gaussian-noisy'};
             options.solver_names(strcmpi(options.solver_names, 'cbds-permuted')) = {'cbds-permuted-noisy'};
-            options.solver_names(strcmpi(options.solver_names, 'cbds-rotated-initial-point')) = {'cbds-rotated-initial-point-noisy'};
         end
     end
 
@@ -309,10 +308,8 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @cbds_permuted_test;
             case 'cbds-permuted-noisy'
                 solvers{i} = @(fun, x0) cbds_permuted_test_noisy(fun, x0, true);
-            case 'cbds-rotated-initial-point'
-                solvers{i} = @cbds_rotated_initial_point_test;
-            case 'cbds-rotated-initial-point-noisy'
-                solvers{i} = @(fun, x0) cbds_rotated_initial_point_test_noisy(fun, x0, true);
+            case 'cbds-orig-direction-set-from-x0'
+                solvers{i} = @cbds_construct_directions_from_x0_test;
             case 'pds'
                 solvers{i} = @pds_test;
             case 'bfo'
@@ -975,7 +972,7 @@ function x = cbds_permuted_test_noisy(fun, x0, is_noisy)
     
 end
 
-function x = cbds_rotated_initial_point_test(fun, x0) 
+function x = cbds_construct_directions_from_x0_test(fun, x0) 
 
     option.Algorithm = 'cbds';
 
@@ -1015,52 +1012,11 @@ function x = cbds_rotated_initial_point_test(fun, x0)
     end
 
     option.direction_set = R;
+    option.expand = 2;
+    option.shrink = 0.5;
 
-    x = bds_development(fun, x0, option);
+    x = bds(fun, x0, option);
     
-end
-
-function x = cbds_rotated_initial_point_test_noisy(fun, x0, is_noisy)
-
-    option.Algorithm = 'cbds';
-
-    % Ensure x0 is a column vector
-    x0 = x0(:);
-    n = length(x0);
-
-    % Normalize the input vector
-    x0_hat = x0 / norm(x0);
-
-    % Construct the first standard basis vector
-    e1 = zeros(n, 1);
-    e1(1) = 1;
-
-    % Check if x0 is already aligned with e1
-    if norm(x0_hat - e1) < 1e-10
-        R = eye(n); % If x0 is already aligned with e1, return identity matrix
-    else
-        % Compute the Householder vector
-        u = x0_hat - e1;
-
-        % Avoid numerical instability when u is close to zero
-        if norm(u) < 1e-10
-            % Use a fallback: set u to a simple direction
-            u = zeros(n, 1);
-            u(2) = 1; % Choose a valid direction orthogonal to e1
-        else
-            u = u / norm(u); % Normalize u
-        end
-
-        % Compute the Householder reflection matrix implicitly
-        % H = I - 2 * (u * u'), but we avoid forming H explicitly
-        % Instead, we compute R directly
-        R = eye(n) - 2 * (u * u'); % Compute the full rotation matrix
-    end
-
-    option.direction_set = R;
-    option.is_noisy = is_noisy;
-    x = bds_development(fun, x0, option);
-
 end
 
 function x = rbds_test(fun, x0)
