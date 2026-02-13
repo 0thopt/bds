@@ -37,6 +37,9 @@ octave-workspace
 tests/testdata/
 tests/cbds*/
 
+# Tuning results
+tests/misc/tuning/tuning_data/
+
 # output.txt
 tests/*.txt
 

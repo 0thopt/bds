@@ -1,4 +1,4 @@
-name: Profile original cbds with bfgs, big, s2mpj
+name: Profile original cbds with bfgs, large, s2mpj
 
 on:
   # Trigger the workflow on # push or pull request
@@ -10,14 +10,14 @@ on:
 
 jobs:
   test:
-    name: Profile original cbds and bfgs, big, s2mpj
+    name: Profile original cbds and bfgs, large, s2mpj
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
         matlab: [latest]
-        dim: [big]
+        dim: [large]
         with_optim_toolbox: [yes]
         solver: [cbds-orig]
         competitor: [fd-bfgs]

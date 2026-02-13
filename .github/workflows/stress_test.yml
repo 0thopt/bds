@@ -5,7 +5,7 @@ on:
   # push:
   # Trigger the workflow manually
   schedule:
-    - cron: '0 21 */2 * *'
+  - cron: '0 18 2 * *'
   workflow_dispatch:
 
 jobs:
@@ -15,10 +15,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        matlab: [R2023b, R2024a, R2024b]
+        os: [ubuntu-latest, macos-latest]
+        matlab: [R2024b, latest]
         with_optim_toolbox: [no]
-        solver: [cbds, PBDS, RBDS, DS]
+        solver: [cbds, pbds, rbds, pads, ds]
         tough: [true, false]
 
     steps:
