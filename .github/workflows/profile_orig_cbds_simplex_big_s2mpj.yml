@@ -1,16 +1,16 @@
-name: Profile original cbds and original ds, big, s2mpj
+name: Profile original cbds and simplex, big, s2mpj
 
 on:
   # Trigger the workflow on # push or pull request
   # push:
   # Trigger the workflow manually
   schedule:
-  - cron: '0 18 8 * *'
+  - cron: '0 18 9 * *'
   workflow_dispatch:
 
 jobs:
   test:
-    name: Profile original cbds and original ds, big, s2mpj
+    name: Profile original cbds and simplex, big, s2mpj
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -20,11 +20,11 @@ jobs:
         dim: [big]
         with_optim_toolbox: [yes]
         solver: [cbds-orig]
-        competitor: [direct-search-orig]
+        competitor: [nelder-mead]
         plibs: [s2mpj]
         run_plain: [false]
         summarize_log_ratio_profiles: [false]
-        feature: [plain, perturbed_x0_0.001, perturbed_x0_1, perturbed_x0_10, perturbed_x0_100, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, truncated_1, truncated_2, truncated_3, truncated_4, permuted, linearly_transformed, random_nan_5, random_nan_10, random_nan_20, quantized_1, quantized_2, quantized_3, quantized_4, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
+        feature: [plain, perturbed_x0_0.001, perturbed_x0_1, perturbed_x0_10, perturbed_x0_100, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, truncated_1, truncated_2, truncated_3, truncated_4, truncated_5, truncated_6, permuted, linearly_transformed, random_nan_5, random_nan_10, random_nan_20, quantized_1, quantized_2, quantized_3, quantized_4, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
 
     steps:
       - name: Check out repository
@@ -38,6 +38,12 @@ jobs:
           repository: optiprofiler/optiprofiler
           path: optiprofiler
           ref: 675a7cd5d52f1dbb7f5fdd486406b285dc6a8bc6
+
+      - name: Clone PRIMA
+        uses: actions/checkout@v4
+        with:
+          repository: libprima/prima
+          path: prima
 
       - name: Install Texlive
         run: sudo apt-get update && sudo apt-get install texlive
@@ -69,6 +75,10 @@ jobs:
               % Setup optiprofiler
               cd(fullfile(root_dir, 'optiprofiler'));
               setup(struct('install_matcutest', true));
+
+              % Setup prima
+              cd(fullfile(root_dir, 'prima'));
+              setup
   
               % Setup bds
               cd(root_dir);
