@@ -1,0 +1,353 @@
+
+INFO: The script or function that calls `benchmark` function is copied to
+/Users/lihaitian/Work/bds/tests/tuning/tuning_data/cbds_grad_cbds_default_5_5_1_linearly_transformed_grad_window_size_05_grad_tol_1_03_grad_tol_2_06_maxfun_factor_500_25_10_28_21_40/cbds_grad_cbds_default_u_5_5_linearly_transformed_rotated_20251028_214117/test_log
+
+INFO: Start testing with the following options
+INFO: - Solvers: cbds-grad, cbds-default
+INFO: - Problem libraries: s2mpj
+INFO: - Problem types: u
+INFO: - Problem dimension range: [5, 5]
+INFO: - Number of user-excluded problem names: 38
+INFO: - Feature stamp: linearly_transformed_rotated
+
+INFO: Start testing problems from the problem library "s2mpj" with the "linearly_transformed" feature.
+
+INFO: More information about the S2MPJ problem library can be found at
+https://github.com/GrattonToint/S2MPJ
+
+INFO: There are 12 problems from "s2mpj" to test.
+
+INFO: Loading problem   BROYDN3DLS from "s2mpj".
+
+INFO: Start  solving    BROYDN3DLS with cbds-grad    (run  1/ 1).
+INFO: An error occurred while solving BROYDN3DLS with cbds-grad (run 1/1): Too many input arguments.
+INFO: An error occurred while processing the solution of BROYDN3DLS from cbds-grad (run 1/1): Unrecognized function or variable 'x'.
+
+INFO: Start  solving    BROYDN3DLS with cbds-default (run  1/ 1).
+INFO: An error occurred while solving BROYDN3DLS with cbds-default (run 1/1): Too many input arguments.
+INFO: An error occurred while processing the solution of BROYDN3DLS from cbds-default (run 1/1): Unrecognized function or variable 'x'.
+
+INFO: Loading problem   CHNROSNB   from "s2mpj".
+
+INFO: Start  solving    CHNROSNB   with cbds-grad    (run  1/ 1).
+INFO: An error occurred while solving CHNROSNB with cbds-grad (run 1/1): Too many input arguments.
+INFO: An error occurred while processing the solution of CHNROSNB from cbds-grad (run 1/1): Unrecognized function or variable 'x'.
+
+INFO: Start  solving    CHNROSNB   with cbds-default (run  1/ 1).
+INFO: An error occurred while solving CHNROSNB with cbds-default (run 1/1): Too many input arguments.
+INFO: An error occurred while processing the solution of CHNROSNB from cbds-default (run 1/1): Unrecognized function or variable 'x'.
+
+INFO: Loading problem   CHNRSNBM   from "s2mpj".
+
+INFO: Start  solving    CHNRSNBM   with cbds-grad    (run  1/ 1).
+INFO: An error occurred while solving CHNRSNBM with cbds-grad (run 1/1): Too many input arguments.
+INFO: An error occurred while processing the solution of CHNRSNBM from cbds-grad (run 1/1): Unrecognized function or variable 'x'.
+
+INFO: Start  solving    CHNRSNBM   with cbds-default (run  1/ 1).
+INFO: An error occurred while solving CHNRSNBM with cbds-default (run 1/1): Too many input arguments.
+INFO: An error occurred while processing the solution of CHNRSNBM from cbds-default (run 1/1): Unrecognized function or variable 'x'.
+
+INFO: Loading problem   DEVGLA2    from "s2mpj".
+
+INFO: Start  solving    DEVGLA2    with cbds-grad    (run  1/ 1).
+INFO: An error occurred while solving DEVGLA2 with cbds-grad (run 1/1): Too many input arguments.
+INFO: An error occurred while processing the solution of DEVGLA2 from cbds-grad (run 1/1): Unrecognized function or variable 'x'.
+
+INFO: Start  solving    DEVGLA2    with cbds-default (run  1/ 1).
+INFO: An error occurred while solving DEVGLA2 with cbds-default (run 1/1): Too many input arguments.
+INFO: An error occurred while processing the solution of DEVGLA2 from cbds-default (run 1/1): Unrecognized function or variable 'x'.
+
+INFO: Loading problem   KIRBY2LS   from "s2mpj".
+
+INFO: Start  solving    KIRBY2LS   with cbds-grad    (run  1/ 1).
+INFO: An error occurred while solving KIRBY2LS with cbds-grad (run 1/1): Too many input arguments.
+INFO: An error occurred while processing the solution of KIRBY2LS from cbds-grad (run 1/1): Unrecognized function or variable 'x'.
+
+INFO: Start  solving    KIRBY2LS   with cbds-default (run  1/ 1).
+INFO: An error occurred while solving KIRBY2LS with cbds-default (run 1/1): Too many input arguments.
+INFO: An error occurred while processing the solution of KIRBY2LS from cbds-default (run 1/1): Unrecognized function or variable 'x'.
+
+INFO: Loading problem   MGH17LS    from "s2mpj".
+
+INFO: Start  solving    MGH17LS    with cbds-grad    (run  1/ 1).
+INFO: An error occurred while solving MGH17LS with cbds-grad (run 1/1): Too many input arguments.
+INFO: An error occurred while processing the solution of MGH17LS from cbds-grad (run 1/1): Unrecognized function or variable 'x'.
+
+INFO: Start  solving    MGH17LS    with cbds-default (run  1/ 1).
+INFO: An error occurred while solving MGH17LS with cbds-default (run 1/1): Too many input arguments.
+INFO: An error occurred while processing the solution of MGH17LS from cbds-default (run 1/1): Unrecognized function or variable 'x'.
+
+INFO: Loading problem   MGH17SLS   from "s2mpj".
+
+INFO: Start  solving    MGH17SLS   with cbds-grad    (run  1/ 1).
+INFO: An error occurred while solving MGH17SLS with cbds-grad (run 1/1): Too many input arguments.
+INFO: An error occurred while processing the solution of MGH17SLS from cbds-grad (run 1/1): Unrecognized function or variable 'x'.
+
+INFO: Start  solving    MGH17SLS   with cbds-default (run  1/ 1).
+INFO: An error occurred while solving MGH17SLS with cbds-default (run 1/1): Too many input arguments.
+INFO: An error occurred while processing the solution of MGH17SLS from cbds-default (run 1/1): Unrecognized function or variable 'x'.
+
+INFO: Loading problem   OSBORNEA   from "s2mpj".
+
+INFO: Start  solving    OSBORNEA   with cbds-grad    (run  1/ 1).
+INFO: An error occurred while solving OSBORNEA with cbds-grad (run 1/1): Too many input arguments.
+INFO: An error occurred while processing the solution of OSBORNEA from cbds-grad (run 1/1): Unrecognized function or variable 'x'.
+
+INFO: Start  solving    OSBORNEA   with cbds-default (run  1/ 1).
+INFO: An error occurred while solving OSBORNEA with cbds-default (run 1/1): Too many input arguments.
+INFO: An error occurred while processing the solution of OSBORNEA from cbds-default (run 1/1): Unrecognized function or variable 'x'.
+
+INFO: Loading problem   POWER      from "s2mpj".
+
+INFO: Start  solving    POWER      with cbds-grad    (run  1/ 1).
+INFO: An error occurred while solving POWER with cbds-grad (run 1/1): Too many input arguments.
+INFO: An error occurred while processing the solution of POWER from cbds-grad (run 1/1): Unrecognized function or variable 'x'.
+
+INFO: Start  solving    POWER      with cbds-default (run  1/ 1).
+INFO: An error occurred while solving POWER with cbds-default (run 1/1): Too many input arguments.
+INFO: An error occurred while processing the solution of POWER from cbds-default (run 1/1): Unrecognized function or variable 'x'.
+
+INFO: Loading problem   QING       from "s2mpj".
+
+INFO: Start  solving    QING       with cbds-grad    (run  1/ 1).
+INFO: An error occurred while solving QING with cbds-grad (run 1/1): Too many input arguments.
+INFO: An error occurred while processing the solution of QING from cbds-grad (run 1/1): Unrecognized function or variable 'x'.
+
+INFO: Start  solving    QING       with cbds-default (run  1/ 1).
+INFO: An error occurred while solving QING with cbds-default (run 1/1): Too many input arguments.
+INFO: An error occurred while processing the solution of QING from cbds-default (run 1/1): Unrecognized function or variable 'x'.
+
+INFO: Loading problem   SENSORS    from "s2mpj".
+
+INFO: Start  solving    SENSORS    with cbds-grad    (run  1/ 1).
+INFO: An error occurred while solving SENSORS with cbds-grad (run 1/1): Too many input arguments.
+INFO: An error occurred while processing the solution of SENSORS from cbds-grad (run 1/1): Unrecognized function or variable 'x'.
+
+INFO: Start  solving    SENSORS    with cbds-default (run  1/ 1).
+INFO: An error occurred while solving SENSORS with cbds-default (run 1/1): Too many input arguments.
+INFO: An error occurred while processing the solution of SENSORS from cbds-default (run 1/1): Unrecognized function or variable 'x'.
+
+INFO: Loading problem   TRIDIA     from "s2mpj".
+
+INFO: Start  solving    TRIDIA     with cbds-grad    (run  1/ 1).
+INFO: An error occurred while solving TRIDIA with cbds-grad (run 1/1): Too many input arguments.
+INFO: An error occurred while processing the solution of TRIDIA from cbds-grad (run 1/1): Unrecognized function or variable 'x'.
+
+INFO: Start  solving    TRIDIA     with cbds-default (run  1/ 1).
+INFO: An error occurred while solving TRIDIA with cbds-default (run 1/1): Too many input arguments.
+INFO: An error occurred while processing the solution of TRIDIA from cbds-default (run 1/1): Unrecognized function or variable 'x'.
+
+
+INFO: Start creating profiles.
+
+INFO: Creating profiles for tolerance 0.1.
+INFO: Creating profiles for tolerance 0.01.
+{Operation terminated by user during matlab.graphics.internal.mlprintjob.generateGfxOutput
+
+
+In matlab.graphics.internal.export.getCurrentSize
+
+In matlab.graphics.internal.export.updateSize
+
+In matlab.graphics.internal.export.Exporter/generateExportedOutput
+
+In matlab.graphics.internal.export.Exporter/process
+
+In matlab.graphics.internal.export.exportTo
+
+In exportgraphics
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('benchmark', '/Users/lihaitian/local/optiprofiler/matlab/optiprofiler/src/benchmark.m', 1302)" style="font-weight:bold">benchmark</a> (<a href="matlab: opentoline('/Users/lihaitian/local/optiprofiler/matlab/optiprofiler/src/benchmark.m',1302,0)">line 1302</a>)
+            exportgraphics(fig_data_out, pdf_data_out, 'ContentType', 'vector');
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('tuning_optiprofiler', '/Users/lihaitian/Work/bds/tests/tuning/tuning_optiprofiler.m', 357)" style="font-weight:bold">tuning_optiprofiler</a> (<a href="matlab: opentoline('/Users/lihaitian/Work/bds/tests/tuning/tuning_optiprofiler.m',357,0)">line 357</a>)
+    [solver_scores, profile_scores] = benchmark(solvers, options);
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+} 
+{Operation terminated by user during matlab.graphics.shape.internal.Button
+
+
+In matlab.graphics.controls.AxesToolbarButton
+
+In matlab.ui.controls.ToolbarStateButton
+
+In matlab.graphics.controls.internal.PostUpdatePlugin.doCacheLoad
+
+In matlab.graphics.controls.internal.PostUpdatePlugin>@()matlab.graphics.controls.internal.PostUpdatePlugin.doCacheLoad(canvasParent)
+} 
+clc
+clear all
+clc
+p = s2mpj_load('BIGGS6')
+
+p = 
+
+  <a href="matlab:helpPopup('Problem')" style="font-weight:bold">Problem</a> with properties:
+
+              name: 'BIGGS6'
+                x0: [6×1 double]
+                xl: [6×1 double]
+                xu: [6×1 double]
+               aub: [0×6 double]
+               bub: [0×1 double]
+               aeq: [0×6 double]
+               beq: [0×1 double]
+                 n: 6
+                mb: 0
+       m_linear_ub: 0
+       m_linear_eq: 0
+    m_nonlinear_ub: 0
+    m_nonlinear_eq: 0
+             mlcon: 0
+            mnlcon: 0
+              mcon: 0
+             ptype: 'u'
+
+q = @(x) p.fun(x)
+
+q =
+
+  <a href="matlab:helpPopup('function_handle')" style="font-weight:bold">function_handle</a> with value:
+
+    @(x)p.fun(x)
+
+options.use_estimated_gradient_stop = true;
+options.feature_name = 'linearly_transformed';
+options = rmfield(options, "feature_name")
+
+options = 
+
+  <a href="matlab:helpPopup('struct')" style="font-weight:bold">struct</a> with fields:
+
+    use_estimated_gradient_stop: 1
+
+options.grad_tol_1 = 1e-1;
+options.grad_tol_2 = 1e-3;
+[a, b, c, d] = bds(q, p.x0, options)
+{Unrecognized function or variable 'printf'.
+
+Error in <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('bds', '/Users/lihaitian/Work/bds/src/bds.m', 599)" style="font-weight:bold">bds</a> (<a href="matlab: opentoline('/Users/lihaitian/Work/bds/src/bds.m',599,0)">line 599</a>)
+                    printf("Warning: The estimated gradient might be inaccurate. ");
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+} 
+[a, b, c, d] = bds(q, p.x0, options)
+Warning: The estimated gradient might be inaccurate. Warning: The estimated gradient might be inaccurate. Warning: The estimated gradient might be inaccurate. Warning: The estimated gradient might be inaccurate. Warning: The estimated gradient might be inaccurate. Warning: The estimated gradient might be inaccurate. Warning: The estimated gradient might be inaccurate. Warning: The estimated gradient might be inaccurate. 
+a =
+
+    3.5260
+   13.4587
+    1.5860
+    4.6850
+    1.2649
+    1.3371
+
+
+b =
+
+    0.0012
+
+
+c =
+
+     2
+
+
+d = 
+
+  <a href="matlab:helpPopup('struct')" style="font-weight:bold">struct</a> with fields:
+
+      funcCount: 3000
+          fhist: [0.7791 1.4371 4.7694 0.7163 4.9703 4.8246 2.4915 … ] (1×3000 double)
+      grad_hist: [6×10 double]
+     grad_xhist: [6×10 double]
+    alpha_final: [6×1 double]
+        message: "The maximum number of function evaluations is reached."
+
+[a, b, c, d] = bds(q, p.x0, options)
+Warning: The estimated gradient might be inaccurate. 
+Warning: The estimated gradient might be inaccurate. 
+Warning: The estimated gradient might be inaccurate. 
+Warning: The estimated gradient might be inaccurate. 
+Warning: The estimated gradient might be inaccurate. 
+Warning: The estimated gradient might be inaccurate. 
+Warning: The estimated gradient might be inaccurate. 
+Warning: The estimated gradient might be inaccurate. 
+
+a =
+
+    3.5260
+   13.4587
+    1.5860
+    4.6850
+    1.2649
+    1.3371
+
+
+b =
+
+    0.0012
+
+
+c =
+
+     2
+
+
+d = 
+
+  <a href="matlab:helpPopup('struct')" style="font-weight:bold">struct</a> with fields:
+
+      funcCount: 3000
+          fhist: [0.7791 1.4371 4.7694 0.7163 4.9703 4.8246 2.4915 … ] (1×3000 double)
+      grad_hist: [6×10 double]
+     grad_xhist: [6×10 double]
+    alpha_final: [6×1 double]
+        message: "The maximum number of function evaluations is reached."
+
+[a, b, c, d] = bds(q, p.x0, options)
+Warning: The estimated gradient might be inaccurate. 
+Warning: The estimated gradient might be inaccurate. 
+
+a =
+
+    3.5260
+   13.4587
+    1.5860
+    4.6850
+    1.2649
+    1.3371
+
+
+b =
+
+    0.0012
+
+
+c =
+
+     2
+
+
+d = 
+
+  <a href="matlab:helpPopup('struct')" style="font-weight:bold">struct</a> with fields:
+
+      funcCount: 3000
+          fhist: [0.7791 1.4371 4.7694 0.7163 4.9703 4.8246 2.4915 … ] (1×3000 double)
+      grad_hist: [6×10 double]
+     grad_xhist: [6×10 double]
+    alpha_final: [6×1 double]
+        message: "The maximum number of function evaluations is reached."
+
+clc
+clear all
+              parameters.grad_window_size = [3 1e8];
+              parameters.grad_tol_1 = [1e-3 1e-30];
+              parameters.grad_tol_2 = [1e-6 1e-30];
+              parameters.maxfun_factor = [500 500];
+              options = struct();
+              options.solver_names = {'cbds-grad', 'cbds-default'};
+options.mindim = 5;
+options.maxdim = 5;
+options.feature_name = 'linearly_transformed';
+tuning_optiprofiler(parameters, options)

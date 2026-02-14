@@ -1,0 +1,73 @@
+
+INFO: The script or function that calls `benchmark` function is copied to
+/Users/lihaitian/Work/bds/tests/tuning/tuning_data/cbds_tuning_func_cbds_default_1_1_1_linearly_transformed_func_tol_06_func_window_size_20_s2mpj_26_01_20_22_01/cbds_tuning_func_cbds_default_u_1_1_linearly_transformed_rotated_20260120_220137/test_log
+
+INFO: Start testing with the following options
+INFO: - Solvers: cbds-tuning-func, cbds-default
+INFO: - Problem libraries: s2mpj
+INFO: - Problem types: u
+INFO: - Problem dimension range: [1, 1]
+INFO: - Number of user-excluded problem names: 42
+INFO: - Feature stamp: linearly_transformed_rotated
+
+INFO: Start testing problems from the problem library "s2mpj" with the "linearly_transformed" feature.
+
+INFO: More information about the S2MPJ problem library can be found at
+https://github.com/GrattonToint/S2MPJ
+
+INFO: There are 1 problems from "s2mpj" to test.
+
+INFO: Loading problem   MUONSINELS from "s2mpj".
+
+INFO: Start  solving    MUONSINELS with cbds-tuning-func (run  1/ 1).
+INFO: An error occurred while solving MUONSINELS with cbds-tuning-func (run 1/1): Undefined function 'get_direction_selected_probability' for input arguments of type 'cell'.
+INFO: An error occurred while processing the solution of MUONSINELS from cbds-tuning-func (run 1/1): Unrecognized function or variable 'x'.
+
+INFO: Start  solving    MUONSINELS with cbds-default     (run  1/ 1).
+INFO: An error occurred while solving MUONSINELS with cbds-default (run 1/1): Undefined function 'get_direction_selected_probability' for input arguments of type 'cell'.
+INFO: An error occurred while processing the solution of MUONSINELS from cbds-default (run 1/1): Unrecognized function or variable 'x'.
+
+INFO: Merging all the history plots of problems from the "s2mpj" library to a single PDF file.
+
+INFO: Start creating profiles.
+
+INFO: Creating profiles for tolerance 0.1.
+INFO: Creating profiles for tolerance 0.01.
+INFO: Creating profiles for tolerance 0.001.
+INFO: Creating profiles for tolerance 0.0001.
+INFO: Creating profiles for tolerance 1e-05.
+INFO: Creating profiles for tolerance 1e-06.
+INFO: Creating profiles for tolerance 1e-07.
+INFO: Creating profiles for tolerance 1e-08.
+INFO: Creating profiles for tolerance 1e-09.
+INFO: Creating profiles for tolerance 1e-10.
+
+INFO: All single profiles are created.
+
+INFO: Scores of the solvers
+INFO: cbds-tuning-func:    0.0000
+INFO: cbds-default    :    0.0000
+
+INFO: Start creating the summary PDF of all the profiles.
+INFO: The summary PDF of all the profiles is created.
+
+INFO: Finished creating profiles with the "linearly_transformed" feature.
+
+**********************************************************************
+
+Summary PDF of the profiles is saved as
+/Users/lihaitian/Work/bds/tests/tuning/tuning_data/cbds_tuning_func_cbds_default_1_1_1_linearly_transformed_func_tol_06_func_window_size_20_s2mpj_26_01_20_22_01/cbds_tuning_func_cbds_default_u_1_1_linearly_transformed_rotated_20260120_220137/summary_cbds_tuning_func_cbds_default_u_1_1_linearly_transformed_rotated_20260120_220137.pdf
+
+
+Single profiles are stored in
+/Users/lihaitian/Work/bds/tests/tuning/tuning_data/cbds_tuning_func_cbds_default_1_1_1_linearly_transformed_func_tol_06_func_window_size_20_s2mpj_26_01_20_22_01/cbds_tuning_func_cbds_default_u_1_1_linearly_transformed_rotated_20260120_220137/detailed_profiles
+
+
+Report of the experiment is saved as
+/Users/lihaitian/Work/bds/tests/tuning/tuning_data/cbds_tuning_func_cbds_default_1_1_1_linearly_transformed_func_tol_06_func_window_size_20_s2mpj_26_01_20_22_01/cbds_tuning_func_cbds_default_u_1_1_linearly_transformed_rotated_20260120_220137/test_log/report.txt
+
+
+Check the README file for more information about the experiment and the results
+/Users/lihaitian/Work/bds/tests/tuning/tuning_data/cbds_tuning_func_cbds_default_1_1_1_linearly_transformed_func_tol_06_func_window_size_20_s2mpj_26_01_20_22_01/cbds_tuning_func_cbds_default_u_1_1_linearly_transformed_rotated_20260120_220137/README.txt
+
+***********************************************************************

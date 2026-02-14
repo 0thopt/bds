@@ -1,0 +1,486 @@
+
+INFO: The script or function that calls `benchmark` function is copied to
+/Users/lihaitian/Work/bds/tests/tuning/tuning_data/cbds_grad_cbds_default_5_5_1_linearly_transformed_grad_window_size_10_grad_tol_1_06_grad_tol_2_09_maxfun_factor_500_25_10_29_15_03/cbds_grad_cbds_default_u_5_5_linearly_transformed_rotated_20251029_150319/test_log
+
+INFO: Start testing with the following options
+INFO: - Solvers: cbds-grad, cbds-default
+INFO: - Problem libraries: s2mpj
+INFO: - Problem types: u
+INFO: - Problem dimension range: [5, 5]
+INFO: - Number of user-excluded problem names: 38
+INFO: - Feature stamp: linearly_transformed_rotated
+
+INFO: Start testing problems from the problem library "s2mpj" with the "linearly_transformed" feature.
+
+INFO: More information about the S2MPJ problem library can be found at
+https://github.com/GrattonToint/S2MPJ
+
+INFO: There are 12 problems from "s2mpj" to test.
+
+INFO: Loading problem   BROYDN3DLS from "s2mpj".
+
+INFO: Start  solving    BROYDN3DLS with cbds-grad    (run  1/ 1).
+option
+
+option = 
+
+  <a href="matlab:helpPopup('struct')" style="font-weight:bold">struct</a> with fields:
+
+                      Algorithm: 'cbds'
+                         expand: 2
+                         shrink: 0.5000
+               grad_window_size: 10
+                     grad_tol_1: 1.0000e-06
+                     grad_tol_2: 1.0000e-09
+    use_estimated_gradient_stop: 1
+                  StepTolerance: 2.2204e-16
+         MaxFunctionEvaluations: 2500
+
+dbquit
+clear all
+clc
+p = s2mpj_load('BIGGS6')
+
+p = 
+
+  <a href="matlab:helpPopup('Problem')" style="font-weight:bold">Problem</a> with properties:
+
+              name: 'BIGGS6'
+                x0: [6×1 double]
+                xl: [6×1 double]
+                xu: [6×1 double]
+               aub: [0×6 double]
+               bub: [0×1 double]
+               aeq: [0×6 double]
+               beq: [0×1 double]
+                 n: 6
+                mb: 0
+       m_linear_ub: 0
+       m_linear_eq: 0
+    m_nonlinear_ub: 0
+    m_nonlinear_eq: 0
+             mlcon: 0
+            mnlcon: 0
+              mcon: 0
+             ptype: 'u'
+
+q = @(x) p.fun(x)
+
+q =
+
+  <a href="matlab:helpPopup('function_handle')" style="font-weight:bold">function_handle</a> with value:
+
+    @(x)p.fun(x)
+
+options.use_estimated_gradient_stop = true;
+options.grad_window_size = 3;
+options.grad_tol_1 = 1e-1;
+options.grad_tol_2 = 1e-3;
+[a, b, c, d] = bds(q, p.x0, options)
+
+a =
+
+    3.5260
+   13.4587
+    1.5860
+    4.6850
+    1.2649
+    1.3371
+
+
+b =
+
+    0.0012
+
+
+c =
+
+     2
+
+
+d = 
+
+  <a href="matlab:helpPopup('struct')" style="font-weight:bold">struct</a> with fields:
+
+      funcCount: 3000
+          fhist: [0.7791 1.4371 4.7694 0.7163 4.9703 4.8246 2.4915 … ] (1×3000 double)
+      grad_hist: [6×10 double]
+     grad_xhist: [6×10 double]
+    alpha_final: [6×1 double]
+        message: "The maximum number of function evaluations is reached."
+
+s.ptype = 'u';
+s.maxdim = 20;
+s.mindim = 20;
+s2mpj_select(s)
+
+ans =
+
+  1×2 <a href="matlab:helpPopup('cell')" style="font-weight:bold">cell</a> array
+
+    {'CYCLOOCFLS'}    {'VAREIGVL'}
+
+p = s2mpj_load('CYCLOOCFLS')
+
+p = 
+
+  <a href="matlab:helpPopup('Problem')" style="font-weight:bold">Problem</a> with properties:
+
+              name: 'CYCLOOCFLS'
+                x0: [20×1 double]
+                xl: [20×1 double]
+                xu: [20×1 double]
+               aub: [0×20 double]
+               bub: [0×1 double]
+               aeq: [0×20 double]
+               beq: [0×1 double]
+                 n: 20
+                mb: 0
+       m_linear_ub: 0
+       m_linear_eq: 0
+    m_nonlinear_ub: 0
+    m_nonlinear_eq: 0
+             mlcon: 0
+            mnlcon: 0
+              mcon: 0
+             ptype: 'u'
+
+q = @(x) p.fun(x)
+
+q =
+
+  <a href="matlab:helpPopup('function_handle')" style="font-weight:bold">function_handle</a> with value:
+
+    @(x)p.fun(x)
+
+[a, b, c, d] = bds(q, p.x0, options)
+
+a =
+
+    0.7132
+   -0.7009
+    0.8316
+    0.6395
+   -1.2515
+    1.6323
+    0.7351
+   -0.6602
+    1.6460
+    1.6530
+   -0.2634
+    0.9485
+    1.7181
+    0.4502
+    0.9499
+    0.8797
+    0.9952
+    0.0657
+    0.4215
+    0.9044
+
+
+b =
+
+   4.6369e-11
+
+
+c =
+
+     0
+
+
+d = 
+
+  <a href="matlab:helpPopup('struct')" style="font-weight:bold">struct</a> with fields:
+
+      funcCount: 4259
+          fhist: [43.4221 42.5289 45.7606 46.7763 36.5523 35.7632 … ] (1×4259 double)
+      grad_hist: []
+     grad_xhist: []
+    alpha_final: [20×1 double]
+        message: "The StepTolerance of the step size is reached."
+
+options.StepTolerance = eps;
+[a, b, c, d] = bds(q, p.x0, options)
+
+a =
+
+    0.7132
+   -0.7009
+    0.8316
+    0.6395
+   -1.2515
+    1.6323
+    0.7351
+   -0.6602
+    1.6460
+    1.6530
+   -0.2634
+    0.9485
+    1.7181
+    0.4502
+    0.9499
+    0.8797
+    0.9952
+    0.0657
+    0.4215
+    0.9044
+
+
+b =
+
+   1.2364e-25
+
+
+c =
+
+     2
+
+
+d = 
+
+  <a href="matlab:helpPopup('struct')" style="font-weight:bold">struct</a> with fields:
+
+      funcCount: 10000
+          fhist: [43.4221 42.5289 45.7606 46.7763 36.5523 35.7632 … ] (1×10000 double)
+      grad_hist: []
+     grad_xhist: []
+    alpha_final: [20×1 double]
+        message: "The maximum number of function evaluations is reached."
+
+s2mpj_select(s)
+
+ans =
+
+  1×2 <a href="matlab:helpPopup('cell')" style="font-weight:bold">cell</a> array
+
+    {'CYCLOOCFLS'}    {'VAREIGVL'}
+
+p = s2mpj_load('VAREIGVL')
+
+p = 
+
+  <a href="matlab:helpPopup('Problem')" style="font-weight:bold">Problem</a> with properties:
+
+              name: 'VAREIGVL'
+                x0: [20×1 double]
+                xl: [20×1 double]
+                xu: [20×1 double]
+               aub: [0×20 double]
+               bub: [0×1 double]
+               aeq: [0×20 double]
+               beq: [0×1 double]
+                 n: 20
+                mb: 0
+       m_linear_ub: 0
+       m_linear_eq: 0
+    m_nonlinear_ub: 0
+    m_nonlinear_eq: 0
+             mlcon: 0
+            mnlcon: 0
+              mcon: 0
+             ptype: 'u'
+
+q = @(x) p.fun(x)
+
+q =
+
+  <a href="matlab:helpPopup('function_handle')" style="font-weight:bold">function_handle</a> with value:
+
+    @(x)p.fun(x)
+
+[a, b, c, d] = bds(q, p.x0, options)
+
+a =
+
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+
+
+b =
+
+     0
+
+
+c =
+
+     0
+
+
+d = 
+
+  <a href="matlab:helpPopup('struct')" style="font-weight:bold">struct</a> with fields:
+
+      funcCount: 3439
+          fhist: [92.9586 113.3506 85.2033 106.4208 76.9444 98.2518 … ] (1×3439 double)
+      grad_hist: []
+     grad_xhist: []
+    alpha_final: [20×1 double]
+        message: "The StepTolerance of the step size is reached."
+
+options
+
+options = 
+
+  <a href="matlab:helpPopup('struct')" style="font-weight:bold">struct</a> with fields:
+
+    use_estimated_gradient_stop: 1
+               grad_window_size: 3
+                     grad_tol_1: 0.1000
+                     grad_tol_2: 1.0000e-03
+                  StepTolerance: 2.2204e-16
+
+[a, b, c, d] = bds(q, p.x0, options)
+alpha_all
+
+alpha_all =
+
+   1.0e-15 *
+
+    0.1565
+    0.1565
+    0.1565
+    0.1565
+    0.1565
+    0.1565
+    0.1565
+    0.1565
+    0.1565
+    0.1565
+    0.1565
+    0.1565
+    0.1565
+    0.1565
+    0.1565
+    0.1565
+    0.1565
+    0.1565
+    0.1565
+    0.1252
+
+dbquit
+clc
+p.name
+
+ans =
+
+    'VAREIGVL'
+
+clc
+p = s2mpj_load('BIGGS6')
+
+p = 
+
+  <a href="matlab:helpPopup('Problem')" style="font-weight:bold">Problem</a> with properties:
+
+              name: 'BIGGS6'
+                x0: [6×1 double]
+                xl: [6×1 double]
+                xu: [6×1 double]
+               aub: [0×6 double]
+               bub: [0×1 double]
+               aeq: [0×6 double]
+               beq: [0×1 double]
+                 n: 6
+                mb: 0
+       m_linear_ub: 0
+       m_linear_eq: 0
+    m_nonlinear_ub: 0
+    m_nonlinear_eq: 0
+             mlcon: 0
+            mnlcon: 0
+              mcon: 0
+             ptype: 'u'
+
+q = @(x) p.fun(x)
+
+q =
+
+  <a href="matlab:helpPopup('function_handle')" style="font-weight:bold">function_handle</a> with value:
+
+    @(x)p.fun(x)
+
+clc
+[a, b, c, d] = bds(q, p.x0, options)
+
+a =
+
+    3.5260
+   13.4587
+    1.5860
+    4.6850
+    1.2649
+    1.3371
+
+
+b =
+
+    0.0012
+
+
+c =
+
+     2
+
+
+d = 
+
+  <a href="matlab:helpPopup('struct')" style="font-weight:bold">struct</a> with fields:
+
+      funcCount: 3000
+          fhist: [0.7791 1.4371 4.7694 0.7163 4.9703 4.8246 2.4915 … ] (1×3000 double)
+      grad_hist: [6×10 double]
+     grad_xhist: [6×10 double]
+    alpha_final: [6×1 double]
+        message: "The maximum number of function evaluations is reached."
+
+[a, b, c, d] = bds(q, p.x0, options)
+reference_grad_norm = median(norm_grad_hist(1:grad_window_size));
+reference_grad_norm
+
+reference_grad_norm =
+
+    0.0151
+
+grad_tol_1
+
+grad_tol_1 =
+
+    0.1000
+
+grad_tol_2
+
+grad_tol_2 =
+
+   1.0000e-03
+
+grad_tol_1 * min(1, reference_grad_norm)
+
+ans =
+
+    0.0015
+
+grad_tol_2 * max(1, reference_grad_norm)
+
+ans =
+
+   1.0000e-03
+
