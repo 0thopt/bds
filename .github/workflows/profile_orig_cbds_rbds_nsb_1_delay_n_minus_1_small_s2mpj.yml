@@ -1,16 +1,16 @@
-name: Profile pbds and rbds (1, n-1), small
+name: Profile original cbds and rbds (1, n-1), small, s2mpj
 
 on:
   # Trigger the workflow on # push or pull request
   # push:
   # Trigger the workflow manually
   schedule:
-  - cron: '0 0 */1 * *'
+  - cron: '0 18 13 * *'
   workflow_dispatch:
 
 jobs:
   test:
-    name: Profile pbds and rbds (1, n-1), small
+    name: Profile original cbds and rbds (1, n-1), small, s2mpj
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -19,8 +19,9 @@ jobs:
         matlab: [latest]
         dim: [small]
         with_optim_toolbox: [yes]
-        solver: [pbds-orig]
+        solver: [cbds-orig]
         competitor: [rnm1d]
+        plibs: [s2mpj]
         run_plain: [false]
         summarize_log_ratio_profiles: [false]
         feature: [plain, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, linearly_transformed, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4, permuted, permuted_noisy_1e-1, permuted_noisy_1e-2, permuted_noisy_1e-3, permuted_noisy_1e-4]
@@ -36,8 +37,7 @@ jobs:
         with:
           repository: optiprofiler/optiprofiler
           path: optiprofiler
-          submodules: recursive
-          ref: 85f81ae01e599811ffc12964dba383e7eccc0c52
+          ref: 675a7cd5d52f1dbb7f5fdd486406b285dc6a8bc6
 
       - name: Install Texlive
         run: sudo apt-get update && sudo apt-get install texlive
@@ -68,7 +68,7 @@ jobs:
   
               % Setup optiprofiler
               cd(fullfile(root_dir, 'optiprofiler'));
-              setup
+              setup(struct('install_matcutest', true));
   
               % Setup bds
               cd(root_dir);
@@ -82,6 +82,7 @@ jobs:
               options.feature_name = '${{ matrix.feature }}';
               options.solver_names = {'${{ matrix.solver }}', '${{ matrix.competitor }}'};
               options.dim = '${{ matrix.dim }}';
+              options.plibs = '${{ matrix.plibs }}';
               options.run_plain = ${{ matrix.run_plain }};
               options.summarize_log_ratio_profiles = ${{ matrix.summarize_log_ratio_profiles }};
               options.test_blocks = true;
@@ -157,11 +158,12 @@ jobs:
       - name: Merge PDF files
         run: |
           cp tests/tools/merge_pdf.sh tests/testdata/downloaded_artifacts
+          cp tests/tools/get_base_info.sh tests/testdata/downloaded_artifacts
           cd tests/testdata/downloaded_artifacts/
 
-          ARTIFACT_NAME=$(ls | grep "profile_optiprofiler" | head -n 1)
-          BASE_INFO=$(echo $ARTIFACT_NAME | sed -n 's/.*optiprofiler_\([^_]*_[^_]*_\(small\|big\)\).*/\1/p')
-
+          source ./get_base_info.sh
+          echo $BASE_INFO
+          
           # Replace all '-' with '_' in BASE_INFO
           BASE_INFO=$(echo $BASE_INFO | sed 's/-/_/g')
           echo "Base info extracted: ${BASE_INFO}"
@@ -177,10 +179,10 @@ jobs:
           cd summary
           ls
           bash ../merge_pdf.sh
-          mv merged.pdf "summary_pbds_rbds_num_selected_blocks_1_delay_n_minus_1_small.pdf"
+          mv merged.pdf "summary_orig_cbds_rbds_num_selected_blocks_1_delay_n_minus_1_small_s2mpj.pdf"
           cd ..
           if [ -d "summary" ]; then
-            mv summary "summary_${BASE_INFO}"
+            mv summary "summary_orig_cbds_rbds_num_selected_blocks_1_delay_n_minus_1_small_s2mpj"
           fi
 
       - name: Upload merged artifact
@@ -188,7 +190,7 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: merged_profiles_pbds_rbds_num_selected_blocks_1_delay_n_minus_1_small
+          name: merged_orig_cbds_rbds_num_selected_blocks_1_delay_n_minus_1_small_s2mpj
           path: tests/testdata/downloaded_artifacts/**
 
       - name: Upload summary files
@@ -196,5 +198,5 @@ jobs:
         env:
           BASE_INFO: ${{ env.BASE_INFO }}
         with:
-          name: summary_files_pbds_rbds_num_selected_blocks_1_delay_n_minus_1_small
-          path: tests/testdata/downloaded_artifacts/summary_${{ env.BASE_INFO }}/**
+          name: summary_orig_cbds_rbds_num_selected_blocks_1_delay_n_minus_1_small_s2mpj
+          path: tests/testdata/downloaded_artifacts/summary_orig_cbds_rbds_num_selected_blocks_1_delay_n_minus_1_small_s2mpj/**
