@@ -1,12 +1,14 @@
 function [exitflag] = get_exitflag(information)
 %GET_EXITFLAG gets the EXITFLAG of BDS.
-%   SMALL_ALPHA     Step size is below StepTolerance. In the case of variable step sizes, 
-%                   SMALL_ALPHA indicates the largest component of step sizes is 
-%                   below StepTolerance.
-%   MAXFUN_REACHED  The number of function evaluations reaches MAXFUN.
-%   FTARGET_REACHED Function value is smaller than or equal to FTARGET.
-%   MAXIT_REACHED   The number of iterations reaches MAXIT.  
-%
+%   FTARGET_REACHED                 Function value is smaller than or equal to FTARGET.
+%   MAXFUN_REACHED                  The number of function evaluations reaches MAXFUN.
+%   MAXIT_REACHED                   The number of iterations reaches MAXIT.
+%   SMALL_ALPHA                     Step size is below StepTolerance. In the case of variable step 
+%                                   sizes, SMALL_ALPHA indicates the largest component of step sizes
+%                                   is below StepTolerance.
+%   SMALL_OBJECTIVE_CHANGE          The change of the function value is small.
+%   SMALL_ESTIMATE_GRADIENT         The estimated gradient is small.
+%   GRADIENT_ESTIMATION_COMPLETED   The gradient estimation is completed.
 
 % Check whether INFORMATION is a string or not.
 if ~isstring(information)
@@ -14,21 +16,26 @@ if ~isstring(information)
 end
 
 switch information
-    case "SMALL_ALPHA"
-        exitflag = 0;
     case "FTARGET_REACHED"
-        exitflag = 1;
+        exitflag = 0;
     case "MAXFUN_REACHED"
-        exitflag = 2;
+        exitflag = 1;
     case "MAXIT_REACHED"
+        exitflag = 2;
+    case "SMALL_ALPHA"
         exitflag = 3;
+    case "SMALL_OBJECTIVE_CHANGE"
+        exitflag = 4;
+    case "SMALL_ESTIMATE_GRADIENT"
+        exitflag = 5;
+    case "GRADIENT_ESTIMATION_COMPLETE"
+        exitflag = 6;
     otherwise
-        exitflag = -1;
+        exitflag = nan;
 end
 
-%exitflag = find(break_conditions == information) - 1;
-if isempty(exitflag)
-    exitflag = -1;
+if isempty(exitflag) || isnan(exitflag)
+    exitflag = nan;
     disp("New break condition happens."); 
 end
 

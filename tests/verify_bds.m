@@ -11,7 +11,7 @@ function verify_bds(parameters)
 % - `parallel` is either true or false, which means whether to test the problems parallelly.
 % - `problem_type` can only be "u" now, indicating the problem type to test.
 %
-% Coded by LI Haitian (hai-tian.li@connect.polyu.hk) and Zaikun ZHANG (www.zhangzk.net).
+% Coded by LI Haitian (hai-tian.li@connect.polyu.hk) and Zaikun ZHANG (zhangzaikun@mail.sysu.edu.cn).
 %
 % Started: Nov 2023
 %

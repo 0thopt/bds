@@ -2,16 +2,20 @@ function grouped_direction_indices = divide_direction_set(n, num_blocks, options
 %DIVIDE_DIRECTION_SET gets indices of the directions in each block.
 %   GROUPED_DIRECTION_INDICES = DIVIDE_DIRECTION_SET(n, num_blocks, options) returns a cell, where
 %   the grouped_direction_indices{i} contains the indices of the directions in the i-th block.
+%
 %   Notice that the direction set is in the form of [d_1, -d_1, d_2, -d_2, ..., d_n, -d_n],
 %   containing 2n directions. 
+%
 %   If the options does not contain the field of grouped_direction_indices, we divide the direction 
-%   set into num_blocks blocks, with the first mod(n, num_blocks) blocks containing 2*(floor(n/num_blocks) + 1) 
-%   directions and the rest containing 2*floor(n/num_blocks) directions.
-%   If the options contains the field of grouped_direction_indices, the grouped_direction_indices should be
-%   a cell, where each cell contains the indices of the dimensions in the corresponding block.
-%   Each block contains 2*length(grouped_direction_indices{i}) directions.
+%   set into num_blocks blocks, with the first mod(n, num_blocks) blocks containing 
+%   2*(floor(n/num_blocks) + 1) directions and the rest containing 2*floor(n/num_blocks) directions.
+%
+%   If the options contains the field of grouped_direction_indices, the grouped_direction_indices 
+%   should be a cell, where each cell contains the indices of the dimensions in the corresponding 
+%   block. Each block contains 2*length(grouped_direction_indices{i}) directions.
 %   We also point out that d_i and -d_i will be assigned to the same block.
-%   In addition, the structure of grouped_direction_indices output is different from the one in options.
+%
+%   The structure of grouped_direction_indices output is different from the one in options.
 %
 %   Example
 %     n = 11, num_blocks = 3.
@@ -33,21 +37,15 @@ if nargin < 3
     options = struct();
 end
 
-% Detect whether the input is given in the correct type when debug_flag is provided and true.
-if isfield(options, "debug_flag") && options.debug_flag
-    % n should be a positive integer.
-    if ~isintegerscalar(n) || n <= 0
-        error('n is not a positive integer.');
-    end
-    % num_blocks should be a positive integer.
-    if ~isintegerscalar(num_blocks) || num_blocks <= 0    
-        error('num_blocks is not a positive integer.');
-    end
-    % The number of blocks should not be greater than the number of variables.
-    if n < num_blocks
-        error('The number of blocks should not be greater than the number of variables.');
-    end
+% Detect whether the input is given in the correct type.
+if isfield(options, "grouped_direction_indices") && ~iscell(options.grouped_direction_indices)
+    error('options.grouped_direction_indices should be a cell array.');
 end
+if isfield(options, "grouped_direction_indices") && ...
+    length(options.grouped_direction_indices) ~= num_blocks
+    error('The length of options.grouped_direction_indices should be equal to num_blocks.');
+end
+
 
 grouped_direction_indices = cell(1, num_blocks);
 
@@ -84,11 +82,9 @@ for i = 1:num_blocks
     end
 end
 
-% Check whether the output is in the right type when debug_flag is provided and true.
-if isfield(options, "debug_flag") && options.debug_flag
-    if length(grouped_direction_indices) ~= num_blocks
-        error('The number of blocks of grouped_direction_indices is not correct.');
-    end
+% Check whether the output is in the right type.
+if length(grouped_direction_indices) ~= num_blocks
+    error('The number of blocks of grouped_direction_indices is not correct.');
 end
 
 end

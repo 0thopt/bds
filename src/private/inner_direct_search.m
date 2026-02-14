@@ -5,63 +5,46 @@ function [xopt, fopt, exitflag, output] = inner_direct_search(fun, ...
 %
 %   [xopt, fopt, EXITFLAG, OUTPUT] = INNER_DIRECT_SEARCH(FUN, xbase, fbase, D, ...
 %   DIRECTION_INDICES, ALPHA, OPTIONS) returns a structure OUTPUT including
-%   funcCount, fhist, xhist, success, terminate, and direction_indices, working with the 
-%   structure OPTIONS, which includes reduction_factor, ftarget, polling, cycling.
+%   fhist, xhist, nf, direction_indices, terminate, and sufficient_decrease, working with the 
+%   structure OPTIONS, which includes MaxFunctionEvaluations, ftarget, forcing_function, 
+%   reduction_factor, polling_inner, cycling_inner, iprint, FunctionEvaluations_exhausted, and 
+%   i_real.
 %
-%   DIRECTION_INDICES is the indices of directions of the current block in D.
+%   direction_indices is the indices of directions of the current block in D.
 %
 
-% Set the value of sufficient decrease factor.
-reduction_factor = options.reduction_factor;
-
-% Set target of objective function.
-ftarget = options.ftarget;
-
-% Set the value of polling_inner. This is the polling strategy employed within one block.
-polling_inner = options.polling_inner;
-
-% Set the value of cycling_inner, which represents the cycling strategy inside each block.
-cycling_strategy = options.cycling_inner;
-
-% Set the forcing function, which is a function handle.
-forcing_function = options.forcing_function;
-
-% The number of function evaluations allocated to this function.
 MaxFunctionEvaluations = options.MaxFunctionEvaluations;
-
-% The number of function evaluations having used in this function.
+ftarget = options.ftarget;
+forcing_function = options.forcing_function;
+reduction_factor = options.reduction_factor;
+polling_inner = options.polling_inner;
+cycling_strategy = options.cycling_inner;
+iprint = options.iprint;
 FunctionEvaluations_exhausted = options.FunctionEvaluations_exhausted;
-
-% Index of the current block being processed.
 i_real = options.i_real;
 
-% The value of iprint.
-iprint = options.iprint;
-
-% If terminate is true and the exitflag is NaN, it means that the algorithm terminates
-% not because of the maximum number of function evaluations or the target function value,
-% which will be a bug.
-exitflag = NaN;
+% Initialize exitflag to nan intentionally. This ensures that if the algorithm
+% terminates in an unexpected or unhandled way, the nan value will make it clear
+% that no valid exit condition was met. Ideally, the algorithm should exit with
+% a proper flag set by get_exitflag.m. If exitflag remains nan, it indicates a
+% potential bug or an unhandled termination case.
+exitflag = nan;
 
 % Initialize some parameters before entering the loop.
 n = length(xbase);
 num_directions = length(direction_indices);
-fhist = NaN(1, num_directions);
-xhist = NaN(n, num_directions);
+fhist = nan(1, num_directions);
+xhist = nan(n, num_directions);
 nf = 0; 
 fopt = fbase;
 xopt = xbase;
+% Initialize sufficient_decrease to false in case it is not set within the loop.
+% This ensures that if the algorithm terminates early (e.g., by reaching ftarget after the first 
+% evaluation), sufficient_decrease remains well-defined and consistent with the algorithm's logic.
+sufficient_decrease = false;
 
 for j = 1 : num_directions
 
-    if nf >= MaxFunctionEvaluations
-        % Set fnew to fbase and sufficient_decrease to false to avoid using an uninitialized
-        % variable if the termination condition is reached before the first evaluation.
-        fnew = fbase;
-        sufficient_decrease = false;
-        break;
-    end
-    
     % Evaluate the objective function for the current polling direction.
     xnew = xbase+alpha*D(:, j);
     % fnew_real is the real function value at xnew, which is the value returned by fun 
@@ -83,20 +66,33 @@ for j = 1 : num_directions
         fprintf("\n");
     end
     
-    % Update the best point and the best function value.
-    if fnew < fopt
+    % Update the best point and the best function value. If fopt is nan, any non-nan fnew is better.
+    % Note: Although eval_fun replaces all potential NaN values with 1e30 to allow the algorithm to
+    % continue iterating, the condition (isnan(fopt) && ~isnan(fnew)) is retained as a safeguard.
+    % This defensive programming practice ensures robustness in case eval_fun's NaN handling is
+    % modified or edge cases are discovered in the future.
+    if (fnew < fopt) || (isnan(fopt) && ~isnan(fnew))
         xopt = xnew;
         fopt = fnew;
     end
-
-    % Check if the function value meets the target after updating the best value and the corresponding 
-    % point.
-    if fnew <= ftarget
+    
+    % Check whether ftarget or MaxFunctionEvaluations is reached immediately after every function 
+    % evaluation. If one of them is reached at xnew, no further computation should be entertained 
+    % in this inner direct search.
+    if fnew <= ftarget || nf >= MaxFunctionEvaluations
         break;
     end
-    
-    % Check whether the sufficient decrease condition is achieved.
-    sufficient_decrease = (fnew + reduction_factor(3) * forcing_function(alpha)/2 < fbase);
+
+    % Note that when fbase is nan, any non-nan fnew is considered to achieve sufficient decrease.
+    % Note: eval_fun already replaces all potential NaN values with 1e30 so the second clause below
+    % is not expected to trigger; it is retained as a defensive safeguard.
+    % This variable is used in two places:
+    % 1. In opportunistic polling mode: to decide whether to cycle direction indices and stop 
+    % polling.
+    % 2. In estimated gradient computation: as a condition to determine whether to use this 
+    % direction in the gradient estimation.
+    sufficient_decrease = (fnew + reduction_factor(1) * forcing_function(alpha)/2 < fbase) || ...
+                        (isnan(fbase) && ~isnan(fnew));
 
     % In the opportunistic case, if the current iteration achieves sufficient decrease,
     % stop the computations after cycling the indices of the polling directions. The reason  
@@ -109,12 +105,15 @@ for j = 1 : num_directions
 
 end
 
-% When the algorithm reaches here, it means that there are three cases.
-% 1. The algorithm uses out of the allocated function evaluations.
-% 2. The algorithm reaches the target function value.
-% 3. The algorithm achieves a sufficient decrease when polling_inner is opportunistic.
-% We need to check whether the algorithm terminates by the first two cases.
-terminate = (nf >= MaxFunctionEvaluations || fnew <= ftarget);
+% When the algorithm reaches here, it means that one of the following cases has occurred:
+% 1. The algorithm has reached the target function value (ftarget), which is the highest priority.
+% 2. The algorithm has exhausted the allocated function evaluations (MaxFunctionEvaluations).
+% 3. The algorithm has achieved a sufficient decrease when polling_inner is opportunistic.
+%
+% Among these, reaching ftarget is the most critical termination condition, so it is checked first.
+% If neither of the first two conditions is met, the algorithm continues to evaluate the sufficient
+% decrease condition or other criteria.
+terminate = (fnew <= ftarget || nf >= MaxFunctionEvaluations);
 if fnew <= ftarget
     exitflag = get_exitflag( "FTARGET_REACHED");
 elseif nf >= MaxFunctionEvaluations
@@ -127,8 +126,9 @@ output.xhist = xhist(:, 1:nf);
 output.nf = nf;
 output.direction_indices = direction_indices;
 output.terminate = terminate;
+output.sufficient_decrease = sufficient_decrease;
 decrease_value = fopt - fbase;
-if iprint == 3
+if iprint >= 3
     if sufficient_decrease
         fprintf("Sufficient decrease achieved in the %d-th block.\n", i_real);
     else

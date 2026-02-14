@@ -40,7 +40,7 @@ if single_test
 end
 
 % Set seed using pname, n, ir, ftarget, and options.Algorithm. We use the seed to make the test reproducible for 
-% randomized algorithms (including pbds and rbds).
+% randomized algorithms (including pads, pbds and rbds).
 if isfield(options, 'Algorithm')
     seed = max(0, min(2^32 - 1,  sum(pname) + n + ir + test_options.ftarget + str2double(options.Algorithm) ...
     + norm(p.x0)));
@@ -72,17 +72,33 @@ if ir == 8
     test_options.alpha_init = 1 + 0.5*(2*rand-1);
     test_options.StepTolerance = test_options.alpha_init;
 end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if ir == 9
     test_options.alpha_init = 1 + 0.5*(2*rand-1);
 end
-if 10 <= ir && ir <= 12
+if ir == 10
     test_options.StepTolerance = 1e-3*(1 + 0.5*(2*rand-1));
 end
-if 13 <= ir && ir <= 15
+if ir == 11
     test_options.reduction_factor = sort(rand(1, 3));
 end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if 12 <= ir && ir <= 15
+    test_options.use_function_value_stop = (rand > 0.5);
+end
+if 13 <= ir && ir <= 14
+    test_options.func_window_size = randi(100);
+end
+if 14 <= ir && ir <= 15
+    test_options.func_tol = 1e-3*(1 + 0.5*(2*rand-1));
+end
+if 15 <= ir && ir <= 17
+    test_options.use_estimated_gradient_stop = (rand > 0.5);
+end
+if 15 <= ir && ir <= 16
+    test_options.grad_window_size = randi(100);
+end
+if 16 <= ir && ir <= 17
+    test_options.grad_tol = 1e-3*(1 + 0.5*(2*rand-1));
+end
 if 1 <= ir && ir <= 20
     % The TOUGH tests
     % We must pass the random seed `rseed` to `tough` to ensure reproducibility.
