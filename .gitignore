@@ -85,3 +85,4 @@ tests/tuning/solver_1*
 tests/tuning/private/tmp
 tests/out
 tests/competitors/out
+tests/misc/tuning/
