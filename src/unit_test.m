@@ -98,6 +98,8 @@ if length(x) <= 100
     output = nan;
 elseif length(x) <= 200
     output = inf;
+elseif length(x) <= 300
+    output = 1e30;
 else
     error('The length of x is too large.');
 end
@@ -108,21 +110,31 @@ function eval_fun_test(testcase)
 
 n = randi([1, 100]);
 x = randn(n, 1);
-f_return = 1e30;
+f_return = inf;
 
-% When eval_fun processes nan, it should return 1e30.
+% When eval_fun processes nan, it should be treated as an error, 
+% and eval_fun should print a warning and return inf. The warning message is not checked here.
 verifyEqual(testcase, eval_fun(@eval_fun_tmp, x), f_return);
 
 n = randi([101, 200]);
 x = randn(n, 1);
-f_return = 1e30;
+f_return = inf;
 
-% When eval_fun processes inf, it should return 1e30.
+% When eval_fun processes inf, it should return inf without printing a warning, as inf is not 
+% treated as an error.
 verifyEqual(testcase, eval_fun(@eval_fun_tmp, x), f_return)
 
 n = randi([201, 300]);
 x = randn(n, 1);
 f_return = 1e30;
+
+% When eval_fun processes a value that is large such as 1e30, it should return the same value 
+% without printing a warning, as it is not treated as an error.
+verifyEqual(testcase, eval_fun(@eval_fun_tmp, x), f_return)
+
+n = randi([301, 400]);
+x = randn(n, 1);
+f_return = inf;
 
 % When eval_fun processes an error, it will print a warning and return 1e30.
 % The warning message is not checked here.
