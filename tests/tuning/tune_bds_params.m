@@ -9,6 +9,7 @@ function [x_best, f_min] = tune_bds_params(x0, rhobeg, rhoend, maxfun, mindim, m
 %   mindim   Minimum dimension of the problem.
 %   maxdim   Maximum dimension of the problem.
 %   plibs    Libraries for performance profile ('s2mpj', 'matcutest', or {'matcutest', 's2mpj'}).
+%   is_noisy Whether to evaluate on noisy features.
 
 options = struct();
 options.rhobeg = rhobeg;
@@ -24,7 +25,7 @@ lb = [1 + eps, eps];
 ub = [10.0, 1 - eps]; % Replaced inf with 10.0 for stability
 
 [xopt, fopt, ~, output_tuning] = ...
-    bobyqa(@(x)eval_profile_obj(x, plibs, mindim, maxdim), x0, lb, ub, options);
+    bobyqa(@(x)eval_profile_obj(x, plibs, mindim, maxdim, is_noisy), x0, lb, ub, options);
 
 x_best = xopt;
 f_min = fopt;
@@ -148,16 +149,16 @@ if ~is_noisy
     options_perfprof.feature_name = 'linearly_transformed';
     tuning_optiprofiler(parameters_perfprof, options_perfprof);
 else
-    options_perfprof.feature_name = 'noisy_1e-2';
+    options_perfprof.feature_name = 'noisy_1e-3';
     tuning_optiprofiler(parameters_perfprof, options_perfprof);
 
-    options_perfprof.feature_name = 'noisy_1e-4';
+    options_perfprof.feature_name = 'noisy_1e-7';
     tuning_optiprofiler(parameters_perfprof, options_perfprof);
 
-    options_perfprof.feature_name = 'rotation_noisy_1e-2';
+    options_perfprof.feature_name = 'rotation_noisy_1e-3';
     tuning_optiprofiler(parameters_perfprof, options_perfprof);
-
-    options_perfprof.feature_name = 'rotation_noisy_1e-4';
+    
+    options_perfprof.feature_name = 'rotation_noisy_1e-7';
     tuning_optiprofiler(parameters_perfprof, options_perfprof);
 end
 
