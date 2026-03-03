@@ -399,6 +399,12 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
                 options.mod_fun = @mod_fun_3;
             case 1e-4
                 options.mod_fun = @mod_fun_4;
+            case 1e-5
+                options.mod_fun = @mod_fun_5;
+            case 1e-6
+                options.mod_fun = @mod_fun_6;
+            case 1e-7
+                options.mod_fun = @mod_fun_7;
             otherwise
                 error('Unknown noise level');
         end
@@ -448,6 +454,24 @@ function f = mod_fun_4(x, rand_stream, problem)
 
     f = problem.fun(x);
     f = f + max(1, abs(f)) * 1e-4 * rand_stream.randn(1);
+end
+
+function f = mod_fun_5(x, rand_stream, problem)
+
+    f = problem.fun(x);
+    f = f + max(1, abs(f)) * 1e-5 * rand_stream.randn(1);
+end
+
+function f = mod_fun_6(x, rand_stream, problem)
+
+    f = problem.fun(x);
+    f = f + max(1, abs(f)) * 1e-6 * rand_stream.randn(1);
+end
+
+function f = mod_fun_7(x, rand_stream, problem)
+
+    f = problem.fun(x);
+    f = f + max(1, abs(f)) * 1e-7 * rand_stream.randn(1);
 end
 
 function [A, b, inv] = mod_affine(rand_stream, problem)
