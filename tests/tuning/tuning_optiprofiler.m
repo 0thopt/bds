@@ -139,7 +139,11 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
         options.feature_name = 'perturbed_x0';
     end
 
-    options.n_runs = 1;
+    if isfield(options, 'n_runs')
+        options.n_runs = max(1, options.n_runs);
+    else
+        options.n_runs = 1;
+    end
     if ~isfield(options, 'solver_verbose')
         options.solver_verbose = 2;
     end
@@ -155,7 +159,7 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
     end
     if isfield(options, 'dim')
         if strcmpi(options.dim, 'small')
-            options.mindim = 2;
+            options.mindim = 1;
             options.maxdim = 5;
         elseif strcmpi(options.dim, 'big')
             options.mindim = 6;
@@ -169,7 +173,7 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
         options = rmfield(options, 'dim');
     end
     if ~isfield(options, 'mindim')
-        options.mindim = 2;
+        options.mindim = 1;
     end
     if ~isfield(options, 'maxdim')
         options.maxdim = 5;

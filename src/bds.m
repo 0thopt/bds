@@ -415,6 +415,9 @@ if iprint >= 2
     fprintf("The corresponding X is:\n");
     print_aligned_vector(x0);
     fprintf("\n");
+    if ~is_valid
+        fprintf("Warning: The function evaluation at the initial point x0 is not valid.\n");
+    end
 end
 
 % Initialize xopt and fopt with x0 and f(x0), respectively. At this point, since

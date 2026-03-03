@@ -1,4 +1,4 @@
-function [x_best, f_min] = tune_bds_params(x0, rhobeg, rhoend, maxfun, mindim, maxdim, plibs)
+function [x_best, f_min] = tune_bds_params(x0, rhobeg, rhoend, maxfun, mindim, maxdim, plibs, is_noisy)
 % TUNE_BDS_PARAMS Tunes the hyperparameters of BDS (expand and shrink).
 %
 %   Input:
@@ -141,11 +141,25 @@ options_perfprof.maxdim = maxdim;
 % Pass the specific subfolder path to the profiler to save plots together
 options_perfprof.savepath = path_tuning_sub;
 
-options_perfprof.feature_name = 'plain';
-tuning_optiprofiler(parameters_perfprof, options_perfprof);
+if ~is_noisy
+    options_perfprof.feature_name = 'plain';
+    tuning_optiprofiler(parameters_perfprof, options_perfprof);
 
-options_perfprof.feature_name = 'linearly_transformed';
-tuning_optiprofiler(parameters_perfprof, options_perfprof);
+    options_perfprof.feature_name = 'linearly_transformed';
+    tuning_optiprofiler(parameters_perfprof, options_perfprof);
+else
+    options_perfprof.feature_name = 'noisy_1e-2';
+    tuning_optiprofiler(parameters_perfprof, options_perfprof);
+
+    options_perfprof.feature_name = 'noisy_1e-4';
+    tuning_optiprofiler(parameters_perfprof, options_perfprof);
+
+    options_perfprof.feature_name = 'rotation_noisy_1e-2';
+    tuning_optiprofiler(parameters_perfprof, options_perfprof);
+
+    options_perfprof.feature_name = 'rotation_noisy_1e-4';
+    tuning_optiprofiler(parameters_perfprof, options_perfprof);
+end
 
 end
 

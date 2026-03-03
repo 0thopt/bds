@@ -68,6 +68,9 @@ for j = 1 : num_directions
         fprintf("The corresponding X is:\n");
         print_aligned_vector(xnew);
         fprintf("\n");
+        if ~is_valid
+            fprintf("Warning: The function evaluation at the current trial point is not valid.\n");
+        end
     end
     
     % Update the best point and the best function value. If fopt is nan, any non-nan fnew is better.
