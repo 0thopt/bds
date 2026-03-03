@@ -35,8 +35,13 @@ f_min = fopt;
 % =========================================================================
 time_str = char(datetime('now', 'Format', 'yy_MM_dd_HH_mm'));
 plibs_stamp = get_plibs_stamp(plibs);
-subfolder_name = sprintf('cbds_tuning_expand_shrink_%d_%d_%d_%s_%s', ...
-    mindim, maxdim, options.maxfun, plibs_stamp, time_str);
+if is_noisy
+    subfolder_name = sprintf('cbds_tuning_expand_shrink_noise_%d_%d_%d_%s_%s', ...
+        mindim, maxdim, options.maxfun, plibs_stamp, time_str);
+else
+    subfolder_name = sprintf('cbds_tuning_expand_shrink_%d_%d_%d_%s_%s', ...
+        mindim, maxdim, options.maxfun, plibs_stamp, time_str);
+end
 
 current_path = mfilename("fullpath");
 path_current_dir = fileparts(current_path);
