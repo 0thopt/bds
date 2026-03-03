@@ -27,22 +27,22 @@ function fval = eval_profile_obj(x, plibs, mindim, maxdim, is_noisy)
         fval = -min(ratio_plain, ratio_trans);
     else
         % Evaluate the noisy features
-        options_perfprof.n_runs = 3;
+        options.n_runs = 3; % 使用正确的变量名 options
 
-        options_perfprof.feature_name = 'noisy_1e-3';
-        scores_noisy_1e_3 = tuning_optiprofiler(parameters_perfprof, options_perfprof);
+        options.feature_name = 'noisy_1e-3';
+        scores_noisy_1e_3 = tuning_optiprofiler(tune_params, options); % 使用正确的 tune_params 和 options
         ratio_noisy_1e_3 = scores_noisy_1e_3(1) / scores_noisy_1e_3(2);
 
-        options_perfprof.feature_name = 'noisy_1e-7';
-        scores_noisy_1e_7 = tuning_optiprofiler(parameters_perfprof, options_perfprof);
+        options.feature_name = 'noisy_1e-7';
+        scores_noisy_1e_7 = tuning_optiprofiler(tune_params, options);
         ratio_noisy_1e_7 = scores_noisy_1e_7(1) / scores_noisy_1e_7(2);
 
-        options_perfprof.feature_name = 'rotation_noisy_1e-3';
-        scores_rotation_noisy_1e_3 = tuning_optiprofiler(parameters_perfprof, options_perfprof);
+        options.feature_name = 'rotation_noisy_1e-3';
+        scores_rotation_noisy_1e_3 = tuning_optiprofiler(tune_params, options);
         ratio_rotation_noisy_1e_3 = scores_rotation_noisy_1e_3(1) / scores_rotation_noisy_1e_3(2);
 
-        options_perfprof.feature_name = 'rotation_noisy_1e-7';
-        scores_rotation_noisy_1e_7 = tuning_optiprofiler(parameters_perfprof, options_perfprof);
+        options.feature_name = 'rotation_noisy_1e-7';
+        scores_rotation_noisy_1e_7 = tuning_optiprofiler(tune_params, options);
         ratio_rotation_noisy_1e_7 = scores_rotation_noisy_1e_7(1) / scores_rotation_noisy_1e_7(2);
 
         % Return the objective value for minimization.
