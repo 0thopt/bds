@@ -148,12 +148,16 @@ options_perfprof.maxdim = maxdim;
 options_perfprof.savepath = path_tuning_sub;
 
 if ~is_noisy
+    options_perfprof.n_runs = 1;
+
     options_perfprof.feature_name = 'plain';
     tuning_optiprofiler(parameters_perfprof, options_perfprof);
 
     options_perfprof.feature_name = 'linearly_transformed';
     tuning_optiprofiler(parameters_perfprof, options_perfprof);
 else
+    options_perfprof.n_runs = 3;
+    
     options_perfprof.feature_name = 'noisy_1e-3';
     tuning_optiprofiler(parameters_perfprof, options_perfprof);
 
