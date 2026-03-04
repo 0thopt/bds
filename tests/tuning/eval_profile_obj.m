@@ -13,6 +13,13 @@ function fval = eval_profile_obj(x, plibs, mindim, maxdim, is_noisy)
     options.score_only = true;
 
     if ~is_noisy
+        options.n_runs = 1;
+    else
+        % Use more runs for noisy features to get a more reliable estimate.
+        options.n_runs = 3; 
+    end
+
+    if ~is_noisy
         % Evaluate the no noise features
         options.feature_name = 'plain';
         scores_plain = tuning_optiprofiler(tune_params, options);
@@ -27,26 +34,51 @@ function fval = eval_profile_obj(x, plibs, mindim, maxdim, is_noisy)
         fval = -min(ratio_plain, ratio_trans);
     else
         % Evaluate the noisy features
-        options.n_runs = 3; % 使用正确的变量名 options
-
         options.feature_name = 'noisy_1e-3';
-        scores_noisy_1e_3 = tuning_optiprofiler(tune_params, options); % 使用正确的 tune_params 和 options
-        ratio_noisy_1e_3 = scores_noisy_1e_3(1) / scores_noisy_1e_3(2);
+        [~, profile_scores_noisy_1e_3] = tuning_optiprofiler(tune_params, options);
+        noise_level_count = get_noise_level_count(options.feature_name);
+        selected_ratios_noisy_1e_3 = profile_scores_noisy_1e_3(1, 1:noise_level_count, 1, 1) ./ ...
+                        profile_scores_noisy_1e_3(2, 1:noise_level_count, 1, 1);
+        weighted_ratio_noisy_1e_3 = mean(selected_ratios_noisy_1e_3);
 
         options.feature_name = 'noisy_1e-7';
-        scores_noisy_1e_7 = tuning_optiprofiler(tune_params, options);
-        ratio_noisy_1e_7 = scores_noisy_1e_7(1) / scores_noisy_1e_7(2);
+        [~, profile_scores_noisy_1e_7] = tuning_optiprofiler(tune_params, options);
+        noise_level_count = get_noise_level_count(options.feature_name);
+        selected_ratios_noisy_1e_7 = profile_scores_noisy_1e_7(1, 1:noise_level_count, 1, 1) ./ ...
+                        profile_scores_noisy_1e_7(2, 1:noise_level_count, 1, 1);
+        weighted_ratio_noisy_1e_7 = mean(selected_ratios_noisy_1e_7);
 
         options.feature_name = 'rotation_noisy_1e-3';
-        scores_rotation_noisy_1e_3 = tuning_optiprofiler(tune_params, options);
-        ratio_rotation_noisy_1e_3 = scores_rotation_noisy_1e_3(1) / scores_rotation_noisy_1e_3(2);
+        [~, profile_scores_rotation_noisy_1e_3] = tuning_optiprofiler(tune_params, options);
+        noise_level_count = get_noise_level_count(options.feature_name);
+        selected_ratios_rotation_noisy_1e_3 = profile_scores_rotation_noisy_1e_3(1, 1:noise_level_count, 1, 1) ./ ...
+                        profile_scores_rotation_noisy_1e_3(2, 1:noise_level_count, 1, 1);
+        weighted_ratio_rotation_noisy_1e_3 = mean(selected_ratios_rotation_noisy_1e_3);
 
         options.feature_name = 'rotation_noisy_1e-7';
-        scores_rotation_noisy_1e_7 = tuning_optiprofiler(tune_params, options);
-        ratio_rotation_noisy_1e_7 = scores_rotation_noisy_1e_7(1) / scores_rotation_noisy_1e_7(2);
+        [~, profile_scores_rotation_noisy_1e_7] = tuning_optiprofiler(tune_params, options);
+        noise_level_count = get_noise_level_count(options.feature_name);
+        selected_ratios_rotation_noisy_1e_7 = profile_scores_rotation_noisy_1e_7(1, 1:noise_level_count, 1, 1) ./ ...
+                        profile_scores_rotation_noisy_1e_7(2, 1:noise_level_count, 1, 1);
+        weighted_ratio_rotation_noisy_1e_7 = mean(selected_ratios_rotation_noisy_1e_7);
 
         % Return the objective value for minimization.
-        fval = -min([ratio_noisy_1e_3, ratio_noisy_1e_7, ratio_rotation_noisy_1e_3, ratio_rotation_noisy_1e_7]);
+        fval = -min([weighted_ratio_noisy_1e_3, weighted_ratio_noisy_1e_7, weighted_ratio_rotation_noisy_1e_3, weighted_ratio_rotation_noisy_1e_7]);
+    end
+
+end
+
+function noise_level_count = get_noise_level_count(feature_name)
+
+    % extractAfter is introduced in MATLAB R2016b.
+    % Since BDS supports MATLAB R2017b or later, we can safely use this function here.
+    noise_level_str = extractAfter(string(feature_name), "1e-");
+    if strlength(noise_level_str) == 0
+        error('Cannot parse noise level count from feature_name: %s', feature_name);
+    end
+    noise_level_count = str2double(noise_level_str);
+    if isnan(noise_level_count)
+        error('Cannot parse noise level count from feature_name: %s', feature_name);
     end
 
 end
