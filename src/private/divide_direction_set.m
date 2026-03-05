@@ -1,60 +1,90 @@
-function index_direction_set = divide_direction_set(n, num_blocks)
+function grouped_direction_indices = divide_direction_set(n, num_blocks, options)
 %DIVIDE_DIRECTION_SET gets indices of the directions in each block.
-%   INDEX_DIRECTION_SET = DIVIDE_DIRECTION_SET(n, num_blocks) returns a cell, where 
-%   the index_direction_set{i} contains the indices of the directions in the i-th block.
-%   In our implementation, the direction set is in the form of [d_1, -d_1, d_2, -d_2, ..., d_n, -d_n], 
-%   containing 2n directions. We divide the direction set into num_blocks blocks, with the first 
-%   mod(n, num_blocks) blocks containing 2*(floor(n/num_blocks) + 1) directions and the rest 
-%   containing 2*floor(n/num_blocks) directions. 
+%   GROUPED_DIRECTION_INDICES = DIVIDE_DIRECTION_SET(n, num_blocks, options) returns a cell, where
+%   the grouped_direction_indices{i} contains the indices of the directions in the i-th block.
+%
+%   Notice that the direction set is in the form of [d_1, -d_1, d_2, -d_2, ..., d_n, -d_n],
+%   containing 2n directions. 
+%
+%   If the options does not contain the field of grouped_direction_indices, we divide the direction 
+%   set into num_blocks blocks, with the first mod(n, num_blocks) blocks containing 
+%   2*(floor(n/num_blocks) + 1) directions and the rest containing 2*floor(n/num_blocks) directions.
+%
+%   If the options contains the field of grouped_direction_indices, the grouped_direction_indices 
+%   should be a cell, where each cell contains the indices of the dimensions in the corresponding 
+%   block. Each block contains 2*length(grouped_direction_indices{i}) directions.
+%   We also point out that d_i and -d_i will be assigned to the same block.
+%
+%   The structure of grouped_direction_indices output is different from the one in options.
 %
 %   Example
 %     n = 11, num_blocks = 3.
 %     The number of directions in each block is 4*2, 4*2, 3*2 respectively.
-%     Thus INDEX_DIRECTION_SET is a cell, where
-%     index_direction_set{1} = [1, 2, 3, 4, 5, 6, 7, 8],
-%     index_direction_set{2} = [9, 10, 11, 12, 13, 14, 15, 16],
-%     index_direction_set{3} = [17, 18, 19, 20, 21, 22].
+%     Thus grouped_direction_indices is a cell, where
+%     grouped_direction_indices{1} = [1, 2, 3, 4, 5, 6, 7, 8],
+%     grouped_direction_indices{2} = [9, 10, 11, 12, 13, 14, 15, 16],
+%     grouped_direction_indices{3} = [17, 18, 19, 20, 21, 22].
+%
+%     n = 11, num_blocks = 3, options.grouped_direction_indices = {[1 3 5 7], [2 4 8], [6 9 10 11]}.
+%     Then, grouped_direction_indices is a cell, where
+%     grouped_direction_indices{1} = [1, 2, 5, 6, 9, 10, 13, 14],
+%     grouped_direction_indices{2} = [3, 4, 7, 8, 15, 16],
+%     grouped_direction_indices{3} = [11, 12, 17, 18, 19, 20, 21, 22].
 %
 
-% Detect whether the input is given in the correct type when debug_flag is true.
-debug_flag = is_debugging();
-if debug_flag
-    % n should be a positive integer.
-    if ~isintegerscalar(n) || n <= 0
-        error('n is not a positive integer.');
-    end
-    % num_blocks should be a positive integer.
-    if ~isintegerscalar(num_blocks) || num_blocks <= 0    
-        error('num_blocks is not a positive integer.');
-    end
-    % The number of blocks should not be greater than the number of variables.
-    if n < num_blocks
-        error('The number of blocks should not be greater than the number of variables.');
-    end
+% Set options to an empty structure if it is not provided.
+if nargin < 3
+    options = struct();
 end
 
-% Calculate the number of directions of each block.
-% We try to make the number of directions in each block as even as possible. In specific, the first
-% mod(n, num_blocks) blocks contain 2*(floor(n/num_blocks) + 1) directions and the rest contain 
-% 2*floor(n/num_blocks) directions.
-num_directions_block = ones(num_blocks, 1)*floor(n/num_blocks);
-num_directions_block(1:mod(n, num_blocks)) = num_directions_block(1:mod(n, num_blocks)) + 1;
-num_directions_block = num_directions_block*2;
+% Detect whether the input is given in the correct type.
+if isfield(options, "grouped_direction_indices") && ~iscell(options.grouped_direction_indices)
+    error('options.grouped_direction_indices should be a cell array.');
+end
+if isfield(options, "grouped_direction_indices") && ...
+    length(options.grouped_direction_indices) ~= num_blocks
+    error('The length of options.grouped_direction_indices should be equal to num_blocks.');
+end
 
-% Get the indices of directions in each block.
-% The number of directions in each block might be different. Thus we use cell rather than matrix.
-index_direction_set = cell(1, num_blocks);
-% We use cumsum function to get the initial index of each block.
-initial_index_each_block = cumsum([1; num_directions_block(1:end-1)]);
+
+grouped_direction_indices = cell(1, num_blocks);
+
+if ~isfield(options, "grouped_direction_indices") || isempty(options.grouped_direction_indices)
+    % Calculate the number of dimensions assigned to each block.
+    % We try to make the number of dimensions in each block as even as possible. In specific, the first
+    % mod(n, num_blocks) blocks contain 2*(floor(n/num_blocks) + 1) dimensions and the rest contain
+    % 2*floor(n/num_blocks) dimensions.
+    num_dimensions_each_block = ones(num_blocks, 1) * floor(n/num_blocks);
+    num_dimensions_each_block(1:mod(n, num_blocks)) = num_dimensions_each_block(1:mod(n, num_blocks)) + 1;
+
+    % Compute the last and first dimension indices for each block.
+    % last_dim_idx_each_block stores the ending index of each block,
+    % while first_dim_idx_each_block stores the starting index of each block.
+    % These indices are then used to assign the correct range of dimensions to each block.
+    last_dim_idx_each_block = cumsum(num_dimensions_each_block);
+    first_dim_idx_each_block = [1; last_dim_idx_each_block(1:end-1) + 1];
+
+    dim_indices_each_block = cell(1, num_blocks);
+    for i = 1:num_blocks
+        dim_indices_each_block{i} = first_dim_idx_each_block(i):last_dim_idx_each_block(i);
+    end
+else
+    dim_indices_each_block = options.grouped_direction_indices;
+end
+
 for i = 1:num_blocks
-    index_direction_set(:, i) = {initial_index_each_block(i) : 1 : initial_index_each_block(i) + num_directions_block(i) - 1};
+    % Each block contains 2*length(dim_indices_each_block{i}) directions.
+    % We assign the indices of the dimensions in the i-th block to the grouped_direction_indices.
+    for j = dim_indices_each_block{i}
+        % Each dimension j corresponds to two directions: d_j and -d_j.
+        % d_j and -d_j will be assigned to the same block.
+        grouped_direction_indices{i} = [grouped_direction_indices{i}, 2*j-1, 2*j];
+    end
 end
 
-% Check whether the output is in the right type when debug_flag is true.
-if debug_flag
-    if length(index_direction_set) ~= num_blocks
-        error('The number of blocks of index_direction_set is not correct.');
-    end
+% Check whether the output is in the right type.
+if length(grouped_direction_indices) ~= num_blocks
+    error('The number of blocks of grouped_direction_indices is not correct.');
 end
 
 end

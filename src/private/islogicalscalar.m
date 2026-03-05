@@ -1,8 +1,8 @@
 function isls = islogicalscalar(x)
-% This file is cited from https://github.com/libprima/prima/blob/main/matlab/tests/private/islogicalscalar.m, which is
-% written by Zaikun ZHANG.
+%This file is cited from https://github.com/libprima/prima/blob/main/matlab/tests/private/islogicalscalar.m, 
+%which is written by Zaikun ZHANG.
 %ISLOGICALSCALAR checks whether x is a logical scalar, including 0 and 1.
-% N.B.: islogicalscalar([]) = FALSE !!!
+%   N.B.: islogicalscalar([]) = FALSE !!!
 
 if isa(x, "logical") && isscalar(x)
     isls = true;

@@ -1,14 +1,29 @@
 function constant_value = get_default_constant(constant_name)
-%GET_DEFAULT_CONSTANT gets the default value of OPTIONS for BDS.
-%
-
 switch constant_name
     case {"MaxFunctionEvaluations_dim_factor"}
         constant_value = 500;
-    case {"scheme"}
-        constant_value = "cyclic";
-    case {"is_noisy"}
+    case {"ftarget"}
+        constant_value = -inf;
+    case {"StepTolerance"}
+        constant_value = 1e-6;
+    case {"use_function_value_stop"}
         constant_value = false;
+    case {"func_window_size"}
+        constant_value = 20;
+    case {"func_tol"}
+        constant_value = 1e-6;
+    case {"use_estimated_gradient_stop"}
+        constant_value = false;
+    case {"grad_window_size"}
+        constant_value = 1;
+    case {"grad_tol"}
+        constant_value = 1e-6;
+    case {"lipschitz_constant"}
+        constant_value = 1e3;
+    case {"block_visiting_pattern"}
+        constant_value = "sorted";
+    case {"alpha_init"}
+        constant_value = 1;
     case {"ds_expand_small"}
         constant_value = 1.25;
     case {"ds_shrink_small"}
@@ -37,45 +52,35 @@ switch constant_name
         constant_value = 1.25;
     case {"shrink_big_noisy"}
         constant_value = 0.85;
-    case {"ls_expand"}
-        constant_value = 2;
-    case {"ls_shrink"}
-        constant_value = 0.5;
-    case {"reduction_factor"}
-        constant_value = [0, eps, eps];
+    case {"is_noisy"}
+        constant_value = false;
     case {"forcing_function"}
         constant_value = @(alpha) alpha^2;
-    case {"alpha_init"}
-        constant_value = 1;
-    case {"alpha_threshold_ratio"}
-        constant_value = 1e-3;
-    case {"StepTolerance"}
-        constant_value = 1e-6;
-    case {"grad_tol"}
-        constant_value = 1e-4;
-    case {"seed"}
-        constant_value = "shuffle";
-    case {"ftarget"}
-        constant_value = -inf;
+    case {"reduction_factor"}
+        constant_value = [0, eps, eps];
     case {"polling_inner"}
         constant_value = "opportunistic";
     case {"cycling_inner"}
         constant_value = 1;
     case {"with_cycling_memory"}
         constant_value = true;
+    case {"seed"}
+        constant_value = "shuffle";
     case {"output_xhist"}
         constant_value = false;
     case {"output_alpha_hist"}
         constant_value = false;
     case {"output_block_hist"}
         constant_value = false;
-    case {"output_xhist_failed"}
+    case {"output_grad_hist"}
         constant_value = false;
-    case {"output_sufficient_decrease"}
+    case {"iprint"}
+        constant_value = 0;
+    case {"debug_flag"}
         constant_value = false;
-    case {"verbose"}
+    case {"gradient_estimation_complete"}
         constant_value = false;
     otherwise
-        error("Unknown constant name")
+        error("Unknown constant name '%s'.", constant_name);
 end
 end

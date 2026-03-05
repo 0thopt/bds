@@ -24,8 +24,7 @@ keywords=(
 )
 
 output_file="merged.pdf"
-declare -A keyword_to_files  # Associative array to map keywords to files
-declare -A seen_files  # Associative array to track seen files (for deduplication)
+pdf_files=()
 
 # Print all PDF files for debugging
 echo "Found these PDF files:"
@@ -33,53 +32,40 @@ find . -maxdepth 1 -name "summary*.pdf" -type f | while read -r file; do
     echo "  $file"
 done
 
-# Function to add files to array in natural sort order
-add_files_sorted() {
-    local key=$1
-    local files=("${@:2}")
-    if [ ${#files[@]} -gt 0 ]; then
-        # Convert array to newline-separated string, sort, and store
-        sorted_files=$(printf "%s\n" "${files[@]}" | sort -V)
-        keyword_to_files[$key]="$sorted_files"
-    fi
-}
-
-# Search for PDF files with keywords and sort them
+# Search for PDF files with keywords
 for keyword in "${keywords[@]}"; do
     echo "Searching for keyword: $keyword"
     case "$keyword" in
         "perturbed_x0")
-            files=($(find . -maxdepth 1 -type f -name "summary*perturbed_x0*.pdf"))
-            add_files_sorted "$keyword" "${files[@]}"
+            found_files=$(find . -maxdepth 1 -type f -name "summary*perturbed_x0*.pdf" | sort -V)
             ;;
         "random_nan")
-            files=($(find . -maxdepth 1 -type f -name "summary*random_nan*.pdf"))
-            add_files_sorted "$keyword" "${files[@]}"
+            found_files=$(find . -maxdepth 1 -type f -name "summary*random_nan*.pdf" | sort -V)
             ;;
         "truncated")
-            files=($(find . -maxdepth 1 -type f -name "summary*truncated*.pdf"))
-            add_files_sorted "$keyword" "${files[@]}"
+            found_files=$(find . -maxdepth 1 -type f -name "summary*truncated*.pdf" | sort -V)
             ;;
         *)
-            files=($(find . -maxdepth 1 -type f -name "summary*${keyword}.pdf" -o -name "summary*${keyword}_*.pdf"))
-            add_files_sorted "$keyword" "${files[@]}"
+            found_files=$(find . -maxdepth 1 -type f -name "summary*${keyword}.pdf" -o -name "summary*${keyword}_*.pdf" | sort -V)
             ;;
     esac
-done
-
-# Clear array to store PDF files in order of keywords
-pdf_files=()
-
-# Add PDF files to the array in order of keywords, ensuring no duplicates
-for keyword in "${keywords[@]}"; do
-    if [[ -n "${keyword_to_files[$keyword]}" ]]; then
-        while IFS= read -r file; do
-            if [[ -f "$file" && -z "${seen_files[$file]}" ]]; then
+    
+    # Add found files to array if they're not already included
+    while IFS= read -r file; do
+        if [ -n "$file" ]; then
+            # Check if file is already in pdf_files array
+            already_included=0
+            for existing_file in "${pdf_files[@]}"; do
+                if [ "$existing_file" = "$file" ]; then
+                    already_included=1
+                    break
+                fi
+            done
+            if [ $already_included -eq 0 ]; then
                 pdf_files+=("$file")
-                seen_files["$file"]=1  # Mark file as seen
             fi
-        done <<< "${keyword_to_files[$keyword]}"
-    fi
+        fi
+    done <<< "$found_files"
 done
 
 # Print the array content for debugging
@@ -90,7 +76,7 @@ printf '%s\n' "${pdf_files[@]}"
 echo -e "\nTotal files found: ${#pdf_files[@]}"
 
 # Merge PDF files
-if [[ ${#pdf_files[@]} -gt 0 ]]; then
+if [ ${#pdf_files[@]} -gt 0 ]; then
     pdfunite "${pdf_files[@]}" "$output_file"
     echo "Merge successfully: $output_file"
 else

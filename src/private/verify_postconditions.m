@@ -64,7 +64,7 @@ if isfield(output, "xhist")
     end
     
     % Check whether fhist == fun(xhist).
-    fhist_eval = NaN(1, length(fhist));
+    fhist_eval = nan(1, length(fhist));
     for i = 1:length(fhist)
         if isrow(xopt)
             fhist_eval(i) = eval_fun(fun, xhist(:, i)');
@@ -72,7 +72,7 @@ if isfield(output, "xhist")
             fhist_eval(i) = eval_fun(fun, xhist(:, i));
         end      
     end
-    % In case of fhist_eval(i) = NaN or fhist(i) = NaN.
+    % In case of fhist_eval(i) = nan or fhist(i) = nan.
     assert(all( (isnan(fhist) & isnan(fhist_eval)) | fhist==fhist_eval ));
 end
 
