@@ -250,8 +250,15 @@ end
 
 % cycling_inner
 if isfield(options, 'cycling_inner')
-    if ~(isintegerscalar(options.cycling_inner) && options.cycling_inner >= 0 && options.cycling_inner <= 3)
-        error('options.cycling_inner must be an integer in {0,1,2,3}.');
+    if ~(isintegerscalar(options.cycling_inner) && options.cycling_inner >= 0 && options.cycling_inner <= 4)
+        error('options.cycling_inner must be an integer in {0,1,2,3,4}.');
+    end
+end
+
+% with_cycling_memory
+if isfield(options, 'with_cycling_memory')
+    if ~islogical(options.with_cycling_memory)
+        error('options.with_cycling_memory must be a logical scalar.');
     end
 end
 
