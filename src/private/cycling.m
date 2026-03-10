@@ -1,5 +1,4 @@
 function array = cycling(array, index, strategy)
-%CYCLING permutes an array according to different options.
 %   ARRAY = CYCLING(ARRAY, INDEX, STRATEGY) returns an array
 %   that is a permutation of ARRAY according to INDEX, STRATEGY.
 %
@@ -15,22 +14,29 @@ function array = cycling(array, index, strategy)
 %   1  The element of the index will be moved to the first element of the array.
 %
 %   EXAMPLE
-%   When the array is a3 a1 a2 a4 a5, if index = 3, the array will be a2 a3 a1 a4 a5 
-%   after cycling.
+%   Let array = a3 a1 a2 a4 a5 and let the original index be 3 (pointing to a2).
+%   If with_cycling_memory is true, the output is a2 a3 a1 a4 a5.
+%   If with_cycling_memory is false, we first sort the array to a1 a2 a3 a4 a5,
+%   remap the original index 3 to sorted index 2, and obtain a2 a1 a3 a4 a5.
 %
 %   2  The element of the index and the following ones until the end will be
 %      moved ahead of the array.
 %
 %   EXAMPLE
-%   When the array is a2 a1 a4 a5 a3, if index = 3, the array will be a4 a5 a3 a2 a1 
-%   after cycling.
+%   Let array = a4 a5 a1 a2 a3 and let the original index be 4 (pointing to a2).
+%   This array is a cyclic order that can appear in BDS when strategy 2 is used.
+%   If with_cycling_memory is true, the output is a2 a3 a4 a5 a1.
+%   If with_cycling_memory is false, we first sort the array to a1 a2 a3 a4 a5,
+%   remap the original index 4 to sorted index 2, and obtain a2 a3 a4 a5 a1.
 %
 %   3  The element of the following ones after the index until the end will be
 %      moved ahead of the array.
 %
 %   EXAMPLE
-%   When the array is a2 a1 a4 a5 a3 and index = 3, the array will be a5 a3 a2 a1 a4 
-%   after cycling.
+%   Let array = a3 a4 a5 a1 a2 and let the original index be 4 (pointing to a1).
+%   If with_cycling_memory is true, the output is a2 a3 a4 a5 a1.
+%   If with_cycling_memory is false, we first sort the array to a1 a2 a3 a4 a5,
+%   remap the original index 4 to sorted index 1, and obtain a2 a3 a4 a5 a1.
 %
 
 % Check whether the input is given in the correct type.
