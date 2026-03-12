@@ -1443,7 +1443,7 @@ function x = cbds_rho1_1e2_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.Algorithm = 'cbds';
-    option.reduction_factor = [1e-2, eps, eps];
+    option.reduction_factor = [1e-2, 1e-2, 1e-2];
     x = bds(fun, x0, option);
     
 end
@@ -1453,7 +1453,7 @@ function x = cbds_rho1_1e4_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.Algorithm = 'cbds';
-    option.reduction_factor = [1e-4, eps, eps];
+    option.reduction_factor = [1e-4, 1e-2, 1e-2];
     x = bds(fun, x0, option);
     
 end
@@ -1463,7 +1463,7 @@ function x = cbds_rho1_1e6_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.Algorithm = 'cbds';
-    option.reduction_factor = [1e-6, eps, eps];
+    option.reduction_factor = [1e-6, 1e-2, 1e-2];
     x = bds(fun, x0, option);
     
 end
@@ -1473,7 +1473,7 @@ function x = cbds_rho1_1e8_test(fun, x0)
     option.expand = 2;
     option.shrink = 0.5;
     option.Algorithm = 'cbds';
-    option.reduction_factor = [1e-8, eps, eps];
+    option.reduction_factor = [1e-8, 1e-2, 1e-2];
     x = bds(fun, x0, option);
     
 end
