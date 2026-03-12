@@ -1,8 +1,8 @@
-name: Profile cbds with reduction factor 10x, small, s2mpj
+name: Sensitivity Analysis of the Acceptance Threshold, big, s2mpj
 
 on:
   # Trigger the workflow on # push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   # schedule:
   # - cron: '0 18 4 * *'
@@ -10,21 +10,24 @@ on:
 
 jobs:
   test:
-    name: Profile cbds with reduction factor 10x, small, s2mpj
+    name: Sensitivity Analysis of the Acceptance Threshold, big, s2mpj
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
         matlab: [latest]
-        dim: [small]
+        dim: [big]
         with_optim_toolbox: [yes]
-        solver: [cbds-orig]
-        competitor: [cbds-reduction-factor-10]
+        solver: [bds-default]
+        competitor1: [bds-rho1-1e2]
+        competitor2: [bds-rho1-1e4]
+        competitor3: [bds-rho1-1e6]
+        competitor4: [bds-rho1-1e8]
         plibs: [s2mpj]
         run_plain: [false]
         summarize_log_ratio_profiles: [false]
-        feature: [plain, perturbed_x0_0.001, perturbed_x0_1, perturbed_x0_10, perturbed_x0_100, noisy_1e-1, noisy_1e-2, noisy_1e-3, noisy_1e-4, permuted, linearly_transformed, rotation_noisy_1e-1, rotation_noisy_1e-2, rotation_noisy_1e-3, rotation_noisy_1e-4]
+        feature: [plain]
 
     steps:
       - name: Check out repository
@@ -80,7 +83,7 @@ jobs:
               cd(fullfile(root_dir, 'tests'));
               options = struct();
               options.feature_name = '${{ matrix.feature }}';
-              options.solver_names = {'${{ matrix.solver }}', '${{ matrix.competitor }}'};
+              options.solver_names = {'${{ matrix.solver }}', '${{ matrix.competitor1 }}', '${{ matrix.competitor2 }}', '${{ matrix.competitor3 }}', '${{ matrix.competitor4 }}'};
               options.dim = '${{ matrix.dim }}';
               options.plibs = '${{ matrix.plibs }}';
               options.run_plain = ${{ matrix.run_plain }};
@@ -123,79 +126,5 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: profile_optiprofiler_${{ matrix.solver }}_${{ matrix.competitor }}_${{ matrix.plibs }}_${{ matrix.dim }}_${{ matrix.feature }}_${{ matrix.run_plain }}
+          name: profile_optiprofiler_${{ matrix.solver }}_${{ matrix.competitor1 }}_${{ matrix.competitor2 }}_${{ matrix.competitor3 }}_${{ matrix.competitor4 }}_${{ matrix.dim }}_${{ matrix.feature }}_${{ matrix.run_plain }}_${{ matrix.plibs }}
           path: ./tests/testdata/
-
-  merge_artifacts:
-    name: Merge Artifacts
-    runs-on: ubuntu-latest
-    needs: test
-    permissions:
-      actions: read
-      contents: read
-    
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Install PDF tools
-        run: sudo apt-get update && sudo apt-get install -y poppler-utils
-
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: tests/testdata/downloaded_artifacts
-
-      - name: List all files
-        run: |
-          cd tests/testdata/downloaded_artifacts
-          ls -R
-
-      - name: Merge PDF files
-        run: |
-          cp tests/tools/merge_pdf.sh tests/testdata/downloaded_artifacts
-          cp tests/tools/get_base_info.sh tests/testdata/downloaded_artifacts
-          cd tests/testdata/downloaded_artifacts/
-
-          source ./get_base_info.sh
-          echo $BASE_INFO
-
-          # Replace all '-' with '_' in BASE_INFO
-          BASE_INFO=$(echo $BASE_INFO | sed 's/-/_/g')
-          echo "Base info extracted: ${BASE_INFO}"
-          echo "BASE_INFO=${BASE_INFO}" >> $GITHUB_ENV
-
-          # Merge PDF files
-          mkdir summary
-          for f in $(find . -maxdepth 3 -type f -name 'summary*.pdf'); do
-              if [ ! -f "summary/$(basename $f)" ]; then
-                  cp "$f" summary/
-              fi
-          done
-          
-          cd summary
-          ls
-          bash ../merge_pdf.sh
-          mv merged.pdf "summary_${BASE_INFO}.pdf"
-          cd ..
-          if [ -d "summary" ]; then
-            mv summary "summary_${BASE_INFO}"
-          fi
-
-      - name: Upload merged artifact
-        uses: actions/upload-artifact@v4
-        env:
-          BASE_INFO: ${{ env.BASE_INFO }}
-        with:
-          name: merged_profiles_${{ env.BASE_INFO }}
-          path: tests/testdata/downloaded_artifacts/**
-
-      - name: Upload summary files
-        uses: actions/upload-artifact@v4
-        env:
-          BASE_INFO: ${{ env.BASE_INFO }}
-        with:
-          name: summary_files_${{ env.BASE_INFO }}
-          path: tests/testdata/downloaded_artifacts/summary_${{ env.BASE_INFO }}/**

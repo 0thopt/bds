@@ -340,6 +340,24 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @cbds_reduction_factor_10_test;
             case 'cbds-reduction-factor-12'
                 solvers{i} = @cbds_reduction_factor_12_test;
+            case 'bds-rho1-1e2'
+                solvers{i} = @cbds_rho1_1e2_test;
+            case 'bds-rho1-1e4'
+                solvers{i} = @cbds_rho1_1e4_test;
+            case 'bds-rho1-1e6'
+                solvers{i} = @cbds_rho1_1e6_test;
+            case 'bds-rho1-1e8'
+                solvers{i} = @cbds_rho1_1e8_test;
+            case 'bds-default'
+                solvers{i} = @cbds_orig_test; 
+            case 'bds-rho-1e2'
+                solvers{i} = @cbds_rho_1e2_test;
+            case 'bds-rho-1e4'
+                solvers{i} = @cbds_rho_1e4_test;
+            case 'bds-rho-1e6'
+                solvers{i} = @cbds_rho_1e6_test;
+            case 'bds-rho-1e8'
+                solvers{i} = @cbds_rho_1e8_test;
             otherwise
                 error('Unknown solver');
         end
@@ -1416,6 +1434,86 @@ function x = cbds_reduction_factor_12_test(fun, x0)
     option.shrink = 0.5;
     option.Algorithm = 'cbds';
     option.reduction_factor = [0, 1e-12, 1e-12];
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_rho1_1e2_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.Algorithm = 'cbds';
+    option.reduction_factor = [1e-2, eps, eps];
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_rho1_1e4_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.Algorithm = 'cbds';
+    option.reduction_factor = [1e-4, eps, eps];
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_rho1_1e6_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.Algorithm = 'cbds';
+    option.reduction_factor = [1e-6, eps, eps];
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_rho1_1e8_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.Algorithm = 'cbds';
+    option.reduction_factor = [1e-8, eps, eps];
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_rho_1e2_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.Algorithm = 'cbds';
+    option.reduction_factor = [0, 1e-2, 1e-2];
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_rho_1e4_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.Algorithm = 'cbds';
+    option.reduction_factor = [0, 1e-4, 1e-4];
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_rho_1e6_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.Algorithm = 'cbds';
+    option.reduction_factor = [0, 1e-6, 1e-6];
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_rho_1e8_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.Algorithm = 'cbds';
+    option.reduction_factor = [0, 1e-8, 1e-8];
     x = bds(fun, x0, option);
     
 end

@@ -25,10 +25,8 @@ We do not support MATLAB R2017a or earlier. If there exists any problems, please
 https://github.com/blockwise-direct-search/bds/issues.
 
 ## Test of BDS.
-The tests are **automated** by [GitHub Actions](https://docs.github.com/en/actions).
-- [![Check Spelling](https://github.com/blockwise-direct-search/bds/actions/workflows/spelling.yml/badge.svg)](https://github.com/blockwise-direct-search/bds/actions/workflows/spelling.yml)
-
-The following tests are implemented by [Optiprofiler](https://github.com/optiprofiler/optiprofiler).
+The tests are **automated** by [GitHub Actions](https://docs.github.com/en/actions) and
+the following tests are implemented by [Optiprofiler](https://github.com/optiprofiler/optiprofiler).
 
 - [Tests](https://github.com/zeroth-order-optimization/bds/actions) at [zeroth-order-optimization/bds](https://github.com/zeroth-order-optimization/bds)
 
@@ -50,3 +48,5 @@ The following tests are implemented by [Optiprofiler](https://github.com/optipro
     - [![Profile original cbds with original cbds with reduction factor 12x, small, s2mpj](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_orig_cbds_reduction_factor_12_small_s2mpj.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_orig_cbds_reduction_factor_12_small_s2mpj.yml)
     - [![Profile original cbds with original cbds with reduction factor 12x, big, s2mpj](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_orig_cbds_reduction_factor_12_big_s2mpj.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_orig_cbds_reduction_factor_12_big_s2mpj.yml)
     - [![Profile original cbds with original cbds with reduction factor 12x, large, s2mpj](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_orig_cbds_reduction_factor_12_large_s2mpj.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_orig_cbds_reduction_factor_12_large_s2mpj.yml)
+    - [![Robustness Analysis of the Update Thresholds, big, s2mpj](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_orig_rho_plain_big_s2mpj.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_orig_rho_plain_big_s2mpj.yml)
+    - [![Sensitivity Analysis of the Acceptance Threshold, big, s2mpj](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_orig_rho1_plain_big_s2mpj.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_cbds_orig_rho1_plain_big_s2mpj.yml)
