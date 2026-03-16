@@ -1,8 +1,8 @@
-name: Sensitivity Analysis of the Acceptance Threshold, big, s2mpj
+name: Asymptotic Insensitivity of the Reduction Factors, big, s2mpj
 
 on:
   # Trigger the workflow on # push or pull request
-  # push:
+  push:
   # Trigger the workflow manually
   # schedule:
   # - cron: '0 18 4 * *'
@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Sensitivity Analysis of the Acceptance Threshold, big, s2mpj
+    name: Asymptotic Insensitivity of the Reduction Factors, big, s2mpj
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -21,9 +21,9 @@ jobs:
         with_optim_toolbox: [yes]
         solver: [bds-default]
         competitor1: [bds-rho1-1e2]
-        competitor2: [bds-rho1-1e4]
-        competitor3: [bds-rho1-1e6]
-        competitor4: [bds-rho1-1e8]
+        competitor2: [bds-rho1-1e6]
+        competitor3: [bds-rho-1e2]
+        competitor4: [bds-rho-1e6]
         plibs: [s2mpj]
         run_plain: [false]
         summarize_log_ratio_profiles: [false]
