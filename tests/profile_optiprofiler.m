@@ -358,6 +358,10 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @cbds_rho_1e6_test;
             case 'bds-rho-1e8'
                 solvers{i} = @cbds_rho_1e8_test;
+            case 'bds-opportunistic'
+                solvers{i} = @cbds_opportunistic_test;
+            case 'bds-complete'
+                solvers{i} = @cbds_complete_test;
             otherwise
                 error('Unknown solver');
         end
@@ -1514,6 +1518,26 @@ function x = cbds_rho_1e8_test(fun, x0)
     option.shrink = 0.5;
     option.Algorithm = 'cbds';
     option.reduction_factor = [0, 1e-8, 1e-8];
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_opportunistic_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.Algorithm = 'cbds';
+    option.polling_inner = 'opportunistic';
+    x = bds(fun, x0, option);
+    
+end
+
+function x = cbds_complete_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.Algorithm = 'cbds';
+    option.polling_inner = 'complete';
     x = bds(fun, x0, option);
     
 end
