@@ -86,3 +86,6 @@ tests/tuning/private/tmp
 tests/out
 tests/competitors/out
 tests/misc/tuning/
+
+*.pdf
+*.png

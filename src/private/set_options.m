@@ -205,13 +205,6 @@ if isfield(options, "alpha_init")
     elseif strcmpi(options.alpha_init, "auto")
         % Calculate Smart Alpha
         alpha_vec = zeros(n, 1);
-        % for i = 1:n
-        %     if x0(i) ~= 0
-        %         alpha_vec(i) = max(abs(x0(i)), options.StepTolerance(i));
-        %     else
-        %         alpha_vec(i) = 1;
-        %     end
-        % end
 
         % Extract nonzero elements to compute the initial-point scale ratio.
         abs_x0 = abs(x0);
@@ -235,25 +228,25 @@ if isfield(options, "alpha_init")
                 % premature termination.
                 alpha_vec(i) = max(abs_x0_i, options.StepTolerance(i));
             else
-                % x0_scale_ratio is used as a coarse detector of coordinate scale heterogeneity.
+                % x0_scale_ratio is used as a rough check for differences in variable scales.
                 %
-                % (x0_scale_ratio <= 100): relatively homogeneous scales.
-                % This regime is common in benchmark sets such as S2MPJ
-                % (https://github.com/GrattonToint/S2MPJ), where x0 may be a distant but
-                % uniformly scaled anchor (e.g., [1e5, 1e5, ..., 1e5]). In this case, using the
-                % full local scale (abs_x0_i) keeps long-range progress efficient.
+                % (x0_scale_ratio <= 100): scales are fairly similar.
+                % This is common in benchmark sets such as S2MPJ
+                % (https://github.com/GrattonToint/S2MPJ), where x0 may be far from the solution
+                % but still have a similar scale in every coordinate
+                % (e.g., [1e5, 1e5, ..., 1e5]). In this case, using the full local scale
+                % (abs_x0_i) helps keep progress efficient when x0 is large.
                 %
-                % (x0_scale_ratio > 100): highly heterogeneous scales.
-                % This regime is common in benchmark sets such as MatCUTEst
-                % (https://github.com/matcutest), where variables may differ by several orders of
-                % magnitude (e.g., [0.02, 4000, 250]). Using abs_x0_i directly can cause
-                % overshooting and excessive shrink updates.
+                % (x0_scale_ratio > 100): scales differ a lot.
+                % This is common in benchmark sets such as MatCUTEst
+                % (https://github.com/matcutest), where variables may differ by several orders
+                % of magnitude (e.g., [0.02, 4000, 250]). Using abs_x0_i directly can then
+                % cause overshooting and too many shrink updates.
                 %
-                % The logarithmic mapping reduces overly large initial steps while preserving
-                % monotonic scaling. The "1 +" intercept guarantees C^0 continuity at the
-                % micro-macro boundary (|x_i| = 1). We use log10 (not ln) because it provides 
-                % stronger damping at large magnitudes, and base 10 matches physical orders of 
-                % magnitude.
+                % The logarithmic mapping reduces very large initial steps while preserving
+                % monotonic scaling. The "1 +" term keeps the rule C^0 continuous at |x_i| = 1.
+                % We use log10 (not ln) because it damps large values more strongly, and
+                % base 10 matches orders of magnitude.
                 if x0_scale_ratio <= 100
                     alpha_vec(i) = abs_x0_i;
                 else
