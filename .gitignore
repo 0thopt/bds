@@ -88,3 +88,7 @@ tests/tuning/solver_1*
 tests/tuning/private/tmp
 tests/out
 tests/competitors/out
+
+.DS_Store
+*.pdf
+*.png
