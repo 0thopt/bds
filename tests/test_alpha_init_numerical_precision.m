@@ -18,16 +18,17 @@ clc; clear; close all;
 % x_opt: The optimal solution.
 % x(1) represents a "Macro" variable (e.g., stiffness in Pa, distance in m).
 % x(2) represents a "Unit" variable.
+problem = alpha_init_numerical_precision_problem();
 x_opt = [1e16; 1];
 
 % x0: Starting point with significant offsets.
 % Offset for x(1) is 5e14.
 % Offset for x(2) is 0.1.
-x0 = [1.05e16; 1.1]; 
+x0 = problem.x0;
 
 % Objective Function:
 % We use the Euclidean norm to measure distance. 
-fun = @(x) norm(x - x_opt); 
+fun = problem.fun;
 
 % Problem dimensions
 n = length(x0);
@@ -149,8 +150,8 @@ smart_disp = abs((x0(1) + smart_alpha) - x0(1));
 
 fhist_def_best = cummin(out_def.fhist(:));
 fhist_new_best = cummin(out_new.fhist(:));
-fhist_def_plot = max(fhist_def_best / f0, realmin);
-fhist_new_plot = max(fhist_new_best / f0, realmin);
+fhist_def_plot = max(fhist_def_best, realmin);
+fhist_new_plot = max(fhist_new_best, realmin);
 eval_axis_def = 1:length(fhist_def_plot);
 eval_axis_new = 1:length(fhist_new_plot);
 
@@ -172,13 +173,14 @@ scatter(eval_axis_new(end), fhist_new_plot(end), 80, ...
     'MarkerEdgeColor', 'k', 'LineWidth', 0.8);
 
 xlabel('$m$ (function evaluation index)', 'Interpreter', 'latex', 'FontSize', 16);
-ylabel('$\min\{f_1,\ldots,f_m\}/f(x_0)$', 'Interpreter', 'latex', 'FontSize', 16);
+ylabel('$\min\{f_1,\ldots,f_m\}$', 'Interpreter', 'latex', 'FontSize', 16);
 title('Initial-step scaling avoids numerical blindness', ...
     'FontSize', 15, 'FontWeight', 'bold');
 legend([h_def, h_scaled], {'Default alpha = 1.0', 'Scaled alpha'}, ...
     'Location', 'northeast', 'FontSize', 14);
 
 ax = gca;
+ax.YScale = 'log';
 ax.FontSize = 13;
 ax.Position = [0.11, 0.16, 0.84, 0.76];
 ax.Toolbar.Visible = 'off';

@@ -17,9 +17,10 @@ clc; clear; close all;
 % -------------------------------------------------------------------------
 
 % --- Problem Setup ---
+problem = alpha_init_rugged_landscape_problem();
 n = 3;
 x_opt = 100000 * ones(n, 1);
-x0    = 110000 * ones(n, 1);
+x0 = problem.x0;
 
 % Define Function: 
 % Increased Amplitude 'A' from 4e4 to 2e5.
@@ -29,7 +30,7 @@ x0    = 110000 * ones(n, 1);
 
 % NEW (Rigorous):
 % Aligns the cosine valley exactly with the quadratic bottom.
-fun = @(x) sum((x - x_opt).^2) + 2e5 * sum(1 - cos(x - x_opt));
+fun = problem.fun;
 
 fprintf('============================================================\n');
 fprintf('TEST CASE: 3D Deep Trap Basin\n');
@@ -124,11 +125,10 @@ else
 end
 
 %% 4. Thesis-Oriented Figure
-f0 = fun(x0);
 fhist_def_best = cummin(out_def.fhist(:));
 fhist_new_best = cummin(out_new.fhist(:));
-fhist_def_plot = max(fhist_def_best / f0, realmin);
-fhist_new_plot = max(fhist_new_best / f0, realmin);
+fhist_def_plot = max(fhist_def_best, realmin);
+fhist_new_plot = max(fhist_new_best, realmin);
 eval_axis_def = 1:length(fhist_def_plot);
 eval_axis_new = 1:length(fhist_new_plot);
 
@@ -150,13 +150,14 @@ scatter(eval_axis_new(end), fhist_new_plot(end), 80, ...
     'MarkerEdgeColor', 'k', 'LineWidth', 0.8);
 
 xlabel('$m$ (function evaluation index)', 'Interpreter', 'latex', 'FontSize', 16);
-ylabel('$\min\{f_1,\ldots,f_m\}/f(x_0)$', 'Interpreter', 'latex', 'FontSize', 16);
+ylabel('$\min\{f_1,\ldots,f_m\}$', 'Interpreter', 'latex', 'FontSize', 16);
 title('Scaled initial steps escape the rugged local trap', ...
     'FontSize', 15, 'FontWeight', 'bold');
 legend([h_def, h_scaled], {'Default alpha = 1.0', 'Scaled alpha'}, ...
     'Location', 'northeast', 'FontSize', 14);
 
 ax = gca;
+ax.YScale = 'log';
 ax.FontSize = 13;
 ax.Position = [0.11, 0.16, 0.84, 0.76];
 ax.Toolbar.Visible = 'off';
