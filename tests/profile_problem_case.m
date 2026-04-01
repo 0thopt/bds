@@ -9,6 +9,8 @@ for i = 1:length(options.solver_names)
             solvers{i} = @cbds_default;
         case 'cbds-orig-smart-alpha-init'
             solvers{i} = @cbds_orig_smart_alpha_init_test;
+        case 'cbds-tmp'
+            solvers{i} = @cbds_tmp;
         otherwise
             error('Unknown solver');
     end
@@ -50,34 +52,18 @@ end
 
 function x = cbds_orig_smart_alpha_init_test(fun, x0)
 
-abs_x0 = abs(x0);
-nonzero_abs_x0 = abs_x0(abs_x0 > 0);
-if isempty(nonzero_abs_x0)
-    x0_scale_ratio = 1;
-else
-    x0_scale_ratio = max(nonzero_abs_x0) / min(nonzero_abs_x0);
-end
-
-n = length(x0);
-
-for i = 1:n
-    abs_x0_i = abs_x0(i);
-    if abs_x0_i == 0
-        alpha_vec(i) = 1;
-    elseif abs_x0_i <= 1
-        alpha_vec(i) = max(abs_x0_i, step_tolerance(i));
-    else
-        if x0_scale_ratio <= 100
-            alpha_vec(i) = abs_x0_i;
-        else
-            alpha_vec(i) = 1 + log10(abs_x0_i);
-        end
-    end
-end
-
 opts_new = struct();
-opts_new.alpha_init = alpha_vec;
+opts_new.alpha_init = 'auto';
 
 x = bds(fun, x0, opts_new);
     
+end
+
+function x = cbds_tmp(fun, x0)
+
+opts_def = struct();
+opts_def.alpha_init = 1; % Default setting
+
+x = bds_tmp(fun, x0, opts_def);
+
 end

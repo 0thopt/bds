@@ -89,3 +89,4 @@ tests/misc/tuning/
 
 *.pdf
 *.png
+.DS_Store
