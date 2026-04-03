@@ -90,3 +90,11 @@ tests/misc/tuning/
 *.pdf
 *.png
 .DS_Store
+
+.aux
+.fdb_latexmk
+.fls
+.log
+.out
+.snm
+.toc
