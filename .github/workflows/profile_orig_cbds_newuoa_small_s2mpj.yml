@@ -38,7 +38,7 @@ jobs:
         with:
             repository: optiprofiler/optiprofiler
             path: optiprofiler
-            ref: 675a7cd5d52f1dbb7f5fdd486406b285dc6a8bc6
+            ref: 5a19e88cc34f9b8925e111934a6b12011422fcdb
 
       - name: Clone PRIMA
         uses: actions/checkout@v4

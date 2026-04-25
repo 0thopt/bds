@@ -2,7 +2,7 @@ name: Profile original pbds and rbds (1, n-1), big, s2mpj
 
 on:
   # Trigger the workflow on # push or pull request
-  push:
+  # push:
   # Trigger the workflow manually
   schedule:
   - cron: '0 18 13 * *'
@@ -37,7 +37,7 @@ jobs:
         with:
           repository: optiprofiler/optiprofiler
           path: optiprofiler
-          ref: 675a7cd5d52f1dbb7f5fdd486406b285dc6a8bc6
+          ref: 5a19e88cc34f9b8925e111934a6b12011422fcdb
 
       - name: Install Texlive
         run: sudo apt-get update && sudo apt-get install texlive
