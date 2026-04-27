@@ -42,6 +42,12 @@ The following tests are implemented by [Optiprofiler](https://github.com/optipro
     - [![Profile original cbds and original ds using optiprofiler, big, s2mpj](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_orig_cbds_orig_ds_big_s2mpj.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_orig_cbds_orig_ds_big_s2mpj.yml)
     - [![Profile original cbds and original ds using optiprofiler, large, matcutest](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_orig_cbds_orig_ds_large_matcutest.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_orig_cbds_orig_ds_large_matcutest.yml)
     - [![Profile original cbds and original ds using optiprofiler, large, s2mpj](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_orig_cbds_orig_ds_large_s2mpj.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_orig_cbds_orig_ds_large_s2mpj.yml)
+    - [![Profile original cbds and pds using optiprofiler, small, matcutest](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_orig_cbds_pds_small_matcutest.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_orig_cbds_pds_small_matcutest.yml)
+    - [![Profile original cbds and pds using optiprofiler, small, s2mpj](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_orig_cbds_pds_small_s2mpj.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_orig_cbds_pds_small_s2mpj.yml)
+    - [![Profile original cbds and pds using optiprofiler, big, matcutest](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_orig_cbds_pds_big_matcutest.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_orig_cbds_pds_big_matcutest.yml)
+    - [![Profile original cbds and pds using optiprofiler, big, s2mpj](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_orig_cbds_pds_big_s2mpj.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_orig_cbds_pds_big_s2mpj.yml)
+    - [![Profile original cbds and pds using optiprofiler, large, matcutest](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_orig_cbds_pds_large_matcutest.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_orig_cbds_pds_large_matcutest.yml)
+    - [![Profile original cbds and pds using optiprofiler, large, s2mpj](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_orig_cbds_pds_large_s2mpj.yml/badge.svg)](https://github.com/zeroth-order-optimization/bds/actions/workflows/profile_orig_cbds_pds_large_s2mpj.yml)
 
 - [Tests](https://github.com/bladesopt/bds/actions) at [bladesopt/bds](https://github.com/bladesopt/bds)
 
@@ -51,35 +57,13 @@ The following tests are implemented by [Optiprofiler](https://github.com/optipro
     - [![Profile original cbds and newuoa using optiprofiler, big, s2mpj](https://github.com/bladesopt/bds/actions/workflows/profile_orig_cbds_newuoa_big_s2mpj.yml/badge.svg)](https://github.com/bladesopt/bds/actions/workflows/profile_orig_cbds_newuoa_big_s2mpj.yml)
     - [![Profile original cbds and newuoa using optiprofiler, large, matcutest](https://github.com/bladesopt/bds/actions/workflows/profile_orig_cbds_newuoa_large_matcutest.yml/badge.svg)](https://github.com/bladesopt/bds/actions/workflows/profile_orig_cbds_newuoa_large_matcutest.yml)
     - [![Profile original cbds and newuoa using optiprofiler, large, s2mpj](https://github.com/bladesopt/bds/actions/workflows/profile_orig_cbds_newuoa_large_s2mpj.yml/badge.svg)](https://github.com/bladesopt/bds/actions/workflows/profile_orig_cbds_newuoa_large_s2mpj.yml)
-
-- [Tests](https://github.com/derivative-free-optimization/bds/actions) at [derivative-free-optimization/bds](https://github.com/derivative-free-optimization/bds)
-
-    - [![Profile original cbds and pds using optiprofiler, small, matcutest](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_orig_cbds_pds_small_matcutest.yml/badge.svg)](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_orig_cbds_pds_small_matcutest.yml)
-    - [![Profile original cbds and pds using optiprofiler, small, s2mpj](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_orig_cbds_pds_small_s2mpj.yml/badge.svg)](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_orig_cbds_pds_small_s2mpj.yml)
-    - [![Profile original cbds and pds using optiprofiler, big, matcutest](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_orig_cbds_pds_big_matcutest.yml/badge.svg)](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_orig_cbds_pds_big_matcutest.yml)
-    - [![Profile original cbds and pds using optiprofiler, big, s2mpj](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_orig_cbds_pds_big_s2mpj.yml/badge.svg)](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_orig_cbds_pds_big_s2mpj.yml)
-    - [![Profile original cbds and pds using optiprofiler, large, matcutest](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_orig_cbds_pds_large_matcutest.yml/badge.svg)](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_orig_cbds_pds_large_matcutest.yml)
-    - [![Profile original cbds and pds using optiprofiler, large, s2mpj](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_orig_cbds_pds_large_s2mpj.yml/badge.svg)](https://github.com/derivative-free-optimization/bds/actions/workflows/profile_orig_cbds_pds_large_s2mpj.yml)
-    
-- [Tests](https://github.com/0thopt/bds/actions) at [0thopt/bds](https://github.com/0thopt/bds)
-
-    - [![Profile original cbds and bfo using optiprofiler, small, matcutest](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_bfo_small_matcutest.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_bfo_small_matcutest.yml)
-    - [![Profile original cbds and bfo using optiprofiler, small, s2mpj](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_bfo_small_s2mpj.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_bfo_small_s2mpj.yml) 
-    - [![Profile original cbds and bfo using optiprofiler, big, matcutest](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_bfo_big_matcutest.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_bfo_big_matcutest.yml) 
-    - [![Profile original cbds and bfo using optiprofiler, big, s2mpj](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_bfo_big_s2mpj.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_bfo_big_s2mpj.yml)   
-    - [![Profile original cbds and bfo using optiprofiler, large, matcutest](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_bfo_large_matcutest.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_bfo_large_matcutest.yml) 
-    - [![Profile original cbds and bfo using optiprofiler, large, s2mpj](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_bfo_large_s2mpj.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_orig_cbds_bfo_large_s2mpj.yml)  
-  
-
-- [Tests](https://github.com/dfopt/bds/actions) at [dfopt/bds](https://github.com/dfopt/bds)
-
-    - [![Profile original cbds and bfgs using optiprofiler, small, matcutest](https://github.com/dfopt/bds/actions/workflows/profile_orig_cbds_bfgs_small_matcutest.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_orig_cbds_bfgs_small_matcutest.yml)
-    - [![Profile original cbds and bfgs using optiprofiler, small, s2mpj](https://github.com/dfopt/bds/actions/workflows/profile_orig_cbds_bfgs_small_s2mpj.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_orig_cbds_bfgs_small_s2mpj.yml)
-    - [![Profile original cbds and bfgs using optiprofiler, big, matcutest](https://github.com/dfopt/bds/actions/workflows/profile_orig_cbds_bfgs_big_matcutest.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_orig_cbds_bfgs_big_matcutest.yml)
-    - [![Profile original cbds and bfgs using optiprofiler, big, s2mpj](https://github.com/dfopt/bds/actions/workflows/profile_orig_cbds_bfgs_big_s2mpj.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_orig_cbds_bfgs_big_s2mpj.yml)
-    - [![Profile original cbds and bfgs using optiprofiler, large, matcutest](https://github.com/dfopt/bds/actions/workflows/profile_orig_cbds_bfgs_large_matcutest.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_orig_cbds_bfgs_large_matcutest.yml)
-    - [![Profile original cbds and bfgs using optiprofiler, large, s2mpj](https://github.com/dfopt/bds/actions/workflows/profile_orig_cbds_bfgs_large_s2mpj.yml/badge.svg)](https://github.com/dfopt/bds/actions/workflows/profile_orig_cbds_bfgs_large_s2mpj.yml)
-
+    - [![Profile original cbds and bfgs using optiprofiler, small, matcutest](https://github.com/bladesopt/bds/actions/workflows/profile_orig_cbds_bfgs_small_matcutest.yml/badge.svg)](https://github.com/bladesopt/bds/actions/workflows/profile_orig_cbds_bfgs_small_matcutest.yml)
+    - [![Profile original cbds and bfgs using optiprofiler, small, s2mpj](https://github.com/bladesopt/bds/actions/workflows/profile_orig_cbds_bfgs_small_s2mpj.yml/badge.svg)](https://github.com/bladesopt/bds/actions/workflows/profile_orig_cbds_bfgs_small_s2mpj.yml)
+    - [![Profile original cbds and bfgs using optiprofiler, big, matcutest](https://github.com/bladesopt/bds/actions/workflows/profile_orig_cbds_bfgs_big_matcutest.yml/badge.svg)](https://github.com/bladesopt/bds/actions/workflows/profile_orig_cbds_bfgs_big_matcutest.yml)
+    - [![Profile original cbds and bfgs using optiprofiler, big, s2mpj](https://github.com/bladesopt/bds/actions/workflows/profile_orig_cbds_bfgs_big_s2mpj.yml/badge.svg)](https://github.com/bladesopt/bds/actions/workflows/profile_orig_cbds_bfgs_big_s2mpj.yml)
+    - [![Profile original cbds and bfgs using optiprofiler, large, matcutest](https://github.com/bladesopt/bds/actions/workflows/profile_orig_cbds_bfgs_large_matcutest.yml/badge.svg)](https://github.com/bladesopt/bds/actions/workflows/profile_orig_cbds_bfgs_large_matcutest.yml)
+    - [![Profile original cbds and bfgs using optiprofiler, large, s2mpj](https://github.com/bladesopt/bds/actions/workflows/profile_orig_cbds_bfgs_large_s2mpj.yml/badge.svg)](https://github.com/bladesopt/bds/actions/workflows/profile_orig_cbds_bfgs_large_s2mpj.yml)
+      
 - [Tests](https://github.com/gradient-free-opt/bds/actions) at [gradient-free-opt/bds](https://github.com/gradient-free-opt/bds)
 
     - [![Profile original cbds and simplex using optiprofiler, small, matcutest](https://github.com/gradient-free-opt/bds/actions/workflows/profile_orig_cbds_simplex_small_matcutest.yml/badge.svg)](https://github.com/gradient-free-opt/bds/actions/workflows/profile_orig_cbds_simplex_small_matcutest.yml)
@@ -88,6 +72,12 @@ The following tests are implemented by [Optiprofiler](https://github.com/optipro
     - [![Profile original cbds and simplex using optiprofiler, big, s2mpj](https://github.com/gradient-free-opt/bds/actions/workflows/profile_orig_cbds_simplex_big_s2mpj.yml/badge.svg)](https://github.com/gradient-free-opt/bds/actions/workflows/profile_orig_cbds_simplex_big_s2mpj.yml)
     - [![Profile original cbds and simplex using optiprofiler, large, matcutest](https://github.com/gradient-free-opt/bds/actions/workflows/profile_orig_cbds_simplex_large_matcutest.yml/badge.svg)](https://github.com/gradient-free-opt/bds/actions/workflows/profile_orig_cbds_simplex_large_matcutest.yml)
     - [![Profile original cbds and simplex using optiprofiler, large, s2mpj](https://github.com/gradient-free-opt/bds/actions/workflows/profile_orig_cbds_simplex_large_s2mpj.yml/badge.svg)](https://github.com/gradient-free-opt/bds/actions/workflows/profile_orig_cbds_simplex_large_s2mpj.yml)
+    - [![Profile original cbds and bfo using optiprofiler, small, matcutest](https://github.com/gradient-free-opt/bds/actions/workflows/profile_orig_cbds_bfo_small_matcutest.yml/badge.svg)](https://github.com/gradient-free-opt/bds/actions/workflows/profile_orig_cbds_bfo_small_matcutest.yml)
+    - [![Profile original cbds and bfo using optiprofiler, small, s2mpj](https://github.com/gradient-free-opt/bds/actions/workflows/profile_orig_cbds_bfo_small_s2mpj.yml/badge.svg)](https://github.com/gradient-free-opt/bds/actions/workflows/profile_orig_cbds_bfo_small_s2mpj.yml) 
+    - [![Profile original cbds and bfo using optiprofiler, big, matcutest](https://github.com/gradient-free-opt/bds/actions/workflows/profile_orig_cbds_bfo_big_matcutest.yml/badge.svg)](https://github.com/gradient-free-opt/bds/actions/workflows/profile_orig_cbds_bfo_big_matcutest.yml) 
+    - [![Profile original cbds and bfo using optiprofiler, big, s2mpj](https://github.com/gradient-free-opt/bds/actions/workflows/profile_orig_cbds_bfo_big_s2mpj.yml/badge.svg)](https://github.com/gradient-free-opt/bds/actions/workflows/profile_orig_cbds_bfo_big_s2mpj.yml)   
+    - [![Profile original cbds and bfo using optiprofiler, large, matcutest](https://github.com/gradient-free-opt/bds/actions/workflows/profile_orig_cbds_bfo_large_matcutest.yml/badge.svg)](https://github.com/gradient-free-opt/bds/actions/workflows/profile_orig_cbds_bfo_large_matcutest.yml) 
+    - [![Profile original cbds and bfo using optiprofiler, large, s2mpj](https://github.com/gradient-free-opt/bds/actions/workflows/profile_orig_cbds_bfo_large_s2mpj.yml/badge.svg)](https://github.com/gradient-free-opt/bds/actions/workflows/profile_orig_cbds_bfo_large_s2mpj.yml) 
 
 - [Tests](https://github.com/libblades/bds/actions) at [libblades/bds](https://github.com/libblades/bds)
 
@@ -136,4 +126,11 @@ The following tests are implemented by [Optiprofiler](https://github.com/optipro
     - [![Profile original cbds and original pbds using optiprofiler, small, s2mpj](https://github.com/gradient-free-optimization/bds/actions/workflows/profile_orig_cbds_orig_pbds_small_s2mpj.yml/badge.svg)](https://github.com/gradient-free-optimization/bds/actions/workflows/profile_orig_cbds_orig_pbds_small_s2mpj.yml)  
     - [![Profile original cbds and original pbds using optiprofiler, big, s2mpj](https://github.com/gradient-free-optimization/bds/actions/workflows/profile_orig_cbds_orig_pbds_big_s2mpj.yml/badge.svg)](https://github.com/gradient-free-optimization/bds/actions/workflows/profile_orig_cbds_orig_pbds_big_s2mpj.yml) 
     - [![Profile original cbds and original pbds using optiprofiler, large, s2mpj](https://github.com/gradient-free-optimization/bds/actions/workflows/profile_orig_cbds_orig_pbds_large_s2mpj.yml/badge.svg)](https://github.com/gradient-free-optimization/bds/actions/workflows/profile_orig_cbds_orig_pbds_large_s2mpj.yml)
+
+- [Tests](https://github.com/derivative-free-optimization/bds/actions) at [derivative-free-optimization/bds](https://github.com/derivative-free-optimization/bds)
+
+- [Tests](https://github.com/dfopt/bds/actions) at [dfopt/bds](https://github.com/dfopt/bds)
+
+- [Tests](https://github.com/0thopt/bds/actions) at [0thopt/bds](https://github.com/0thopt/bds) 
+
  
