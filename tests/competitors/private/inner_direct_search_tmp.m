@@ -1,4 +1,4 @@
-function [xopt, fopt, exitflag, output] = inner_direct_search(fun, ...
+function [xopt, fopt, exitflag, output] = inner_direct_search_tmp(fun, ...
     xbase, fbase, D, direction_indices, alpha, options)
 %INNER_DIRECT_SEARCH performs a single iteration of classical direct search 
 %   within a given block.
@@ -50,7 +50,7 @@ for j = 1 : num_directions
     xnew = xbase+alpha*D(:, j);
     % fnew_real is the real function value at xnew, which is the value returned by fun 
     % (not fnew).
-    [fnew, fnew_real, is_valid] = eval_fun(fun, xnew);
+    [fnew, fnew_real, is_valid] = eval_fun_tmp(fun, xnew);
     nf = nf+1;
     % When we record the function value, we use the real function value.
     % Here, we should use fnew_real instead of fnew.
@@ -74,9 +74,9 @@ for j = 1 : num_directions
     end
     
     % Update the best point and the best function value. If fopt is nan, any non-nan fnew is better.
-    % Note: Although eval_fun replaces all potential NaN values with 1e30 to allow the algorithm to
+    % Note: Although eval_fun_tmp replaces all potential NaN values with 1e30 to allow the algorithm to
     % continue iterating, the condition (isnan(fopt) && ~isnan(fnew)) is retained as a safeguard.
-    % This defensive programming practice ensures robustness in case eval_fun's NaN handling is
+    % This defensive programming practice ensures robustness in case eval_fun_tmp's NaN handling is
     % modified or edge cases are discovered in the future.
     if (fnew < fopt) || (isnan(fopt) && ~isnan(fnew))
         xopt = xnew;
@@ -91,7 +91,7 @@ for j = 1 : num_directions
     end
 
     % Note that when fbase is nan, any non-nan fnew is considered to achieve sufficient decrease.
-    % Note: eval_fun already replaces all potential NaN values with 1e30 so the second clause below
+    % Note: eval_fun_tmp already replaces all potential NaN values with 1e30 so the second clause below
     % is not expected to trigger; it is retained as a defensive safeguard.
     % This variable is used in two places:
     % 1. In opportunistic polling mode: to decide whether to cycle direction indices and stop 

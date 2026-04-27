@@ -1,4 +1,4 @@
-function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
+function [xopt, fopt, exitflag, output] = bds_tmp(fun, x0, options)
 %BDS solves unconstrained optimization problems without using derivatives by
 %blockwise direct search methods.
 %
@@ -389,8 +389,8 @@ exitflag = get_exitflag("MAXIT_REACHED");
 
 % Evaluate the function at the starting point x0.
 % f0_real is the real function value at x0, while f0 might be different from f0_real.
-% The detail is explained in eval_fun.m.
-[f0, f0_real, is_valid] = eval_fun(fun, x0);
+% The detail is explained in eval_fun_tmp.m.
+[f0, f0_real, is_valid] = eval_fun_tmp(fun, x0);
 % Initialize nf (the number of function evaluations), xhist (history of points visited), and
 % fhist (history of function values).
 nf = 1;
@@ -541,7 +541,7 @@ for iter = 1:maxit
         suboptions.i_real = i_real;
 
         % Perform the direct search within the i_real-th block.
-        [sub_xopt, sub_fopt, sub_exitflag, sub_output] = inner_direct_search(fun, xbase,...
+        [sub_xopt, sub_fopt, sub_exitflag, sub_output] = inner_direct_search_tmp(fun, xbase,...
             fbase, D(:, direction_indices), direction_indices,...
             alpha_all(i_real), suboptions);
 
@@ -549,13 +549,13 @@ for iter = 1:maxit
         num_visited_blocks = num_visited_blocks + 1;
         block_hist(num_visited_blocks) = i_real;
 
-        % Record the points visited by inner_direct_search if output_xhist is true.
+        % Record the points visited by inner_direct_search_tmp if output_xhist is true.
         if output_xhist
             xhist(:, (nf+1):(nf+sub_output.nf)) = sub_output.xhist;
             invalid_points = [invalid_points, sub_output.invalid_points];
         end
         
-        % Record the function values calculated by inner_direct_search,
+        % Record the function values calculated by inner_direct_search_tmp,
         fhist((nf+1):(nf+sub_output.nf)) = sub_output.fhist;
 
         % Update the number of function evaluations.
@@ -567,9 +567,9 @@ for iter = 1:maxit
         % sampled_direction_indices_per_batch{i_real} is similar to that for
         % grad_info.step_size_per_batch(i) explained above.
         % We use direction_indices(1:sub_output.nf) instead of sub_output.direction_indices
-        % because inner_direct_search might not evaluate all directions in the block and may cycle
+        % because inner_direct_search_tmp might not evaluate all directions in the block and may cycle
         % through the directions multiple times. direction_indices(1:sub_output.nf) accurately 
-        % captures the specific directions evaluated during this invocation of inner_direct_search.
+        % captures the specific directions evaluated during this invocation of inner_direct_search_tmp.
         sampled_direction_indices_per_batch{i} = direction_indices(1:sub_output.nf);
 
         % Store function values for the current batch.
@@ -592,11 +592,11 @@ for iter = 1:maxit
         % in the next block, meaning that reduction will be calculated with respect to xbase, as 
         % shown above. The condition must be checked before updating alpha_all(i_real) because the 
         % sufficient decrease is calculated based on the current step size.
-        % Although eval_fun replaces all potential NaN values with 1e30 to allow algorithm 
-        % iterations, and inner_direct_search also includes similar defensive checks when updating 
+        % Although eval_fun_tmp replaces all potential NaN values with 1e30 to allow algorithm 
+        % iterations, and inner_direct_search_tmp also includes similar defensive checks when updating 
         % fopt, we apply the same NaN safeguard here. This consistent defensive practice ensures 
         % robustness: whenever a comparison involving fopt or fbase is performed, we account for 
-        % potential NaN values. This approach anticipates possible future modifications to eval_fun 
+        % potential NaN values. This approach anticipates possible future modifications to eval_fun_tmp 
         % or other unforeseen edge cases.
         update_base = (sub_fopt + reduction_factor(1) * forcing_function(alpha_all(i_real)) < fbase) ...
                     || (isnan(fbase) && ~isnan(sub_fopt));
@@ -610,7 +610,7 @@ for iter = 1:maxit
         end
 
         % Terminate the computations if sub_output.terminate is true, which means that 
-        % inner_direct_search decides that the algorithm should be terminated for some reason 
+        % inner_direct_search_tmp decides that the algorithm should be terminated for some reason 
         % indicated by sub_exitflag.
         if sub_output.terminate
             terminate = true;
@@ -658,7 +658,7 @@ for iter = 1:maxit
 
     % Actually, fopt is not always the minimum of fhist after the moment we update fopt
     % since the value we used to iterate is not always equal to the value returned by the function.
-    % See eval_fun.m for details.
+    % See eval_fun_tmp.m for details.
     % assert(fopt == min(fhist));
 
     % For "parallel", we will update xbase and fbase only after one iteration of the outer loop.
@@ -697,7 +697,7 @@ for iter = 1:maxit
         grad_info.function_values_per_batch = function_values_per_batch;
         grad = estimate_gradient(grad_info);
         % If the norm of the estimated gradient exceeds the threshold (1e30), it is discarded.
-        % This threshold is chosen to maintain consistency with the standard used in eval_fun.m.
+        % This threshold is chosen to maintain consistency with the standard used in eval_fun_tmp.m.
         % Additionally, we check for nan values to ensure the gradient is valid. The first verification
         % can cover both cases. The second verification is to avoid the length of grad is too short.
         if (norm(grad) <= sqrt(n)*1e30) && (norm(grad) > 10*sqrt(n)*eps)

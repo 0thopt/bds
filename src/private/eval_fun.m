@@ -55,10 +55,12 @@ end
 % % See 4.5 of "PDFO: A Cross-Platform Package for Powell's Derivative-Free Optimization Solvers" 
 % % by Tom M. Ragonneau and Zaikun Zhang.
 % if isnan(f_real)
-%     f_real = inf;
+%     f = 1e30;
+% else
+%     f = f_real;
 % end
-% f = min([f_real, 1e30, sqrt(realmax())]);
+% % f = min([f_real, 1e30, sqrt(realmax())]);
 
 % end
 
-% % TODO: return those points where the function evaluation failed or return nan.
+% TODO: return those points where the function evaluation failed or return nan.

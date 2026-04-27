@@ -1,4 +1,5 @@
 function array = cycling(array, index, strategy)
+%CYCLING permutes an array according to different options.
 %   ARRAY = CYCLING(ARRAY, INDEX, STRATEGY) returns an array
 %   that is a permutation of ARRAY according to INDEX, STRATEGY.
 %

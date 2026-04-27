@@ -186,7 +186,7 @@ constant_value = 1e-6;
 verifyEqual(testcase, get_default_constant(constant_name), constant_value)
 
 constant_name = "lipschitz_constant";
-constant_value = 1e3;
+constant_value = 1e-3;
 verifyEqual(testcase, get_default_constant(constant_name), constant_value)
 
 constant_name = "block_visiting_pattern";
