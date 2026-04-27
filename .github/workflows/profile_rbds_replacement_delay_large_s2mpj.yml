@@ -162,33 +162,6 @@ jobs:
       - name: Merge PDF files
         run: |
           cp tests/tools/merge_pdf.sh tests/testdata/downloaded_artifacts
-          cd tests/testdata/downloaded_artifacts/
-
-          ARTIFACT_NAME=$(ls | grep "profile_optiprofiler" | head -n 1)
-          BASE_INFO=$(echo $ARTIFACT_NAME | sed -n 's/.*optiprofiler_\([^_]*_[^_]*_\(large\|big\)\).*/\1/p')
-
-          # Replace all '-' with '_' in BASE_INFO
-          BASE_INFO=$(echo $BASE_INFO | sed 's/-/_/g')
-          echo "Base info extracted: ${BASE_INFO}"
-          echo "BASE_INFO=${BASE_INFO}" >> $GITHUB_ENV
-
-          # Merge PDF files
-          mkdir summary
-          for f in $(find . -maxdepth 3 -type f -name 'summary*.pdf'); do
-              if [ ! -f "summary/$(basename $f)" ]; then
-                  cp "$f" summary/
-              fi
-          done
-          cd summary
-          ls
-          bash ../merge_pdf.sh
-          mv merged.pdf "summary_rbds_replacement_delay_large.pdf"
-          cd ..
-          if [ -d "summary" ]; then
-            mv summary "summary_rbds_replacement_delay_large"
-          fi
-
-          cp tests/tools/merge_pdf.sh tests/testdata/downloaded_artifacts
           cp tests/tools/get_base_info.sh tests/testdata/downloaded_artifacts
           cd tests/testdata/downloaded_artifacts/
 
