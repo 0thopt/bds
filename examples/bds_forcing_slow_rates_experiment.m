@@ -1,163 +1,171 @@
 function bds_forcing_slow_rates_experiment()
-%BDS_FORCING_SLOW_RATES_EXPERIMENT Numerical experiments for bds_forcing_slow_rates.tex.
+%BDS_FORCING_SLOW_RATES_EXPERIMENT Numerical experiment for bds_forcing_slow_rates.tex.
 %
-% This script runs two BDS examples from bds_forcing_slow_rates.tex.
+% This script runs the current construction from bds_forcing_slow_rates.tex
+% with the BDS solver.  The objective is the fixed strongly convex quadratic
 %
-% Example 1 uses a fixed strongly convex quadratic objective and a qualitative
-% C^1 forcing function.  It compares opportunistic and complete polling.
+%     f(x1,x2) = 0.5*(x1^2 + x2^2 + x1*x2),
 %
-% Example 2 uses the standard quadratic forcing rule on the radial polynomial
-% objectives f_q(x) = ||x||^q/q.  It runs opportunistic BDS for several q values
-% to show that the observed decay approaches the 1/k boundary as q increases.
+% and the forcing function is
 %
-% Important implementation detail:
-% In src/bds.m, the accepted-base test uses
+%     rho(alpha) = alpha/log(e/alpha), 0 < alpha <= 1.
+%
+% We compare the classical direct-search setting, implemented by Algorithm='ds',
+% with the cyclic blockwise direct-search setting, implemented by Algorithm='cbds'.
+% The histories plotted below are best evaluated histories: bds.m records all
+% evaluated trial points, not only the accepted base-point path used in the
+% proof.
+%
+% Implementation detail:
+% In src/bds.m, accepted base-point updates use
 %
 %     reduction_factor(1) * forcing_function(alpha).
 %
-% Therefore the examples pass reduction_factor = [1 1 1], so accepted base-point
-% updates use the same sufficient-decrease threshold as the theoretical note.
+% We set reduction_factor = [1 1 1], so accepted base-point updates use the
+% same sufficient-decrease threshold as in the note.
 
-fullpath = mfilename("fullpath");
+fullpath = mfilename('fullpath');
 path_examples = fileparts(fullpath);
 path_bds = fileparts(path_examples);
-path_src = fullfile(path_bds, "src");
+path_src = fullfile(path_bds, 'src');
 addpath(path_src);
 cleanup = onCleanup(@() rmpath(path_src));
 
-qualitative_results = run_qualitative_forcing_example();
-print_qualitative_results(qualitative_results);
-qualitative_fig = plot_qualitative_forcing_example(qualitative_results);
-export_figure(qualitative_fig, fullfile(path_examples, ...
-    'bds_forcing_slow_rates_qualitative_forcing.pdf'));
+results = run_paper_construction_experiments();
+print_results(results);
 
-quadratic_results = run_quadratic_forcing_example();
-print_quadratic_results(quadratic_results);
-quadratic_fig = plot_quadratic_forcing_example(quadratic_results);
-export_figure(quadratic_fig, fullfile(path_examples, ...
-    'bds_forcing_slow_rates_quadratic_forcing.pdf'));
+ds_fig = plot_single_objective_history(results(1));
+export_figure(ds_fig, fullfile(path_examples, ...
+    'bds_forcing_slow_rates_ds_objective.pdf'));
+
+cbds_fig = plot_single_objective_history(results(2));
+export_figure(cbds_fig, fullfile(path_examples, ...
+    'bds_forcing_slow_rates_cbds_objective.pdf'));
+
+forcing_fig = plot_forcing_function_figure();
+export_figure(forcing_fig, fullfile(path_examples, ...
+    'bds_forcing_slow_rates_forcing_function.pdf'));
 
 end
 
-function results = run_qualitative_forcing_example()
-% Strongly convex quadratic with the qualitative forcing function.
+function results = run_paper_construction_experiments()
+% Run DS and CBDS on the construction in the paper.
 
-% The theory asks for x0 = (s,s) with s small.  If s is chosen too small, the
-% slow mechanism may look like numerical stagnation in double precision.
-s = 1e-2;
+% The theorem allows arbitrarily small s.  For a numerical demonstration, s
+% should not be so small that accepted steps are below double precision.
+s = 1e-1;
 x0 = [s; s];
-fstar = 0;
+
+theta = 0.5;
+gamma = 1;
+alpha0 = 1e-1;
+max_evals = 50000;
 
 base_options = struct();
-base_options.Algorithm = 'cbds';
 base_options.direction_set = eye(2);
 base_options.forcing_function = @slow_forcing_rho;
 base_options.reduction_factor = [1, 1, 1];
-base_options.expand = 2;
-base_options.shrink = 0.5;
-base_options.alpha_init = [1; 1];
+base_options.polling_inner = 'opportunistic';
+base_options.cycling_inner = 3;
+base_options.expand = gamma;
+base_options.shrink = theta;
 base_options.StepTolerance = 0;
 base_options.ftarget = -inf;
-base_options.MaxFunctionEvaluations = 20000;
+base_options.MaxFunctionEvaluations = max_evals;
 base_options.output_alpha_hist = true;
 base_options.output_xhist = true;
 base_options.output_block_hist = true;
 base_options.iprint = 0;
 base_options.seed = 0;
 
-polling_list = {'opportunistic', 'complete'};
-results = struct();
+experiment_list = {
+    'Direct Search (DS)', 'ds', alpha0;
+    'Cyclic BDS (CBDS)', 'cbds', alpha0 * ones(2, 1)
+    };
 
-for p = 1:numel(polling_list)
+results = struct();
+for j = 1:size(experiment_list, 1)
     options = base_options;
-    options.polling_inner = polling_list{p};
+    options.Algorithm = experiment_list{j, 2};
+    options.alpha_init = experiment_list{j, 3};
 
     [xopt, fopt, exitflag, output] = bds(@slow_forcing_objective, x0, options);
 
-    results(p).polling = polling_list{p};
-    results(p).xopt = xopt;
-    results(p).fopt = fopt;
-    results(p).exitflag = exitflag;
-    results(p).output = output;
-    results(p).fbest = cummin(output.fhist) - fstar;
-end
-end
+    diagnostic = evaluated_history_diagnostic(output);
 
-function results = run_quadratic_forcing_example()
-% Quadratic forcing on f_q(x) = ||x||^q/q for increasing q.
-
-q_list = [4, 8, 16, 32];
-c = 1;
-radius_power = 0.45;
-alpha_scale = 0.5;
-
-base_options = struct();
-base_options.Algorithm = 'cbds';
-base_options.direction_set = eye(2);
-base_options.forcing_function = @(alpha) c * alpha.^2;
-base_options.reduction_factor = [1, 1, 1];
-base_options.polling_inner = 'opportunistic';
-base_options.cycling_inner = 3;
-base_options.expand = 2;
-base_options.shrink = 0.5;
-base_options.StepTolerance = 0;
-base_options.ftarget = -inf;
-base_options.MaxFunctionEvaluations = 100000;
-base_options.output_alpha_hist = false;
-base_options.output_xhist = false;
-base_options.output_block_hist = false;
-base_options.iprint = 0;
-base_options.seed = 0;
-
-results = struct();
-
-for j = 1:numel(q_list)
-    q = q_list(j);
-    r0 = radius_power^(1 / (q - 2));
-    x0 = r0 / sqrt(2) * [1; 1];
-    options = base_options;
-    options.alpha_init = initial_quadratic_forcing_alpha(r0, q, c, alpha_scale) * ones(2, 1);
-
-    [xopt, fopt, exitflag, output] = bds( ...
-        @(x) polynomial_radial_objective(x, q), x0, options);
-
-    fbest = cummin(output.fhist);
-    normalized_fbest = fbest / max(fbest(1), realmin);
-
-    results(j).q = q;
-    results(j).theoretical_exponent = q / (q - 2);
-    results(j).initial_radius = r0;
-    results(j).radius_power = radius_power;
-    results(j).initial_alpha = options.alpha_init(1);
+    results(j).name = experiment_list{j, 1};
+    results(j).algorithm = experiment_list{j, 2};
+    results(j).x0 = x0;
+    results(j).s = s;
+    results(j).theta = theta;
+    results(j).gamma = gamma;
+    results(j).alpha0 = alpha0;
     results(j).xopt = xopt;
     results(j).fopt = fopt;
     results(j).exitflag = exitflag;
     results(j).output = output;
-    results(j).fbest = fbest;
-    results(j).normalized_fbest = normalized_fbest;
-    results(j).fitted_exponent = -estimate_loglog_slope(normalized_fbest);
-end
+    results(j).diagnostic = diagnostic;
 end
 
-function alpha0 = initial_quadratic_forcing_alpha(r0, q, c, alpha_scale)
-% Accepted steps for f_q and c*alpha^2 have natural scale r0^(q-1)/c.
-alpha0 = alpha_scale * r0^(q - 1) / c;
+end
+
+function diagnostic = evaluated_history_diagnostic(output)
+% Compute best evaluated histories from bds output.
+
+fhist = output.fhist(:).';
+xhist = output.xhist;
+
+[fbest, best_indices] = best_so_far_indices(fhist);
+xbest = xhist(:, best_indices);
+
+grad_best = quadratic_gradient(xbest);
+grad_norm_best = sqrt(sum(grad_best.^2, 1));
+radius_best = sum(abs(xbest), 1);
+
+diagnostic.fhist = fhist;
+diagnostic.fbest = fbest;
+diagnostic.best_indices = best_indices;
+diagnostic.xbest = xbest;
+diagnostic.grad_norm_best = grad_norm_best;
+diagnostic.radius_best = radius_best;
+end
+
+function [best_values, best_indices] = best_so_far_indices(values)
+% Return cumulative minima and their first attaining indices.
+
+values = values(:).';
+best_values = zeros(size(values));
+best_indices = zeros(size(values));
+
+current_best = inf;
+current_index = 1;
+for j = 1:numel(values)
+    if values(j) < current_best
+        current_best = values(j);
+        current_index = j;
+    end
+    best_values(j) = current_best;
+    best_indices(j) = current_index;
+end
+
 end
 
 function f = slow_forcing_objective(x)
-% Objective from the qualitative-forcing counterexample.
+% Objective from the qualitative-forcing construction.
+
 x = x(:);
 f = 0.5 * (x(1)^2 + x(2)^2 + x(1) * x(2));
 end
 
-function f = polynomial_radial_objective(x, q)
-% Objective from the quadratic-forcing counterexamples.
-x = x(:);
-f = norm(x)^q / q;
+function g = quadratic_gradient(x)
+% Gradient of the quadratic objective.  Columns of x are points.
+
+g = [x(1, :) + 0.5 * x(2, :);
+     0.5 * x(1, :) + x(2, :)];
 end
 
 function rho = slow_forcing_rho(alpha)
-% C^1 forcing function rho on [0, infinity).
+% Forcing function rho on [0, infinity).
 %
 % rho(0) = 0,
 % rho(alpha) = alpha / log(e / alpha), 0 < alpha <= 1,
@@ -173,76 +181,51 @@ rho(small) = alpha(small) ./ log(exp(1) ./ alpha(small));
 rho(large) = 2 * alpha(large) - 1;
 end
 
-function print_qualitative_results(results)
-fprintf('\nExample 1: qualitative forcing on a strongly convex quadratic\n');
-for p = 1:numel(results)
-    fprintf('  %-13s: fopt = %.4e, funcCount = %d, exitflag = %d\n', ...
-        results(p).polling, results(p).fopt, results(p).output.funcCount, ...
-        results(p).exitflag);
-end
-print_fhist_difference(results);
-end
-
-function print_quadratic_results(results)
-fprintf('\nExample 2: quadratic forcing on f_q(x) = ||x||^q/q\n');
+function print_results(results)
+fprintf('\nQualitative forcing on the strongly convex quadratic\n');
 for j = 1:numel(results)
-    fprintf(['  q = %-2d: theory exponent = %.4f, fitted exponent = %.4f, ' ...
-        'fopt = %.4e, funcCount = %d, exitflag = %d, alpha0 = %.4e\n'], ...
-        results(j).q, results(j).theoretical_exponent, results(j).fitted_exponent, ...
-        results(j).fopt, results(j).output.funcCount, results(j).exitflag, ...
-        results(j).initial_alpha);
+    d = results(j).diagnostic;
+    fprintf(['  %-22s: best f = %.4e, best ||grad f|| = %.4e, ' ...
+        'best R = %.4e, funcCount = %d, exitflag = %d\n'], ...
+        results(j).name, d.fbest(end), d.grad_norm_best(end), ...
+        d.radius_best(end), results(j).output.funcCount, results(j).exitflag);
 end
-end
-
-function fig = plot_qualitative_forcing_example(results)
-fig = figure('Name', 'Qualitative forcing example', ...
-    'Position', [100, 100, 760, 820]);
-t = tiledlayout(fig, 2, 1, 'TileSpacing', 'compact', 'Padding', 'compact');
-fig.UserData.ExportTarget = t;
-
-nexttile;
-plot_qualitative_objective_history(results);
-
-nexttile;
-plot_qualitative_forcing_function();
+fprintf('\nThe plotted histories are best evaluated histories, not accepted-path histories.\n');
 end
 
-function plot_qualitative_objective_history(results)
-colors = lines(numel(results));
+function fig = plot_single_objective_history(result)
+fig = figure('Name', [result.name, ' objective history'], ...
+    'Visible', 'off', 'Position', [100, 100, 430, 320]);
 
-for p = 1:numel(results)
-    y = max(results(p).fbest, realmin);
-    nfev = 0:(numel(y)-1);
-    x_axis = nfev + 1;
-    loglog(x_axis, y, 'LineWidth', 1.5, ...
-        'Color', colors(p, :), ...
-        'DisplayName', results(p).polling);
-    hold on;
-end
+y = max(result.diagnostic.fbest, realmin);
+x_axis = 1:numel(y);
+loglog(x_axis, y, 'LineWidth', 1.6, ...
+    'DisplayName', result.name);
+hold on;
 
-max_points = max(arrayfun(@(r) numel(r.fbest), results));
-ref_nfev = 0:(max_points-1);
-ref_x = ref_nfev + 1;
-ref_y0 = max(results(1).fbest(1), realmin);
-ref_log = ref_y0 ./ log(exp(1) + ref_nfev).^2;
-ref_poly = ref_y0 ./ ref_x;
+x_ref = x_axis;
+y0 = max(result.diagnostic.fbest(1), realmin);
+ref_log = y0 ./ log(exp(1) + x_ref - 1).^2;
+ref_poly = y0 ./ x_ref;
 
-loglog(ref_x, ref_log, 'k--', 'LineWidth', 1.1, ...
+loglog(x_ref, ref_log, 'k--', 'LineWidth', 1.1, ...
     'DisplayName', '$1/\log^2 N$ reference');
-loglog(ref_x, ref_poly, 'Color', [0.45, 0.45, 0.45], ...
+loglog(x_ref, ref_poly, 'Color', [0.45, 0.45, 0.45], ...
     'LineStyle', ':', 'LineWidth', 1.1, ...
     'DisplayName', '$1/N$ reference');
 
 set(gca, 'XScale', 'log', 'YScale', 'log');
 grid on;
-xlabel('$N+1$', 'Interpreter', 'latex');
-ylabel('$\min_{0\le j\le N} f(y_j)$', 'Interpreter', 'latex');
-title('Evaluated best-so-far objective history', 'Interpreter', 'latex');
+xlabel('Number of evaluations', 'Interpreter', 'latex');
+ylabel('Best evaluated $f$', 'Interpreter', 'latex');
 legend('Location', 'southwest', 'Interpreter', 'latex');
 hold off;
 end
 
-function plot_qualitative_forcing_function()
+function fig = plot_forcing_function_figure()
+fig = figure('Name', 'Qualitative forcing function', ...
+    'Visible', 'off', 'Position', [100, 100, 430, 320]);
+
 alpha = logspace(-8, 0, 1000);
 rho = slow_forcing_rho(alpha);
 
@@ -260,83 +243,8 @@ set(gca, 'XScale', 'log', 'YScale', 'log');
 grid on;
 xlabel('$\alpha$', 'Interpreter', 'latex');
 ylabel('Value', 'Interpreter', 'latex');
-title('Qualitative forcing function', 'Interpreter', 'latex');
 legend('Location', 'northwest', 'Interpreter', 'latex');
 hold off;
-end
-
-function fig = plot_quadratic_forcing_example(results)
-fig = figure('Name', 'Quadratic forcing: compensated polynomial objective histories', ...
-    'Position', [100, 100, 800, 540]);
-t = tiledlayout(fig, 1, 1, 'TileSpacing', 'compact', 'Padding', 'compact');
-fig.UserData.ExportTarget = t;
-nexttile;
-colors = lines(numel(results));
-
-for j = 1:numel(results)
-    y = max(results(j).normalized_fbest, realmin);
-    nfev = 0:(numel(y)-1);
-    x_axis = nfev + 1;
-    compensated_y = x_axis .* y;
-    loglog(x_axis, compensated_y, 'LineWidth', 1.5, ...
-        'Color', colors(j, :), ...
-        'DisplayName', sprintf('$q=%d$', results(j).q));
-    hold on;
-end
-
-max_points = max(arrayfun(@(r) numel(r.normalized_fbest), results));
-ref_x = 1:max_points;
-loglog(ref_x, ones(size(ref_x)), 'k--', 'LineWidth', 1.2, ...
-    'DisplayName', '$1/N$ reference');
-
-set(gca, 'XScale', 'log', 'YScale', 'log');
-grid on;
-xlabel('$N+1$', 'Interpreter', 'latex');
-ylabel('$\frac{(N+1)\min_{0\le j\le N} f(y_j)}{f(x_0)}$', ...
-    'Interpreter', 'latex');
-title('Quadratic forcing on $f_q(x)=\|x\|^q/q$', 'Interpreter', 'latex');
-legend('Location', 'southwest', 'Interpreter', 'latex');
-hold off;
-end
-
-function slope = estimate_loglog_slope(y)
-% Estimate the late-stage log-log slope of a positive history.
-y = max(y(:), realmin);
-x = (1:numel(y))';
-first_index = max(2, floor(0.4 * numel(y)));
-idx = first_index:numel(y);
-p = polyfit(log(x(idx)), log(y(idx)), 1);
-slope = p(1);
-end
-
-function print_fhist_difference(results)
-% Print the first location where the two polling histories differ.
-
-if numel(results) < 2
-    return;
-end
-
-fhist_a = results(1).output.fhist;
-fhist_b = results(2).output.fhist;
-common_length = min(numel(fhist_a), numel(fhist_b));
-idx = find(fhist_a(1:common_length) ~= fhist_b(1:common_length), 1, 'first');
-
-fprintf('\nPolling-history comparison\n');
-if isempty(idx)
-    if numel(fhist_a) == numel(fhist_b)
-        fprintf('  The two fhist arrays are exactly identical.\n');
-    else
-        fprintf('  The common fhist prefix is exactly identical.\n');
-        fprintf('  Lengths differ: %s has %d values; %s has %d values.\n', ...
-            results(1).polling, numel(fhist_a), ...
-            results(2).polling, numel(fhist_b));
-    end
-else
-    fprintf('  First different fhist index: %d\n', idx);
-    fprintf('  %-13s fhist(idx) = %.16e\n', results(1).polling, fhist_a(idx));
-    fprintf('  %-13s fhist(idx) = %.16e\n', results(2).polling, fhist_b(idx));
-    fprintf('  Absolute difference       = %.16e\n', abs(fhist_a(idx) - fhist_b(idx)));
-end
 end
 
 function export_figure(fig, filename)
