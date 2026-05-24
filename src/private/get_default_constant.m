@@ -24,34 +24,14 @@ switch constant_name
         constant_value = "sorted";
     case {"alpha_init"}
         constant_value = 1;
-    case {"ds_expand_small"}
-        constant_value = 1.25;
-    case {"ds_shrink_small"}
-        constant_value = 0.4;
-    case {"ds_expand_small_noisy"}
-        constant_value = 2;
-    case {"ds_shrink_small_noisy"}
+    case {"expand"}
+        constant_value = 1.8;
+    case {"shrink"}
         constant_value = 0.5;
-    case {"ds_expand_big"}
-        constant_value = 1.25;
-    case {"ds_shrink_big"}
-        constant_value = 0.4;
-    case {"ds_expand_big_noisy"}
-        constant_value = 1.25;
-    case {"ds_shrink_big_noisy"}
-        constant_value = 0.4;
-    case {"expand_small"}
-        constant_value = 2;
-    case {"shrink_small"}
+    case {"expand_noisy"}
+        constant_value = 1.5;
+    case {"shrink_noisy"}
         constant_value = 0.5;
-    case {"expand_big"}
-        constant_value = 1.25;
-    case {"shrink_big"}
-        constant_value = 0.65;
-    case {"expand_big_noisy"}
-        constant_value = 1.25;
-    case {"shrink_big_noisy"}
-        constant_value = 0.85;
     case {"is_noisy"}
         constant_value = false;
     case {"forcing_function"}

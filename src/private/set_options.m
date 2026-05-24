@@ -309,45 +309,22 @@ if ~isfield(options, 'is_noisy')
     options.is_noisy = get_default_constant("is_noisy");
 end
 
-% Set the value of expand and shrink according to the dimension of the problem
-% and whether the problem is noisy or not, also according to the Algorithm.
-% n == 1 is treated as a special case, and we consider the Algorithm to be "ds".
-if (isfield(options, "Algorithm") && (strcmpi(options.Algorithm, "ds"))) || n == 1
-    if n <= 5
-        expand = get_default_constant("ds_expand_small");
-        shrink = get_default_constant("ds_shrink_small");
-    else
-        % Judge whether the problem is noisy or not.
-        if isfield(options, "is_noisy") && options.is_noisy
-            expand = get_default_constant("ds_expand_big_noisy");
-            shrink = get_default_constant("ds_shrink_big_noisy");
-        else
-            expand = get_default_constant("ds_expand_big");
-            shrink = get_default_constant("ds_shrink_big");
-        end
-    end
+% Set default expand and shrink values.
+% The defaults depend only on whether the problem is noisy.
+if isfield(options, "is_noisy") && options.is_noisy
+    expand = get_default_constant("expand_noisy");
+    shrink = get_default_constant("shrink_noisy");
 else
-    if n <= 5
-        expand = get_default_constant("expand_small");
-        shrink = get_default_constant("shrink_small");
-    else
-        % Judge whether the problem is noisy or not.
-        if isfield(options, "is_noisy") && options.is_noisy
-            expand = get_default_constant("expand_big_noisy");
-            shrink = get_default_constant("shrink_big_noisy");
-        else
-            expand = get_default_constant("expand_big");
-            shrink = get_default_constant("shrink_big");
-        end
-    end
+    expand = get_default_constant("expand");
+    shrink = get_default_constant("shrink");
 end
 
 % Set the values of options.expand and options.shrink.
-% The values of expand and shrink have been determined earlier based on the problem dimension,
-% whether the problem is noisy, and the selected Algorithm. If the user has not provided values
-% for expand or shrink, the precomputed default values are used. Since the options structure has
-% already been validated by remove_invalid_options, any user-provided values are assumed to be valid
-% and will not be overwritten.
+% The values of expand and shrink have been determined earlier based only on
+% whether the problem is noisy. If the user has not provided values for expand
+% or shrink, the precomputed default values are used. Since the options
+% structure has already been validated by remove_invalid_options, any
+% user-provided values are assumed to be valid and will not be overwritten.
 if ~isfield(options, "expand")
     options.expand = expand;
 end

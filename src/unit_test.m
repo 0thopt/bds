@@ -186,7 +186,7 @@ constant_value = 1e-6;
 verifyEqual(testcase, get_default_constant(constant_name), constant_value)
 
 constant_name = "lipschitz_constant";
-constant_value = 1e-3;
+constant_value = 1e3;
 verifyEqual(testcase, get_default_constant(constant_name), constant_value)
 
 constant_name = "block_visiting_pattern";
@@ -197,60 +197,20 @@ constant_name = "alpha_init";
 constant_value = 1;
 verifyEqual(testcase, get_default_constant(constant_name), constant_value)
 
-constant_name = "ds_expand_small";
-constant_value = 1.25;
+constant_name = "expand";
+constant_value = 1.8;
 verifyEqual(testcase, get_default_constant(constant_name), constant_value)
 
-constant_name = "ds_shrink_small";
-constant_value = 0.4;
-verifyEqual(testcase, get_default_constant(constant_name), constant_value)
-
-constant_name = "ds_expand_small_noisy";
-constant_value = 2;
-verifyEqual(testcase, get_default_constant(constant_name), constant_value)
-
-constant_name = "ds_shrink_small_noisy";
+constant_name = "shrink";
 constant_value = 0.5;
 verifyEqual(testcase, get_default_constant(constant_name), constant_value)
 
-constant_name = "ds_expand_big";
-constant_value = 1.25;
+constant_name = "expand_noisy";
+constant_value = 1.5;
 verifyEqual(testcase, get_default_constant(constant_name), constant_value)
 
-constant_name = "ds_shrink_big";
-constant_value = 0.4;
-verifyEqual(testcase, get_default_constant(constant_name), constant_value)
-
-constant_name = "ds_expand_big_noisy";
-constant_value = 1.25;
-verifyEqual(testcase, get_default_constant(constant_name), constant_value)
-
-constant_name = "ds_shrink_big_noisy";
-constant_value = 0.4;
-verifyEqual(testcase, get_default_constant(constant_name), constant_value)
-
-constant_name = "expand_small";
-constant_value = 2;
-verifyEqual(testcase, get_default_constant(constant_name), constant_value)
-
-constant_name = "shrink_small";
+constant_name = "shrink_noisy";
 constant_value = 0.5;
-verifyEqual(testcase, get_default_constant(constant_name), constant_value)
-
-constant_name = "expand_big";
-constant_value = 1.25;
-verifyEqual(testcase, get_default_constant(constant_name), constant_value)
-
-constant_name = "shrink_big";
-constant_value = 0.65;
-verifyEqual(testcase, get_default_constant(constant_name), constant_value)
-
-constant_name = "expand_big_noisy";
-constant_value = 1.25;
-verifyEqual(testcase, get_default_constant(constant_name), constant_value)
-
-constant_name = "shrink_big_noisy";
-constant_value = 0.85;
 verifyEqual(testcase, get_default_constant(constant_name), constant_value)
 
 constant_name = "is_noisy";
