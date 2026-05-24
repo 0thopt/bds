@@ -3,10 +3,10 @@
 # Define keywords to search for PDF files
 keywords=(
     "plain"
-    "noisy_1_no_rotation"
-    "noisy_2_no_rotation"
-    "noisy_3_no_rotation"
-    "noisy_4_no_rotation"
+    "noisy_0.1_mixed_gaussian"
+    "noisy_0.01_mixed_gaussian"
+    "noisy_0.001_mixed_gaussian"
+    "noisy_0.0001_mixed_gaussian"
     "linearly_transformed"
     "rotation_noisy_1"
     "rotation_noisy_2"
