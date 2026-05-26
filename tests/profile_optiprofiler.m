@@ -330,6 +330,8 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @nomad_test;
             case 'nomad-6'
                 solvers{i} = @nomad_6_test;
+            case 'bds-no-additional-stopping'
+                solvers{i} = @cbds_simplified_test;
             case 'cbds-simplified'
                 solvers{i} = @cbds_simplified_test;
             case 'cbds-orig-termination'
