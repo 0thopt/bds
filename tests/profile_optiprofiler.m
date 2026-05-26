@@ -174,6 +174,8 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
     solvers = cell(1, length(options.solver_names));
     for i = 1:length(options.solver_names)
         switch options.solver_names{i}
+            case 'bds'
+                solvers{i} = @cbds_orig_test;
             case 'our-method'
                 solvers{i} = @cbds_orig_test;
             case 'adaptive-fd-bfgs'
@@ -814,6 +816,8 @@ end
 function x = cbds_test(fun, x0)
 
     option.Algorithm = 'cbds';
+    option.expand = 2;
+    option.shrink = 0.5;
     x = bds(fun, x0, option);
     
 end
