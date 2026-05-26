@@ -175,7 +175,7 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
     for i = 1:length(options.solver_names)
         switch options.solver_names{i}
             case 'bds'
-                solvers{i} = @cbds_orig_test;
+                solvers{i} = @bds_test;
             case 'our-method'
                 solvers{i} = @cbds_orig_test;
             case 'adaptive-fd-bfgs'
@@ -686,6 +686,12 @@ function x = praxis_test(fun, x0)
     funn = @(x, n) fun(x);
     addpath('praxis/matlab');
     [~, x] = praxis(xtol, h0, n, prin, x0, funn);
+end
+
+function x = bds_test(fun, x0)
+
+    x = bds(fun, x0);
+    
 end
 
 function x = ds_orig_test(fun, x0)
