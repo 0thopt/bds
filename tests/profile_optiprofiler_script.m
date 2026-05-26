@@ -1,5 +1,6 @@
 clear all
-options.dim = 'small';
+options.mindim = 2;
+options.maxdim = 50;
 options.plibs = 's2mpj';
 options.feature_name = 'plain';
 % options.n_jobs = 1;
@@ -16,5 +17,5 @@ options.feature_name = 'plain';
 
 % profile_optiprofiler(options);
 
-options.solver_names = {'cbds', 'cbds-orig-direction-set-from-x0'};
+options.solver_names = {'bds', 'ds', 'nelder-mead', 'bfo', 'pds', 'nomad'};
 profile_optiprofiler(options);
