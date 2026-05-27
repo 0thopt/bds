@@ -193,8 +193,12 @@ end
 % If alpha_init is a vector, then the initial step size of the i-th block is set to 
 % alpha_init(i). We first verify it is a numeric vector to avoid accepting strings that happen
 % to have the same length (for example, 'auto' when num_blocks = 4).
-% If alpha_init is "auto", then the initial step size is derived from x0 by using
-% max(abs(x0(i)), options.StepTolerance(i)) for each coordinate, with 1 used when x0(i) = 0.
+% If alpha_init is "auto", then the initial step size in coordinate i is
+% derived from |x0(i)| by a continuous piecewise rule with tau_i =
+% StepTolerance(i):
+%   - linearly connect (0, 1) and (tau_i, tau_i);
+%   - keep |x0(i)| on (tau_i, 1];
+%   - use sqrt(|x0(i)|) when |x0(i)| > 1.
 % This option assumes the default direction set [e_1, -e_1, ..., e_n, -e_n], ordered by
 % coordinates 1, 2, ..., n, with [e_i, -e_i] treated as one block.
 if isfield(options, "alpha_init")
@@ -203,76 +207,10 @@ if isfield(options, "alpha_init")
     elseif isnumvec(options.alpha_init) && (length(options.alpha_init) == options.num_blocks)
         options.alpha_init = options.alpha_init(:);
     elseif strcmpi(options.alpha_init, "auto")
-        % Calculate Smart Alpha
-        % alpha_vec = zeros(n, 1);
-
-        % % Extract nonzero elements to compute the initial-point scale ratio.
-        % abs_x0 = abs(x0);
-        % nonzero_abs_x0 = abs_x0(abs_x0 > 0);
-        % if isempty(nonzero_abs_x0)
-        %     x0_scale_ratio = 1;
-        % else
-        %     x0_scale_ratio = max(nonzero_abs_x0) / min(nonzero_abs_x0);
-        % end
-
-        % for i = 1:n
-        %     abs_x0_i = abs_x0(i);
-        %     % We are handling initialization, where x0 is explicitly provided by the user.
-        %     % Using abs_x0_i == 0 cleanly distinguishes an exact origin input from an intentionally
-        %     % tiny but nonzero initial value.
-        %     if abs_x0_i == 0
-        %         alpha_vec(i) = 1;
-        %     elseif abs_x0_i <= 1
-        %         % For small-scale variables, preserve the original scale with the StepTolerance 
-        %         % as the lower bound to prevent excessively small step sizes that may cause 
-        %         % premature termination.
-        %         alpha_vec(i) = max(abs_x0_i, options.StepTolerance(i));
-        %     else
-        %         % x0_scale_ratio is used as a rough check for differences in variable scales.
-        %         %
-        %         % (x0_scale_ratio <= 100): scales are fairly similar.
-        %         % This is common in benchmark sets such as S2MPJ
-        %         % (https://github.com/GrattonToint/S2MPJ), where x0 may be far from the solution
-        %         % but still have a similar scale in every coordinate
-        %         % (e.g., [1e5, 1e5, ..., 1e5]). In this case, using the full local scale
-        %         % (abs_x0_i) helps keep progress efficient when x0 is large.
-        %         %
-        %         % (x0_scale_ratio > 100): scales differ a lot.
-        %         % This is common in benchmark sets such as MatCUTEst
-        %         % (https://github.com/matcutest), where variables may differ by several orders
-        %         % of magnitude (e.g., [0.02, 4000, 250]). Using abs_x0_i directly can then
-        %         % cause overshooting and too many shrink updates.
-        %         %
-        %         % The logarithmic mapping reduces very large initial steps while preserving
-        %         % monotonic scaling. The "1 +" term keeps the rule C^0 continuous at |x_i| = 1.
-        %         % We use log10 (not ln) because it damps large values more strongly, and
-        %         % base 10 matches orders of magnitude.
-        %         if x0_scale_ratio <= 100
-        %             alpha_vec(i) = abs_x0_i;
-        %         else
-        %             alpha_vec(i) = 1 + log10(abs_x0_i);
-        %         end
-        %     end
-        % end
-
-        % Calculate Smart Alpha
+        % Set the initial step sizes from the coordinate scales of x0.
+        % The rule is continuous at |x0(i)| = tau_i and |x0(i)| = 1.
         alpha_vec = zeros(n, 1);
-
-        % Regularize the coordinate scales by StepTolerance. This gives the
-        % updated scale indicator r_tau(x0), which remains continuous even
-        % when some coordinates of x0 are zero.
         abs_x0 = abs(x0);
-        regularized_abs_x0 = max(abs_x0, options.StepTolerance);
-        x0_scale_ratio_tau = max(regularized_abs_x0) / min(regularized_abs_x0);
-
-        % Map r_tau(x0) to the damping weight lambda_tau(x0).
-        if x0_scale_ratio_tau <= 1e2
-            lambda_tau = 0;
-        elseif x0_scale_ratio_tau >= 1e3
-            lambda_tau = 1;
-        else
-            lambda_tau = log10(x0_scale_ratio_tau) - 2;
-        end
 
         for i = 1:n
             abs_x0_i = abs_x0(i);
@@ -286,14 +224,12 @@ if isfield(options, "alpha_init")
                 % On (tau_i, 1], keep the original coordinate scale.
                 alpha_vec(i) = abs_x0_i;
             else
-                % For large coordinates, interpolate continuously between
-                % linear scaling and logarithmic damping according to the
-                % global scale heterogeneity measured by r_tau(x0).
-                alpha_vec(i) = (1 - lambda_tau) * abs_x0_i + ...
-                    lambda_tau * (1 + log10(abs_x0_i));
+                % For large coordinates, use square-root scaling to moderate
+                % overly large initial steps while preserving monotonicity.
+                alpha_vec(i) = sqrt(abs_x0_i);
             end
         end
-        options.alpha_init=alpha_vec;
+        options.alpha_init = alpha_vec;
     else
         error('BDS:set_options:InvalidAlphaInit', ...
             'options.alpha_init must be a positive scalar, a vector of length options.num_blocks, or "auto".');

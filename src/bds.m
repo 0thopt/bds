@@ -41,11 +41,13 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               initial step size of each block is set to alpha_init. If alpha_init 
 %                               is a vector, then the initial step size of the i-th block is
 %                               set to alpha_init(i). If alpha_init is "auto", then the initial 
-%                               step size is derived from x0 by using
-%                               max(abs(x0(i)), options.StepTolerance(i)) for each coordinate,
-%                               with 1 used when x0(i) = 0. This option assumes the default
-%                               direction set [e_1, -e_1, ..., e_n, -e_n], ordered by coordinates
-%                               1, 2, ..., n, with [e_i, -e_i] treated as one block.
+%                               step size in coordinate i is derived from |x0(i)| by a
+%                               continuous piecewise rule with tau_i = StepTolerance(i):
+%                               linearly connect (0, 1) and (tau_i, tau_i), keep |x0(i)|
+%                               on (tau_i, 1], and use sqrt(|x0(i)|) when |x0(i)| > 1.
+%                               This option assumes the default direction set
+%                               [e_1, -e_1, ..., e_n, -e_n], ordered by coordinates 1, 2,
+%                               ..., n, with [e_i, -e_i] treated as one block.
 %                               Default: 1.
 %   forcing_function            The forcing function used for deciding whether the step achieves a 
 %                               sufficient decrease. forcing_function should be a function handle.

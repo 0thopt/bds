@@ -173,11 +173,8 @@ The following tests are implemented by [Optiprofiler](https://github.com/optipro
 
 - [Tests](https://github.com/0thopt/bds/actions) at [0thopt/bds](https://github.com/0thopt/bds) 
 
-    - [![Profile original cbds with smart alpha init, small, matcutest](https://github.com/0thopt/bds/actions/workflows/profile_cbds_orig_cbds_smart_alpha_init_small_matcutest.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_cbds_orig_cbds_smart_alpha_init_small_matcutest.yml)
     - [![Profile original cbds with smart alpha init, small, s2mpj](https://github.com/0thopt/bds/actions/workflows/profile_cbds_orig_cbds_smart_alpha_init_small_s2mpj.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_cbds_orig_cbds_smart_alpha_init_small_s2mpj.yml)
-    - [![Profile original cbds with smart alpha init, big, matcutest](https://github.com/0thopt/bds/actions/workflows/profile_cbds_orig_cbds_smart_alpha_init_big_matcutest.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_cbds_orig_cbds_smart_alpha_init_big_matcutest.yml)
     - [![Profile original cbds with smart alpha init, big, s2mpj](https://github.com/0thopt/bds/actions/workflows/profile_cbds_orig_cbds_smart_alpha_init_big_s2mpj.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_cbds_orig_cbds_smart_alpha_init_big_s2mpj.yml)
-    - [![Profile original cbds with smart alpha init, large, matcutest](https://github.com/0thopt/bds/actions/workflows/profile_cbds_orig_cbds_smart_alpha_init_large_matcutest.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_cbds_orig_cbds_smart_alpha_init_large_matcutest.yml)
     - [![Profile original cbds with smart alpha init, large, s2mpj](https://github.com/0thopt/bds/actions/workflows/profile_cbds_orig_cbds_smart_alpha_init_large_s2mpj.yml/badge.svg)](https://github.com/0thopt/bds/actions/workflows/profile_cbds_orig_cbds_smart_alpha_init_large_s2mpj.yml)
 
  

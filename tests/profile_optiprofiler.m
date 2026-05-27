@@ -176,6 +176,10 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
         switch options.solver_names{i}
             case 'bds'
                 solvers{i} = @bds_test;
+            case 'bds-default'
+                solvers{i} = @bds_default;
+            case 'bds-scaled'
+                solvers{i} = @bds_scaled;
             case 'our-method'
                 solvers{i} = @cbds_orig_test;
             case 'adaptive-fd-bfgs'
@@ -1396,6 +1400,23 @@ function x = cbds_orig_smart_alpha_init_test(fun, x0)
 
     option.alpha_init = 'auto';
 
+    x = bds(fun, x0, option);
+    
+end
+
+function x = bds_default(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    x = bds(fun, x0, option);
+    
+end
+
+function x = bds_scaled(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.alpha_init = 'auto';
     x = bds(fun, x0, option);
     
 end
