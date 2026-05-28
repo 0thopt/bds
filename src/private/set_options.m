@@ -194,11 +194,11 @@ end
 % alpha_init(i). We first verify it is a numeric vector to avoid accepting strings that happen
 % to have the same length (for example, 'auto' when num_blocks = 4).
 % If alpha_init is "auto", then the initial step size in coordinate i is
-% derived from |x0(i)| by a continuous piecewise rule with tau_i =
-% StepTolerance(i):
-%   - linearly connect (0, 1) and (tau_i, tau_i);
-%   - keep |x0(i)| on (tau_i, 1];
-%   - use sqrt(|x0(i)|) when |x0(i)| > 1.
+% derived from |x0(i)| and StepTolerance(i). Zero coordinates receive a
+% neutral step size 1. Small nonzero coordinates keep their scale, bounded
+% below by StepTolerance(i). Large coordinates keep their scale when the
+% nonzero coordinates of x0 are comparable. Otherwise, logarithmic damping is
+% used for large coordinates.
 % This option assumes the default direction set [e_1, -e_1, ..., e_n, -e_n], ordered by
 % coordinates 1, 2, ..., n, with [e_i, -e_i] treated as one block.
 if isfield(options, "alpha_init")
@@ -208,25 +208,28 @@ if isfield(options, "alpha_init")
         options.alpha_init = options.alpha_init(:);
     elseif strcmpi(options.alpha_init, "auto")
         % Set the initial step sizes from the coordinate scales of x0.
-        % The rule is continuous at |x0(i)| = tau_i and |x0(i)| = 1.
         alpha_vec = zeros(n, 1);
-        abs_x0 = abs(x0);
+        abs_x0 = abs(x0(:));
+        tau = options.StepTolerance(:);
+
+        nonzero_abs_x0 = abs_x0(abs_x0 > 0);
+        if isempty(nonzero_abs_x0)
+            x0_scale_ratio = 1;
+        else
+            x0_scale_ratio = max(nonzero_abs_x0) / min(nonzero_abs_x0);
+        end
 
         for i = 1:n
             abs_x0_i = abs_x0(i);
-            tau_i = options.StepTolerance(i);
 
-            if abs_x0_i <= tau_i
-                % Connect (0, 1) and (tau_i, tau_i) linearly so that exact
-                % zeros and tiny nonzero entries are treated continuously.
-                alpha_vec(i) = 1 - ((1 - tau_i) / tau_i) * abs_x0_i;
+            if abs_x0_i == 0
+                alpha_vec(i) = 1;
             elseif abs_x0_i <= 1
-                % On (tau_i, 1], keep the original coordinate scale.
+                alpha_vec(i) = max(abs_x0_i, tau(i));
+            elseif x0_scale_ratio <= 1e2
                 alpha_vec(i) = abs_x0_i;
             else
-                % For large coordinates, use square-root scaling to moderate
-                % overly large initial steps while preserving monotonicity.
-                alpha_vec(i) = sqrt(abs_x0_i);
+                alpha_vec(i) = 1 + log(abs_x0_i);
             end
         end
         options.alpha_init = alpha_vec;
