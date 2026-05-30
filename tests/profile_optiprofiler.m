@@ -1,6 +1,12 @@
 function [solver_scores, profile_scores] = profile_optiprofiler(options)
     clc
 
+    path_tests = fileparts(mfilename('fullpath'));
+    path_competitors = fullfile(path_tests, 'competitors');
+    if exist(path_competitors, 'dir')
+        addpath(path_competitors);
+    end
+
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Example 1 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -174,6 +180,10 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
     solvers = cell(1, length(options.solver_names));
     for i = 1:length(options.solver_names)
         switch options.solver_names{i}
+            case 'bds-infinite'
+                solvers{i} = @bds_default;
+            case 'bds-finite'
+                solvers{i} = @bds_tmp_test;
             case 'bds'
                 solvers{i} = @bds_test;
             case 'bds-default'
@@ -389,13 +399,9 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
         case 'quantized'
             options.benchmark_id = [options.benchmark_id, '_', options.feature_name, '_', int2str(int32(-log10(options.mesh_size)))];
         case 'random_nan'
-            % Since the nan_rate should be in the range of [0, 1], we will discuss in two cases: one is nan_rate < 0.1, 
-            % the other is nan_rate >= 0.1.
-            if options.nan_rate < 0.1
-                options.benchmark_id = [options.benchmark_id, '_', options.feature_name, '_0', int2str(int32(options.nan_rate * 100))];
-            else
-                options.benchmark_id = [options.benchmark_id, '_', options.feature_name, '_', int2str(int32(options.nan_rate * 100))];
-            end
+            nan_rate_pct = round(100 * options.nan_rate);
+            nan_rate_str = sprintf('%02d', nan_rate_pct);
+            options.benchmark_id = [options.benchmark_id, '_', options.feature_name, '_pct', nan_rate_str];
         case 'perturbed_x0'
             options.benchmark_id = [options.benchmark_id, '_', options.feature_name];
             % For perturbed_x0, we will only use decimal notation to express the perturbation level in benchmark_id.
@@ -1418,5 +1424,20 @@ function x = bds_scaled(fun, x0)
     option.shrink = 0.5;
     option.alpha_init = 'auto';
     x = bds(fun, x0, option);
+    
+end
+
+function x = bds_tmp_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    x = bds(@finite_barrier_fun, x0, option);
+
+    function f = finite_barrier_fun(x)
+        f = fun(x);
+        if isnan(f)
+            f = 1e30;
+        end
+    end
     
 end
