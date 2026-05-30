@@ -6,5 +6,5 @@ options.feature_name = 'plain';
 
 options.solver_names = {'bds', 'ds', 'nelder-mead', 'bfo', 'pds', 'nomad'};
 options.solver_names = {'BDS-scaled', 'BDS-default'};
-options.solver_names = {'bds-infinite', 'bds-finite'};
+options.solver_names = {'bds', 'bds-simplified'};
 profile_optiprofiler(options);
