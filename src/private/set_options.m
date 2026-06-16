@@ -62,7 +62,6 @@ field_list = {
     'output_grad_hist'
     'iprint'
     'debug_flag'
-    'gradient_estimation_complete' % Internal flag used in bds.m logic
     };
 
 % Get the field names of options and convert to cell array of strings.
@@ -273,7 +272,8 @@ end
 
 % The above procedures handle some fields that depend on problem-specific information and are not
 % determined solely by user input.
-% We define a list of fields that have been handled manually above.
+% We define a list of fields that are either handled manually above or should not
+% be filled by get_default_constant.
 manual_fields = {'MaxFunctionEvaluations', 'Algorithm', 'direction_set', 'num_blocks', ...
                 'StepTolerance', 'batch_size', 'replacement_delay', 'block_visiting_pattern', ...
                 'alpha_init', 'is_noisy', 'expand', 'shrink', 'grouped_direction_indices'};

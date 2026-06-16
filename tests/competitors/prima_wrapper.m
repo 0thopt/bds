@@ -31,10 +31,7 @@ else
     % 0. More absolute value of iprint, more information will be printed on command
     % window. When the value of iprint is negative, no information will be
     % printed on command window and will be stored in a file.
-    % options.iprint = 0;
-    if isfield(options, "iprint")
-        options.iprint = options.iprint;
-    else
+    if ~isfield(options, "iprint")
         options.iprint = 0;
     end
 
@@ -65,4 +62,3 @@ else
 end
 
 end
-

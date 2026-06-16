@@ -8,11 +8,10 @@ function [exitflag] = get_exitflag(information)
 %                                   is below StepTolerance.
 %   SMALL_OBJECTIVE_CHANGE          The change of the function value is small.
 %   SMALL_ESTIMATE_GRADIENT         The estimated gradient is small.
-%   GRADIENT_ESTIMATION_COMPLETED   The gradient estimation is completed.
 
-% Check whether INFORMATION is a string or not.
-if ~isstring(information)
-    error("Information is not a string.");
+% Check whether INFORMATION is a char or string.
+if ~ischarstr(information)
+    error("Information is not a char or string.");
 end
 
 switch information
@@ -28,20 +27,18 @@ switch information
         exitflag = 4;
     case "SMALL_ESTIMATE_GRADIENT"
         exitflag = 5;
-    case "GRADIENT_ESTIMATION_COMPLETE"
-        exitflag = 6;
     otherwise
         exitflag = nan;
 end
 
 if isempty(exitflag) || isnan(exitflag)
     exitflag = nan;
-    disp("New break condition happens."); 
+    disp("New break condition happens.");
 end
 
 % Check whether EXITFLAG is an integer or not.
 if ~isintegerscalar(exitflag)
     error("Exitflag is not an integer.");
-end 
+end
 
 end

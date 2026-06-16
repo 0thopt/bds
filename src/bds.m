@@ -2,7 +2,7 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %BDS solves unconstrained optimization problems without using derivatives by
 %blockwise direct search methods.
 %
-%   BDS supports in MATLAB R2017b or later.
+%   BDS supports MATLAB R2017b or later.
 %
 %   XOPT = BDS(FUN, X0) returns an approximate minimizer XOPT of the function
 %   FUN, starting the calculations at X0. FUN must accept a vector input X and
@@ -20,7 +20,7 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %   expand                      Expanding factor of step size. A real number no less than 1. 
 %                               It depends on the dimension of the problem and whether the problem 
 %                               is noisy or not and the Algorithm. 
-%                               Default: 2.
+%                               Default: 1.8.
 %   shrink                      Shrinking factor of step size. A positive number less than 1. It 
 %                               depends on the dimension of the problem and whether the problem is 
 %                               noisy or not and the Algorithm. 
@@ -104,9 +104,6 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               'random'   (The selected blocks will be visited in a random order)
 %                               'parallel' (The selected blocks will be visited in parallel)
 %                               Default: 'sorted'.
-%                               See divide_direction_set.m for details.
-%                               It should be strictly less than StepTolerance.
-%                               A positive number. Default: 1e-3*StepTolerance.
 %   is_noisy                    A flag deciding whether the problem is noisy or not. The value of 
 %                               is_noisy will be only used to determine the values of expand and 
 %                               shrink now.
@@ -116,7 +113,7 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %   cycling_inner               Cycling strategy employed within each block. It is used only when 
 %                               polling_inner is "opportunistic". It can be 0, 1, 2, 3. 
 %                               See cycling.m for details.
-%                               Default: 3.
+%                               Default: 1.
 %   seed                        The seed for the random number generator. It should be a 
 %                               non-negative integer in the range [0, 2^32 - 1]. If not provided, 
 %                               the random number generator will be initialized using the 'shuffle'
@@ -131,7 +128,7 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               Default: -Inf.
 %   StepTolerance               Termination threshold for step size. The algorithm terminates
 %                               when the step size for each block falls below their corresponding
-%                               value. It can be a positive scalar (applied to all blocks) or a
+%                               value. It can be a nonnegative scalar (applied to all blocks) or a
 %                               vector with length equal to the number of blocks.
 %                               Default: 1e-6.
 %   use_function_value_stop     Whether to use the function value to stop the algorithm. If it is 
@@ -210,16 +207,15 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %   [XOPT, FOPT] = BDS(...) returns an approximate minimizer XOPT and its function value FOPT.
 %
 %   [XOPT, FOPT, EXITFLAG] = BDS(...) also returns an EXITFLAG that indicates the exit
-%   condition. The possible values of EXITFLAG are 0, 1, 2, 3, 4, 5, and 6, corresponding to the 
+%   condition. The possible values of EXITFLAG are 0, 1, 2, 3, 4, and 5, corresponding to the
 %   following exit conditions.
 %
-%   0    The StepTolerance of the step size is reached.
-%   1    The target of the objective function is reached.
-%   2    The maximum number of function evaluations is reached.
-%   3    The maximum number of iterations is reached.
+%   0    The target of the objective function is reached.
+%   1    The maximum number of function evaluations is reached.
+%   2    The maximum number of iterations is reached.
+%   3    The StepTolerance of the step size is reached.
 %   4    The change of the function value is small.
 %   5    The estimated gradient is small.
-%   6    The gradient estimation is completed.
 %
 %   [XOPT, FOPT, EXITFLAG, OUTPUT] = BDS(...) returns a
 %   structure OUTPUT with the following fields.
@@ -260,7 +256,7 @@ if ~isrealvector(x0)
     error("BDS:InvalidInput", "x0 should be a real vector.");
 end
 
-% Transpose x0 if it is a row.
+% Convert x0 to a double column vector.
 x0_is_row = isrow(x0);
 x0 = double(x0(:));
 
@@ -366,9 +362,6 @@ output_grad_hist = options.output_grad_hist;
 
 iprint = options.iprint;
 
-% Internal: gradient_estimation_complete
-gradient_estimation_complete = options.gradient_estimation_complete;
-
 % Initialize gradient history variables and info structure.
 % grad_info.step_size_per_batch stores step sizes for the batch_size blocks 
 % visited in the current iteration (used for gradient estimation).
@@ -454,14 +447,14 @@ end
 xbase = xopt;
 fbase = fopt;
 
-%Initialize the number of blocks visited.
+% Initialize the number of blocks visited.
 num_visited_blocks = 0;
 
 % fopt_all(i) stores the best function value found in the i-th block after one iteration,
 % while xopt_all(:, i) holds the corresponding x. If a block is not visited during the iteration,
-% fopt_all(i) is set to nan. Both fopt_all and xopt_all have a length of num_blocks, not batch_size,
-% as not all blocks might not be visited in each iteration, but the best function value across all
-% blocks must still be recorded.
+% fopt_all(i) is set to nan. fopt_all is a vector of length num_blocks, and xopt_all is an
+% n-by-num_blocks matrix. Not all blocks are necessarily visited in each iteration, but the best
+% function value and corresponding point across all blocks must still be recorded.
 fopt_all = nan(1, num_blocks);
 xopt_all = nan(n, num_blocks);
 
@@ -471,8 +464,8 @@ for iter = 1:maxit
     % and the order in which they will be visited during the current iteration.
     % The length of block_indices is equal to batch_size.
     % These blocks should not have been visited in the previous replacement_delay
-    % iterations when the replacement_delay is nonnegative.
-    unavailable_block_indices = unique(block_hist(max(1, (iter-replacement_delay) * batch_size) : ...
+    % iterations. Each completed iteration contributes batch_size entries to block_hist.
+    unavailable_block_indices = unique(block_hist(max(1, (iter - replacement_delay - 1) * batch_size + 1) : ...
                                 (iter-1) * batch_size), 'stable');
     available_block_indices = setdiff(1:num_blocks, unavailable_block_indices);
 
@@ -482,7 +475,6 @@ for iter = 1:maxit
                     batch_size));
 
     % Compute the direction selection probability matrix.
-    % TODO: where to change there?
     direction_selection_probability_matrix = get_direction_probability_matrix(n, batch_size, ...
                                             grouped_direction_indices, available_block_indices);
     grad_info.direction_selection_probability_matrix = direction_selection_probability_matrix;
@@ -716,13 +708,6 @@ for iter = 1:maxit
             % occurs in the current iteration iter.
             grad_iter = [grad_iter, iter];
 
-            % When gradient_estimation_complete is true, we check whether the estimated gradient is
-            % from the first iteration. If it is not, the solver will terminate.
-            if gradient_estimation_complete && iter > 1
-                terminate = true;
-                exitflag = get_exitflag("gradient_estimation_complete");
-            end
-
             if use_estimated_gradient_stop
 
                 % Compute the gradient error bound.
@@ -794,7 +779,7 @@ if output_block_hist
     output.blocks_hist = block_hist(1:num_visited_blocks);
 end
 if output_alpha_hist
-    output.alpha_hist = alpha_hist(:, 1:min(iter, maxit));
+    output.alpha_hist = alpha_hist;
 end
 if output_xhist
     output.xhist = xhist(:, 1:nf);
@@ -807,7 +792,6 @@ if output_grad_hist
 end
 
 output.fhist = fhist(1:nf);
-% output.alpha_final = alpha_all;
 
 % Set the message according to exitflag.
 switch exitflag
@@ -823,8 +807,6 @@ switch exitflag
         output.message = "The change of the function value is small.";
     case get_exitflag("SMALL_ESTIMATE_GRADIENT")
         output.message = "The estimated gradient is small.";
-    case get_exitflag("GRADIENT_ESTIMATION_COMPLETED")
-        output.message = "The gradient estimation is completed.";
     otherwise
         output.message = "Unknown exitflag";
 end

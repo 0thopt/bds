@@ -11,7 +11,7 @@ on:
 jobs:
   test:
     name: Stress test
-    runs-on: ${{matrix.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:

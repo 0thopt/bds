@@ -39,7 +39,7 @@ else
 
     % Determine whether the direction set contains nan or Inf values and replace those
     % elements with 0.
-    if any(isnan(direction_set) | isinf(direction_set), "all")
+    if any(isnan(direction_set(:)) | isinf(direction_set(:)))
         warning("Some directions contain nan or inf, which are replaced with 0.");
         direction_set(isnan(direction_set) | isinf(direction_set)) = 0;
     end
@@ -101,7 +101,7 @@ else
         % properties in the R matrix:
         % 1. The diagonal elements of R are monotonically decreasing.
         % 2. {R_ii}^2 >= sum_{j = i}^{n} {R_kj}^2, where k = i+1, ..., m.
-        [Q, R, p] = qr(direction_set, "vector");
+        [Q, R, p] = qr(direction_set, 'vector');
         num_directions = size(direction_set, 2);
         is_independent = (abs(diag(R)) >= 1e-10);
         % Record the indices of the maximal linearly independent subset in options.direction_set as 
@@ -146,4 +146,3 @@ D(:, 1:2:2*n-1) = direction_set;
 D(:, 2:2:2*n) = -direction_set;
 
 end
-

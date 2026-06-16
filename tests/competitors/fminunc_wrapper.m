@@ -37,7 +37,7 @@ function x = fminunc_wrapper(fun, x0, options)
     end
     
     % Set the options of fminunc.
-    options = optimoptions("fminunc", ...
+    optim_options = optimoptions("fminunc", ...
         "Algorithm", "quasi-newton", ...
         "HessUpdate", "bfgs", ...
         "MaxFunctionEvaluations", MaxFunctionEvaluations, ...
@@ -51,7 +51,7 @@ function x = fminunc_wrapper(fun, x0, options)
     fun_inner = @(x) fun_wrapper(fun, x, with_gradient, noise_level);
     
     % Call fminunc
-    x = fminunc(fun_inner, x0, options);
+    x = fminunc(fun_inner, x0, optim_options);
     
     end
     

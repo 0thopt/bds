@@ -11,7 +11,7 @@ on:
 jobs:
   test:
     name: Test the correctness of gradient estimation
-    runs-on: ${{matrix.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
@@ -43,9 +43,8 @@ jobs:
           command: |
             root_dir = pwd()
 
-            % Change the directory to the folder where the test_gradient.m is located
-            path_test_gradient = fullfile(root_dir, 'src', 'private');
-            cd(path_test_gradient);
+            % Add the directory where test_gradient.m is located
+            addpath(fullfile(root_dir, 'src', 'private'));
 
             % Run gradient test
             test_gradient();

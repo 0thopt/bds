@@ -5,13 +5,14 @@ function setup(varargin)
 %
 %   This script can be called in the following ways.
 %
-%   setup % Add the paths needed to use the package
+%   setup  % Add the paths needed to use the package
+%   setup install  % Add the paths needed to use the package
 %   setup uninstall  % Uninstall the package
 %
 %   REMARKS:
 %
-%   To run this script, you need to have write access to the directory that contains this script 
-%   and its subdirectories.
+%   To make the setup persistent across MATLAB sessions, this script needs write access to the
+%   system path definition file or to the user's startup.m file.
 %
 %   ***********************************************************************
 %   Authors:    Haitian LI (hai-tian.li@connect.polyu.hk)
@@ -28,7 +29,7 @@ function setup(varargin)
 
 % setup starts
 
-% path_stringName of the package. It will be used as a stamp to be included in the path_strings. 
+% Name of the package. It will be used as a stamp in startup.m path entries.
 % Needed only if `savepath` fails.
 package_name = "bds";
 
@@ -97,56 +98,61 @@ return
 function path_saved = add_save_path(path_strings, path_string_stamp)
 %This function is based on https://github.com/libprima/prima/blob/main/setup.m, by Zaikun Zhang.
 %ADD_SAVE_PATH adds the paths indicated by PATH_STRINGS to the MATLAB path and then tries saving the paths.
-% PATH_STRING_STAMP is a stamp used when writing PATH_STRINGS to the user"s startup.m file, which is
+% PATH_STRING_STAMP is a stamp used when writing PATH_STRINGS to the user's startup.m file, which is
 % needed only if `savepath` fails.
 
 for i = 1:length(path_strings)
-
     if ~exist(path_strings{i}, "dir")
         error("bds:PathNotExist", "The string %s does not correspond to an existing directory.", path_strings{i});
     end
-    
+
     addpath(path_strings{i});
-    
-    % Try saving the path in the system path-defining file at sys_pathdef. If the user does not have
-    % writing permission for this file, then the path will not saved.
-    % N.B. Do not save the path to the pathdef.m file under userpath. This file is not loaded by default
-    % at startup. See
-    % https://www.mathworks.com/matlabcentral/answers/269482-is-userdata-pathdef-m-for-local-path-additions-supported-on-linux
-    orig_warning_state = warning;
-    warning("off", "MATLAB:SavePath:PathNotSaved"); % Maybe we do not have the permission to save path
-    sys_pathdef = fullfile(matlabroot(), "toolbox", "local", "pathdef.m");
-    path_saved = (savepath(sys_pathdef) == 0);
-    warning(orig_warning_state); % Restore the behavior of displaying warnings
-    
-    % If path not saved, try editing the startup.m of this user. Do this only if userpath is nonempty.
-    % Otherwise, we will only get a startup.m in the current directory, which will not be executed
-    % when MATLAB starts from other directories. On Linux, the default value of userpath is
-    % ~/Documents/MATLAB, but it will be "" if this directory does not exist. We refrain from creating
-    % this directory in that case.
-    if ~path_saved && numel(userpath) > 0
-        user_startup = fullfile(userpath, "startup.m");
+end
+
+% Try saving the path in the system path-defining file at sys_pathdef. If the user does not have
+% writing permission for this file, then the path will not saved.
+% N.B. Do not save the path to the pathdef.m file under userpath. This file is not loaded by default
+% at startup. See
+% https://www.mathworks.com/matlabcentral/answers/269482-is-userdata-pathdef-m-for-local-path-additions-supported-on-linux
+orig_warning_state = warning;
+warning("off", "MATLAB:SavePath:PathNotSaved"); % Maybe we do not have the permission to save path
+sys_pathdef = fullfile(matlabroot(), "toolbox", "local", "pathdef.m");
+path_saved = (savepath(sys_pathdef) == 0);
+warning(orig_warning_state); % Restore the behavior of displaying warnings
+
+% If path not saved, try editing the startup.m of this user. Do this only if userpath is nonempty.
+% Otherwise, we will only get a startup.m in the current directory, which will not be executed
+% when MATLAB starts from other directories. On Linux, the default value of userpath is
+% ~/Documents/MATLAB, but it will be "" if this directory does not exist. We refrain from creating
+% this directory in that case.
+if ~path_saved && numel(userpath) > 0
+    user_startup = fullfile(userpath, "startup.m");
+    path_saved = true;
+
+    for i = 1:length(path_strings)
         add_path_string = sprintf("addpath(""%s"");", path_strings{i});
         full_add_path_string = sprintf("%s\t%s %s", add_path_string, "%", path_string_stamp);
-    
+
         % First, check whether full_add_path_string already exists in user_startup or not.
         if exist(user_startup, "file")
             startup_text_cells = regexp(fileread(user_startup), "\n", "split");
-            path_saved = any(strcmp(startup_text_cells, full_add_path_string));
+            full_add_path_string_exists = any(strcmp(startup_text_cells, full_add_path_string));
+        else
+            startup_text_cells = {};
+            full_add_path_string_exists = false;
         end
-    
-        if ~path_saved
+
+        if ~full_add_path_string_exists
             % We first check whether the last line of the user startup script is an empty line (or the
             % file is empty or even does not exist at all). If yes, we do not need to put a line break
             % before the path adding string.
             if exist(user_startup, "file")
-                startup_text_cells = regexp(fileread(user_startup), "\n", "split");
                 last_line_empty = isempty(startup_text_cells) || (isempty(startup_text_cells{end}) && ...
                     isempty(startup_text_cells{max(1, end-1)}));
             else
                 last_line_empty = true;
             end
-    
+
             file_id = fopen(user_startup, "a");  % Open/create file for writing. Append data to the end.
             if file_id ~= -1 % If FOPEN cannot open the file, it returns -1; We keep silent if it fails.
                 if ~last_line_empty  % The last line of user_startup is not empty
@@ -154,13 +160,17 @@ for i = 1:length(path_strings)
                 end
                 fprintf(file_id, "%s", full_add_path_string);
                 fclose(file_id);
-                % Check that full_add_path_string is indeed added to user_startup.
-                if exist(user_startup, "file")
-                    startup_text_cells = regexp(fileread(user_startup), "\n", "split");
-                    path_saved = any(strcmp(startup_text_cells, full_add_path_string));
-                end
             end
         end
+
+        % Check that full_add_path_string is indeed added to user_startup.
+        if exist(user_startup, "file")
+            startup_text_cells = regexp(fileread(user_startup), "\n", "split");
+            full_add_path_string_exists = any(strcmp(startup_text_cells, full_add_path_string));
+        else
+            full_add_path_string_exists = false;
+        end
+        path_saved = path_saved && full_add_path_string_exists;
     end
 end
 
@@ -191,13 +201,14 @@ function uninstall_bds(path_string_stamp)
     warning("off", "MATLAB:rmpath:DirNotFound"); % Maybe the paths were not added. We do not want to see this warning.
     warning("off", "MATLAB:SavePath:PathNotSaved"); % Maybe we do not have the permission to save path.
     rmpath(src, examples, tests);
-    savepath;
+    sys_pathdef = fullfile(matlabroot(), "toolbox", "local", "pathdef.m");
+    savepath(sys_pathdef);
     warning(orig_warning_state); % Restore the behavior of displaying warnings
     
     % Removing the line possibly added to the user startup script
-    user_startup = fullfile(userpath,"startup.m");
+    user_startup = fullfile(userpath, "startup.m");
     if exist(user_startup, "file")
-        for i = 1:length(path_strings) 
+        for i = 1:length(path_strings)
             add_path_string = sprintf("addpath(""%s"");", path_strings{i});
             full_add_path_string = sprintf("%s\t%s %s", add_path_string, "%", path_string_stamp);
             try
@@ -221,15 +232,15 @@ function [action, wrong_input] = parse_input(argin)
     %by Zaikun Zhang.
     %PARSE_INPUT parses the input to the setup script.
     
-    % Compilation options.
-    action_list = ["all", "uninstall"];
-    action = "compile";
+    % Setup actions.
+    action_list = ["install", "uninstall"];
+    action = "install";
     wrong_input = false;
 
     % Start the parsing to set `input_string` and `options`.
-    input_string = "all";  % Default value for `input_string`.
+    input_string = "install";  % Default value for `input_string`.
     if length(argin) > 1
-        fprintf("\nSetup accepts at most one inputs.\n\n");
+        fprintf("\nSetup accepts at most one input.\n\n");
         wrong_input = true;
     elseif length(argin) == 1
         if ischarstr(argin{1})
@@ -268,11 +279,13 @@ function del_str_ln(filename, string)
     
     % Read the file into a cell of strings
     data = textscan(fid, "%s", "delimiter", "\n", "whitespace", "");
-    fclose(fid);
+    if fclose(fid) ~= 0
+        warning("Failed to close file %s.", filename);
+    end
     cstr = data{1};
     
-    % Remove the rows containing string
-    cstr(strcmp(cstr, string)) = [];
+    % Remove the rows containing string, ignoring leading and trailing whitespaces.
+    cstr(strcmp(strtrim(cstr), strtrim(string))) = [];
     
     % Save the file again
     fid = fopen(filename, "w");  % Open/create new file for writing. Discard existing contents, if any.
@@ -280,7 +293,9 @@ function del_str_ln(filename, string)
         error("Cannot open file %s.", filename);
     end
     fprintf(fid, "%s\n", cstr{:});
-    fclose(fid);
+    if fclose(fid) ~= 0
+        warning("Failed to close file %s.", filename);
+    end
     
     return
 

@@ -1,10 +1,10 @@
 function verify_bds(parameters)
-% This function tests the latest version of the BDS solver against its development version,
-% verifying whether they produce consistent results on CUTEst problems.
+% This function compares bds with bds_norma, verifying whether they produce consistent results on
+% CUTEst/S2MPJ problems.
 %
 % where
-% - `Algorithm` is the name of the Algorithm to test, including "cbds", "ds", "rbds".
-%   If it is not provided, then the default Algorithm is "cbds", which is the default Algorithm of BDS.
+% - `Algorithm` is the name of the algorithm to test, including "cbds", "ds", "rbds", and "pads".
+%   If it is not provided, then the default algorithm of BDS is used.
 % - `problem_names` are the names of the problems to test.
 % - `n_runs` is the index of the first random run in iseqiv.m. Default is 1.
 % - `num_random` is the number of random runs in iseqiv.m. Default is 20.

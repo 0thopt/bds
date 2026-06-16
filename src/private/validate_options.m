@@ -37,12 +37,16 @@ end
 
 % StepTolerance
 if isfield(options, 'StepTolerance')
+    if isfield(options, 'num_blocks')
+        expected_step_tolerance_length = options.num_blocks;
+    else
+        expected_step_tolerance_length = n;
+    end
     if ~((isrealscalar(options.StepTolerance) && options.StepTolerance >= 0) || ...
          (isnumvec(options.StepTolerance) && all(options.StepTolerance >= 0) && ...
-          length(options.StepTolerance) <= n && ...
-          (~isfield(options, 'num_blocks') || length(options.StepTolerance) <= options.num_blocks)))
-        error(['options.StepTolerance must be a positive scalar or a positive vector with length ' ...
-               'not exceeding n (and not exceeding options.num_blocks if provided).']);
+          length(options.StepTolerance) == expected_step_tolerance_length))
+        error(['options.StepTolerance must be a nonnegative scalar or a nonnegative vector with length ' ...
+               'equal to n (or options.num_blocks if provided).']);
     end
 end
 
@@ -158,7 +162,7 @@ if isfield(options, 'grouped_direction_indices')
             end
             total_directions = total_directions + length(group);
         end
-        if isfield(options, 'grouped_direction_indices') && total_directions ~= n
+        if total_directions ~= n
             error('The sum of the lengths of all indices in options.grouped_direction_indices must equal n.');
         end
     end

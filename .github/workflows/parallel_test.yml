@@ -26,7 +26,7 @@ on:
         required: false
 
 # Show the git ref in the workflow name if it is invoked manually.
-run-name: ${{ github.event_name == 'workflow_dispatch' && format('Manual run {0} , seed {1}, dimension {2}, {3} parallel calls', inputs.git-ref, inputs.random-seed, inputs.dimension, inputs.np) || '' }}
+run-name: ${{ github.event_name == 'workflow_dispatch' && format('Manual run {0}, seed {1}, dimension {2}, {3} parallel calls', inputs.git-ref, inputs.random-seed, inputs.dimension, inputs.np) || '' }}
 
 env:
     GFORTRAN_VERSION: 12
@@ -74,7 +74,7 @@ jobs:
           key: ${{ matrix.os }}-${{ matrix.matlab }}-yes
 
       - name: Set up MATLAB with optimization toolbox and parallel computing toolbox
-        uses: matlab-actions/setup-matlab@v2.2.0
+        uses: matlab-actions/setup-matlab@v2.1.2
         with:
           release: ${{ matrix.matlab }}
           products: Optimization_Toolbox Parallel_Computing_Toolbox
@@ -90,13 +90,13 @@ jobs:
             cd(fullfile(root_dir, 'tests'));
             options = struct();
             if ~isempty('${{ inputs.random-seed }}')
-                options.seed = str2num('${{ inputs.random-seed }}');
+                options.seed = str2double('${{ inputs.random-seed }}');
             end
             if ~isempty('${{ inputs.dimension }}')
-                options.n = str2num('${{ inputs.dimension }}');
+                options.n = str2double('${{ inputs.dimension }}');
             end
             if ~isempty('${{ inputs.np }}')
-                options.np = str2num('${{ inputs.np }}');
+                options.np = str2double('${{ inputs.np }}');
             end
             options
             % Conduct the test multiple times. Some errors may not occur during the first test.
@@ -123,7 +123,7 @@ jobs:
         with:
           path: |
             matlab_crash_dump*
-  # The following job check whether the tests were successful or cancelled due to timeout.
+  # The following job checks whether the tests were successful or cancelled due to timeout.
   # N.B.: Remember to specify `continue-on-error: true` for the job of the tests.
   check_success_timeout:
     runs-on: ubuntu-latest

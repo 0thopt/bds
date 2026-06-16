@@ -5,7 +5,7 @@ function testbds(release, precision, nrun)
 %
 %   Note: Do NOT follow the syntax here when you use bds. This file is
 %   written for testing purpose, and it uses quite atypical syntax. See
-%   rosenbrock_example.m for an illustration about how to use prima.
+%   rosenbrock_example.m for an illustration about how to use bds.
 %
 %   ***********************************************************************
 %   Authors:    Haitian Li (hai-tian.li@connect.polyu.hk)
@@ -17,8 +17,6 @@ function testbds(release, precision, nrun)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Attribute: public (can be called directly by users)
-%
-% TODO: None
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 all_Algorithms =  {'pbds', 'cbds', 'ds', 'rbds'};
@@ -43,8 +41,8 @@ x0_list = {zeros(2,1), zeros(2,1), zeros(3,1), zeros(4,1)};
 fopt_list = {-1.913222954981037, ... %mcc
               0, ... %hmlb
               0, ... %chrosen
- 			  0 %chebquad
- 			};
+              0 %chebquad
+            };
 
 %xopt_list = {{[-0.547197554599523; -1.547197552199337], [-1.4849642130761465e-01; -0.5], [0.267825716190182; 0], [0.267825716190182; 0]}, ... %mcc
 %			  {[3; 2], [0.5; 0.5], [1; 0], [0.773622934941950; 0.633646237684564]}, ... %hmlb
@@ -93,7 +91,7 @@ for irun = 1 : nrun
             xs = bds(problem.objective, problem.x0, problem.options);
 
             if ~release
-                fprintf('\nsolver = %s,\tfun = %s,\t\tfx = %.16e,\t\tfopt = %.16e\n', solver, func2str(fun), fx, fopt);
+                fprintf('\nAlgorithm = %s,\tfun = %s,\t\tfx = %.16e,\t\tfopt = %.16e\n', Algorithm, func2str(fun), fx, fopt);
             end
 
             if strcmpi(Algorithm, "pbds") || strcmpi(Algorithm, "rbds")
@@ -111,9 +109,6 @@ for irun = 1 : nrun
         end
     end
 
-    if ~release((fx-fopt)/max(1, abs(fopt)) > precision)
-        fprintf('\n\n');
-    end
     fprintf ('Succeed.\n\n');
 
     fprintf('All tests were successful.\n\n');

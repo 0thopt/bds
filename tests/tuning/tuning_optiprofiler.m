@@ -1,6 +1,11 @@
 function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, options)
 
     clc
+    path_tuning = fileparts(mfilename('fullpath'));
+    path_tools = fullfile(fileparts(path_tuning), 'tools');
+    if exist(path_tools, 'dir')
+        addpath(path_tools);
+    end
     options.n_jobs = 1; % Set the number of jobs to 1 for the seed to be consistent.
     n_solvers = length(options.solver_names);
     solvers = cell(1, n_solvers);
@@ -69,52 +74,23 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
         error('Please provide the feature name');
     end
     if startsWith(options.feature_name, 'noisy')
-        if sum(options.feature_name == '_') > 0
-            options.noise_level = 10.^(str2double(options.feature_name(end-1:end)));
-        else
-            options.noise_level = 1e-3;
-        end
+        options.noise_level = parse_feature_value(options.feature_name, 1e-3);
         options.feature_name = 'noisy';
     end 
     if startsWith(options.feature_name, 'rotation_noisy')
-        options.noise_level = 10.^(str2double(options.feature_name(end-1:end)));
+        options.noise_level = parse_feature_value(options.feature_name, 1e-3);
         options.feature_name = 'custom';
     end
     if startsWith(options.feature_name, 'permuted_noisy')
-        if sum(options.feature_name == '_') > 0
-            options.noise_level = 10.^(str2double(options.feature_name(end-1:end)));
-        else
-            options.noise_level = 1e-3;
-        end
+        options.noise_level = parse_feature_value(options.feature_name, 1e-3);
         options.feature_name = 'custom';
         options.permuted = true;
     end
     if startsWith(options.feature_name, 'truncated')
-        if sum(options.feature_name == '_') > 0
-            options.significant_digits = str2double(options.feature_name(end));
-        else
-            options.significant_digits = 6;
-        end
-        switch options.significant_digits
-            % Why we set the noise level like this? See the link below:
-            % https://github.com/Lht97/to_do_list. 
-            case 1
-                options.noise_level = 10^(-1) / (2 * sqrt(3));
-            case 2
-                options.noise_level = 10^(-2) / (2 * sqrt(3));
-            case 3
-                options.noise_level = 10^(-3) / (2 * sqrt(3));
-            case 4
-                options.noise_level = 10^(-4) / (2 * sqrt(3));                
-            case 5
-                options.noise_level = 10^(-5) / (2 * sqrt(3));
-            case 6
-                options.noise_level = 10^(-6) / (2 * sqrt(3));
-            case 7
-                options.noise_level = 10^(-7) / (2 * sqrt(3));
-            case 8
-                options.noise_level = 10^(-8) / (2 * sqrt(3));
-        end
+        options.significant_digits = parse_feature_value(options.feature_name, 6);
+        % Why we set the noise level like this? See the link below:
+        % https://github.com/Lht97/to_do_list.
+        options.noise_level = 10^(-options.significant_digits) / (2 * sqrt(3));
         options.feature_name = 'truncated';
     end
     if startsWith(options.feature_name, 'quantized')
@@ -147,7 +123,7 @@ function [solver_scores, profile_scores] = tuning_optiprofiler(parameters, optio
     if ~isfield(options, 'solver_verbose')
         options.solver_verbose = 2;
     end
-    time_str = char(datetime('now', 'Format', 'yy_MM_dd_HH_mm'));
+    time_str = char(datetime('now', 'Format', 'yy_MM_dd_HH_mm_ss'));
     options.silent = false;
     options.ptype = 'u';
     if isfield(options, 'problem_names')

@@ -37,6 +37,7 @@ classdef ScalarFunction < handle
             %   returns the gradient of the function.
             %
             %   F = OBJ.FUN(X) returns the function evaluation at X.
+            g = [];
             f = obj.userFun(x);
             obj.nEval = obj.nEval+1;
             if obj.storeHist

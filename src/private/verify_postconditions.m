@@ -8,7 +8,7 @@ if ~isrealvector(xopt)
 end
 
 % Verify whether fopt is a real number.
-if ~(isrealscalar(fopt))
+if ~isrealscalar(fopt)
     error("fopt is not a real number.");
 end
 
@@ -16,12 +16,12 @@ end
 % For CUTest problem, function handle only accept column vector (if a row vector is input,
 % the value is not correct). Remember that eval_fun needs to accept both function handle
 % and point as input. eval_fun(xopt) is definitely wrong!
-if ~(eval_fun(fun, xopt) == fopt) 
+if eval_fun(fun, xopt) ~= fopt
     error("fun(xopt) is not equal to fopt.");
 end
 
 % Verify whether exitflag is an integer.
-if ~(isintegerscalar(exitflag))
+if ~isintegerscalar(exitflag)
     error("exitflag is not an integer.");
 end
 
@@ -35,7 +35,7 @@ if ~(isintegerscalar(nf) && nf > 0)
 end
 
 % Verify whether output is a structure.
-if ~(isstruct(output))
+if ~isstruct(output)
     error("output is not a structure.");
 end
 
@@ -53,8 +53,8 @@ nhist = length(fhist);
 
 if isfield(output, "xhist")
     xhist = output.xhist;
-    % Verify whether xhist is a real matrix of size.
-    if ~(isrealmatrix(xhist) && any(size(xhist) == [length(xopt), nhist]))
+    % Verify whether xhist is a real matrix of the expected size.
+    if ~(isrealmatrix(xhist) && all(size(xhist) == [length(xopt), nhist]))
         error("output.xhist is not a real matrix.");
     end
     

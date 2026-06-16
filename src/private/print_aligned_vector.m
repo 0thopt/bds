@@ -4,7 +4,7 @@ function print_aligned_vector(x)
     
 % Check whether the input is a vector.
 if ~isnumvec(x)
-    error('Input X must be a column vector!');
+    error('Input X must be a numeric vector.');
 end
 
 % The maximum number of elements displayed in each row.

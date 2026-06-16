@@ -88,7 +88,8 @@ jobs:
           find . -type f -name 'summary.pdf' | while read -r file; do
             parent_dir=$(dirname "$file")
             parent_name=$(basename "$parent_dir")
-            new_name=$(echo "$parent_name" | awk -F'_' '{if(NF>=5) {for(i=1;i<=NF-5;i++) printf "%s%s", $i, (i<NF-5?"_":"")} else print $0}')
+            # Strip the trailing timestamp from the profile directory name.
+            new_name=$(bash "$GITHUB_WORKSPACE/tests/tools/strip_profile_timestamp.sh" "$parent_name")
             dir_name=$(dirname "$file")
             new_file="$dir_name/summary_$new_name.pdf"
             if [ "$file" != "$new_file" ]; then

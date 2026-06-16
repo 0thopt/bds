@@ -11,7 +11,7 @@ on:
 jobs:
   test:
     name: Unit test
-    runs-on: ${{matrix.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
@@ -48,4 +48,4 @@ jobs:
             cd(path_src);
 
             % Run unit test
-            results = runtests(path_src)
+            results = runtests('unit_test.m')

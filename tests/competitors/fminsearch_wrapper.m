@@ -23,14 +23,13 @@ else
         tol = get_default_constant("StepTolerance");
     end
 
-    options = optimset("MaxFunEvals", MaxFunctionEvaluations, "maxiter", 10^20, "tolfun", eps, "tolx", tol);
+    optim_options = optimset("MaxFunEvals", MaxFunctionEvaluations, "maxiter", 10^20, "tolfun", eps, "tolx", tol);
 
     % [X,FVAL,EXITFLAG,OUTPUT] = fminsearch(FUN, x0, options)
-    [x, ~, ~, ~] = fminsearch(FUN, x0, options);
+    [x, ~, ~, ~] = fminsearch(FUN, x0, optim_options);
     
 end
 
 
 
 end
-

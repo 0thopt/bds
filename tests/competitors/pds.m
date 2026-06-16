@@ -1,13 +1,13 @@
 function [xopt, fopt, exitflag, output] = pds(fun, x0, options)
-%DSPD (direct search probabilistic descent) solves unconstrained optimization problems without using derivatives.
+%PDS solves unconstrained optimization problems without using derivatives.
 %
 %   It is supported in MATLAB R2017b or later.
 %
-%   XOPT = BDS(FUN, X0) returns an approximate minimizer XOPT of the function handle FUN, starting the
+%   XOPT = PDS(FUN, X0) returns an approximate minimizer XOPT of the function handle FUN, starting the
 %   calculations at X0. FUN must accept input X and return a scalar, which is the function value
 %   evaluated at X. X0 should be a vector.
 %
-%   XOPT = BDS(FUN, X0, OPTIONS) performs the computations with the options in OPTIONS. It should be a
+%   XOPT = PDS(FUN, X0, OPTIONS) performs the computations with the options in OPTIONS. It should be a
 %   structure, with the following fields:
 %
 %   num_blocks                      Number of blocks.
@@ -28,7 +28,7 @@ function [xopt, fopt, exitflag, output] = pds(fun, x0, options)
 %                                   the history or not.
 %   cycling_inner                   Cycling strategy employed in the opportunistic case.
 %   accept_simple_decrease          Whether the algorithm accepts simple decrease or not.
-%   Algorithm                       Algorithm of BDS. It can be "cbds", "pbds", "rbds", "ds".
+%   Algorithm                       Algorithm name. This option is kept for consistency with bds.
 %                                   Use Algorithm not algorithm to have the same name as MATLAB.
 %   shuffling_period                A positive integer. This is only used for PBDS, which shuffles the blocks
 %                                   every shuffling_period iterations.
@@ -40,10 +40,10 @@ function [xopt, fopt, exitflag, output] = pds(fun, x0, options)
 %   output_alpha_hist               Whether the history of step sizes is returned or not.
 %   output_block_hist               Whether the history of blocks visited is returned or not.
 %
-%   [XOPT, FOPT] = BDS(...) also returns the value of the objective function FUN at the
+%   [XOPT, FOPT] = PDS(...) also returns the value of the objective function FUN at the
 %   solution XOPT.
 %
-%   [XOPT, FOPT, EXITFLAG] = BDS(...) returns an EXITFLAG that describes the exit
+%   [XOPT, FOPT, EXITFLAG] = PDS(...) returns an EXITFLAG that describes the exit
 %   condition. The possible values of EXITFLAG are 0, 1, 2, 3.
 %
 %   0    The StepTolerance of the step size is reached.
@@ -51,7 +51,7 @@ function [xopt, fopt, exitflag, output] = pds(fun, x0, options)
 %   2    The target of the objective function is reached.
 %   3    The maximum number of iterations is reached.
 %
-%   [XOPT, FOPT, EXITFLAG, OUTPUT] = BDS(...) returns a
+%   [XOPT, FOPT, EXITFLAG, OUTPUT] = PDS(...) returns a
 %   structure OUTPUT with the following fields:
 %
 %   fhist        History of function values.
@@ -309,11 +309,6 @@ for iter = 1:maxit
 
     [sub_xopt, sub_fopt, sub_exitflag, sub_output] = inner_direct_search(fun, xbase,...
         fbase, D, 1:size(D, 2), alpha, suboptions);
-
-    % Update the history of step size.
-    if output_alpha_hist
-        alpha_hist(:, iter) = alpha_all;
-    end
 
     % Store the history of the evaluations by inner_direct_search,
     % and accumulate the number of function evaluations.

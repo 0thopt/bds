@@ -364,9 +364,6 @@ output_grad_hist = options.output_grad_hist;
 
 iprint = options.iprint;
 
-% Internal: gradient_estimation_complete
-gradient_estimation_complete = options.gradient_estimation_complete;
-
 % Initialize gradient history variables and info structure.
 % grad_info.step_size_per_batch stores step sizes for the batch_size blocks 
 % visited in the current iteration (used for gradient estimation).
@@ -469,8 +466,8 @@ for iter = 1:maxit
     % and the order in which they will be visited during the current iteration.
     % The length of block_indices is equal to batch_size.
     % These blocks should not have been visited in the previous replacement_delay
-    % iterations when the replacement_delay is nonnegative.
-    unavailable_block_indices = unique(block_hist(max(1, (iter-replacement_delay) * batch_size) : ...
+    % iterations. Each completed iteration contributes batch_size entries to block_hist.
+    unavailable_block_indices = unique(block_hist(max(1, (iter - replacement_delay - 1) * batch_size + 1) : ...
                                 (iter-1) * batch_size), 'stable');
     available_block_indices = setdiff(1:num_blocks, unavailable_block_indices);
 
@@ -714,13 +711,6 @@ for iter = 1:maxit
             % occurs in the current iteration iter.
             grad_iter = [grad_iter, iter];
 
-            % When gradient_estimation_complete is true, we check whether the estimated gradient is
-            % from the first iteration. If it is not, the solver will terminate.
-            if gradient_estimation_complete && iter > 1
-                terminate = true;
-                exitflag = get_exitflag("gradient_estimation_complete");
-            end
-
             if use_estimated_gradient_stop
 
                 % Compute the gradient error bound.
@@ -792,7 +782,7 @@ if output_block_hist
     output.blocks_hist = block_hist(1:num_visited_blocks);
 end
 if output_alpha_hist
-    output.alpha_hist = alpha_hist(:, 1:min(iter, maxit));
+    output.alpha_hist = alpha_hist;
 end
 if output_xhist
     output.xhist = xhist(:, 1:nf);
@@ -821,8 +811,6 @@ switch exitflag
         output.message = "The change of the function value is small.";
     case get_exitflag("SMALL_ESTIMATE_GRADIENT")
         output.message = "The estimated gradient is small.";
-    case get_exitflag("GRADIENT_ESTIMATION_COMPLETED")
-        output.message = "The gradient estimation is completed.";
     otherwise
         output.message = "Unknown exitflag";
 end

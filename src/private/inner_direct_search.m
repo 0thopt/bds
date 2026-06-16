@@ -47,11 +47,11 @@ invalid_points = [];
 for j = 1 : num_directions
 
     % Evaluate the objective function for the current polling direction.
-    xnew = xbase+alpha*D(:, j);
+    xnew = xbase + alpha * D(:, j);
     % fnew_real is the real function value at xnew, which is the value returned by fun 
     % (not fnew).
     [fnew, fnew_real, is_valid] = eval_fun(fun, xnew);
-    nf = nf+1;
+    nf = nf + 1;
     % When we record the function value, we use the real function value.
     % Here, we should use fnew_real instead of fnew.
     fhist(nf) = fnew_real;
@@ -122,7 +122,7 @@ end
 % decrease condition or other criteria.
 terminate = (fnew <= ftarget || nf >= MaxFunctionEvaluations);
 if fnew <= ftarget
-    exitflag = get_exitflag( "FTARGET_REACHED");
+    exitflag = get_exitflag("FTARGET_REACHED");
 elseif nf >= MaxFunctionEvaluations
     exitflag = get_exitflag("MAXFUN_REACHED");
 end

@@ -71,7 +71,8 @@ function tough_problem = tough(problem, random_seed, noise_level, with_failure)
     
     % Set the random seed.
     orig_rng_state = rng();
-    rseed = max(0, min(2^32 - 1, random_seed + sum(num2str(f, 16)) + sum(num2str(x, 16), "all")));
+    x_code = num2str(x, 16);
+    rseed = max(0, min(2^32 - 1, random_seed + sum(num2str(f, 16)) + sum(x_code(:))));
     rng(rseed);
     
     % Contaminate f. The value will be further modified below.

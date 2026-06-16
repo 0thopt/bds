@@ -3,8 +3,12 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
 
     path_tests = fileparts(mfilename('fullpath'));
     path_competitors = fullfile(path_tests, 'competitors');
+    path_tools = fullfile(path_tests, 'tools');
     if exist(path_competitors, 'dir')
         addpath(path_competitors);
+    end
+    if exist(path_tools, 'dir')
+        addpath(path_tools);
     end
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -43,21 +47,7 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
         options.savepath = fullfile(fileparts(mfilename('fullpath')), 'testdata');
     end
     if contains(options.feature_name, 'noisy')
-        if sum(options.feature_name == '_') > 0
-            % Find the position of the last underscore
-            underscore_pos = find(options.feature_name == '_', 1, 'last');
-            % Extract the part after the last underscore as noise level. If the part
-            % contains 'e', it means the noise level is written in scientific notation.
-            % If the part does not contain 'e', it means the noise level is written in
-            % decimal notation.
-            if contains(options.feature_name(underscore_pos + 1:end), 'e')
-                options.noise_level = 10.^(str2double(options.feature_name(end-1:end)));
-            else
-                options.noise_level = str2double(options.feature_name(underscore_pos + 1:end));
-            end
-        else
-            options.noise_level = 1e-3;
-        end
+        options.noise_level = parse_feature_value(options.feature_name, 1e-3);
         if startsWith(options.feature_name, 'permuted_noisy')
             options.feature_name = 'custom';
             options.permuted = true;
@@ -68,11 +58,7 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
         end
     end
     if startsWith(options.feature_name, 'truncated')
-        if sum(options.feature_name == '_') > 0
-            options.significant_digits = str2double(options.feature_name(end));
-        else
-            options.significant_digits = 6;
-        end
+        options.significant_digits = parse_feature_value(options.feature_name, 6);
         % Actually, the way of truncating the function value is to
         % Truncate to n significant figures and round off the last digit, which
         % can be regarded as some kind of noise. The minimum value should be
@@ -152,7 +138,7 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
     if ~isfield(options, 'solver_verbose')
         options.solver_verbose = 2;
     end
-    time_str = char(datetime('now', 'Format', 'yy_MM_dd_HH_mm'));
+    time_str = char(datetime('now', 'Format', 'yy_MM_dd_HH_mm_ss'));
     options.silent = false;
     options.ptype = 'u';
     if isfield(options, 'dim')
@@ -371,7 +357,6 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
     else
         options.benchmark_id = [options.benchmark_id, '_', num2str(options.mindim), '_', num2str(options.maxdim), '_', num2str(options.n_runs)];
     end
-    options.benchmark_id = [options.benchmark_id, '_', num2str(options.mindim), '_', num2str(options.maxdim), '_', num2str(options.n_runs)];
     switch options.feature_name
         case 'noisy'
             % If the noise level is written in scientific notation, we will use the power to express the noise level in benchmark_id.

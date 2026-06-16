@@ -42,8 +42,7 @@ end
 % Set seed using pname, n, ir, ftarget, and options.Algorithm. We use the seed to make the test reproducible for 
 % randomized algorithms (including pads, pbds and rbds).
 if isfield(options, 'Algorithm')
-    seed = max(0, min(2^32 - 1,  sum(pname) + n + ir + test_options.ftarget + str2double(options.Algorithm) ...
-    + norm(p.x0)));
+    seed = make_iseqiv_seed(pname, n, ir, test_options.ftarget, options.Algorithm, p.x0);
     test_options.seed = seed;
 end
 
@@ -115,18 +114,12 @@ end
 solver1 = str2func(solvers{1});
 solver2 = str2func(solvers{2});
 
-test_row_x = (rand > 0.5);
-if ~endsWith(solvers{1}, '_norma')
-    if test_row_x
-        p.x0 = p.x0';
-        p.objective = @(x) p.objective(x');
-    end
-end
-if ~endsWith(solvers{2}, '_norma')
-    if test_row_x
-        p.x0 = p.x0';
-        p.objective = @(x) p.objective(x');
-    end
+% Randomly pass x0 as a row vector. Solvers should preserve the input shape
+% externally while using column vectors internally when needed.
+if rand > 0.5
+    objective = p.objective;
+    p.x0 = p.x0';
+    p.objective = @(x) objective(x');
 end
 %tic;
 [x1, fx1, exitflag1, output1] = solver1(p.objective, p.x0, test_options);
@@ -205,8 +198,6 @@ function eq = iseq(x, f, exitflag, output, xx, ff, ee, oo, prec)
     end
     
     return
-
-
 
 
 

@@ -1,5 +1,5 @@
 function [f, f_real, is_valid] = eval_fun(fun, x)
-%EVAL_FUN evaluates function FUN at point X, returning f and f_real.
+%EVAL_FUN evaluates function FUN at point X, returning f, f_real, and is_valid.
 %   f_real is the real function value (raw output), potentially NaN or Inf.
 %   f is the moderated version used by the optimization algorithm.
 %   is_valid is a boolean indicating whether the evaluation was successful.
@@ -34,33 +34,3 @@ end
 % (Inf vs NaN) in failure regions.
 
 end
-
-% function [f, f_real, is_valid] = eval_fun(fun, x)
-% %EVAL_FUN evaluates function FUN at point X, returning f and f_real.
-% %   f_real is the real function value, while f is a moderated version of f_real.
-% %   The moderation is to handle nan, huge values, and evaluation failures. The 
-% %   algorithm will operate on f, while f_real is used for recording the history.
-
-% is_valid = true;
-
-% try
-%     f_real = fun(x);
-% catch
-%     warning('The function evaluation failed.');
-%     f_real = nan;
-%     is_valid = false;
-% end
-
-% % Apply the moderate extreme barrier to handle nan, huge values, and evaluation failures.
-% % See 4.5 of "PDFO: A Cross-Platform Package for Powell's Derivative-Free Optimization Solvers" 
-% % by Tom M. Ragonneau and Zaikun Zhang.
-% if isnan(f_real)
-%     f = 1e30;
-% else
-%     f = f_real;
-% end
-% % f = min([f_real, 1e30, sqrt(realmax())]);
-
-% end
-
-% TODO: return those points where the function evaluation failed or return nan.

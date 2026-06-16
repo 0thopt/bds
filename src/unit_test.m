@@ -106,7 +106,7 @@ end
 end
 
 function eval_fun_test(testcase)
-%EVAL_fun_TEST tests the file private/eval_fun.m.
+%EVAL_FUN_TEST tests the file private/eval_fun.m.
 
 n = randi([1, 100]);
 x = randn(n, 1);
@@ -260,10 +260,6 @@ constant_name = "debug_flag";
 constant_value = false;
 verifyEqual(testcase, get_default_constant(constant_name), constant_value)
 
-constant_name = "gradient_estimation_complete";
-constant_value = false;
-verifyEqual(testcase, get_default_constant(constant_name), constant_value)
-
 end
 
 function get_exitflag_test(testcase)
@@ -293,9 +289,29 @@ information = "SMALL_ESTIMATE_GRADIENT";
 EXITFLAG = 5;
 verifyEqual(testcase, get_exitflag(information), EXITFLAG)
 
-information = "GRADIENT_ESTIMATION_COMPLETE";
-EXITFLAG = 6;
-verifyEqual(testcase, get_exitflag(information), EXITFLAG)
+end
+
+function validate_options_test(testcase)
+%VALIDATE_OPTIONS_TEST tests the file private/validate_options.m.
+
+n = 3;
+
+options = struct();
+options.StepTolerance = [1e-6, 1e-6];
+did_error = false;
+try
+    validate_options(options, n);
+catch
+    did_error = true;
+end
+verifyTrue(testcase, did_error)
+
+options.StepTolerance = [1e-6, 1e-6, 1e-6];
+validate_options(options, n);
+
+options.num_blocks = 2;
+options.StepTolerance = [1e-6, 1e-6];
+validate_options(options, n);
 
 end
 
@@ -402,8 +418,8 @@ for ii = 1:n
 end
 verifyEqual(testcase, get_direction_set(n, options), D)
 
-%The following example is based on https://github.com/libprima/prima/blob/main/matlab/tests/testprima.m, 
-%which is written by Zaikun Zhang.
+% The following example is based on https://github.com/libprima/prima/blob/main/matlab/tests/testprima.m, 
+% which is written by Zaikun Zhang.
 function [f, g, H]=chrosen(x)
 %CHROSEN calculates the function value, gradient, and Hessian of the
 %   Chained Rosenbrock function.
@@ -489,6 +505,26 @@ options.batch_size = 3;
 [~, fopt, ~, ~] = bds(@chrosen, x0, options);
 if abs(fopt) > 1e-8
     error('The function value is not close to 0.');
+end
+
+% Test that replacement_delay excludes blocks visited in previous iterations.
+delay_options = struct();
+delay_options.num_blocks = 4;
+delay_options.batch_size = 2;
+delay_options.replacement_delay = 1;
+delay_options.output_block_hist = true;
+delay_options.MaxFunctionEvaluations = 80;
+delay_options.ftarget = -inf;
+delay_options.seed = 1;
+[~, fopt, ~, output] = bds(@(x) sum(x.^2), ones(4, 1), delay_options);
+if abs(fopt) > 1e-8
+    error('The function value is not close to 0.');
+end
+block_hist = output.blocks_hist;
+num_iters = floor(length(block_hist) / delay_options.batch_size);
+block_hist = reshape(block_hist(1:delay_options.batch_size*num_iters), delay_options.batch_size, num_iters)';
+for k = 2:num_iters
+    verifyEmpty(testcase, intersect(block_hist(k, :), block_hist(k-1, :)))
 end
 
 % Test the case where the batch_size is 3 and the block_visiting_pattern is "sorted".
