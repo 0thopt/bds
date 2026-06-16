@@ -43,8 +43,9 @@ jobs:
           command: |
             root_dir = pwd()
 
-            % Add the directory where test_gradient.m is located
-            addpath(fullfile(root_dir, 'src', 'private'));
+            % Change the directory to the folder where test_gradient.m is located
+            path_test_gradient = fullfile(root_dir, 'src', 'private');
+            cd(path_test_gradient);
 
             % Run gradient test
             test_gradient();
