@@ -328,8 +328,8 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @fmds_test;
             case 'nomad'
                 solvers{i} = @nomad_test;
-            case 'nomad-6'
-                solvers{i} = @nomad_6_test;
+            case {'lean-evolved-bds', 'evolved-bds-lean'}
+                solvers{i} = @lean_evolved_bds_test;
             case 'bds-no-additional-stopping'
                 solvers{i} = @cbds_simplified_test;
             case 'bds-simplified'
@@ -1320,9 +1320,19 @@ function x = nomad_test(fun, x0)
     ub = inf(n, 1);
 
     % Set MAXFUN to the maximum number of function evaluations.
-    MaxFunctionEvaluations = 500*n;
+    MaxFunctionEvaluations = 200*n;
 
-    params = struct('MAX_BB_EVAL', num2str(MaxFunctionEvaluations), 'max_eval',num2str(MaxFunctionEvaluations));
+    % We deliberately do not set MIN_FRAME_SIZE or MIN_MESH_SIZE here. In
+    % NOMAD 4, their parameter documentation says "No default value"; during
+    % parameter checking, however, undefined minimum frame/mesh sizes are
+    % internally expanded to 0 for continuous variables, or to granularity
+    % for granular variables. For our continuous unconstrained CUTEst/S2MPJ
+    % tests, leaving them unset is therefore equivalent to using 0, so NOMAD
+    % will not stop early at a positive mesh/frame tolerance such as 1e-6.
+    % This matches the Python PyNomad wrapper, where only MAX_BB_EVAL and
+    % display/output parameters are supplied.
+    params = struct('BB_OUTPUT_TYPE', 'OBJ', ...
+    'MAX_BB_EVAL', num2str(MaxFunctionEvaluations), 'max_eval',num2str(MaxFunctionEvaluations));
 
     % As of NOMAD version 4.4.0 and OptiProfiler commit 24d8cc0, the following line is 
     % necessary. Otherwise, NOMAD will throw an error, complaining that the blackbox 
@@ -1336,31 +1346,10 @@ function x = nomad_test(fun, x0)
     
 end
 
-function x = nomad_6_test(fun, x0)
-    
-    % Dimension:
-    n = numel(x0);
+function x = lean_evolved_bds_test(fun, x0)
 
-    % Set the default bounds.
-    lb = -inf(n, 1);
-    ub = inf(n, 1);
+    x = lean_evolved_bds(fun, x0);
 
-    % Set MAXFUN to the maximum number of function evaluations.
-    MaxFunctionEvaluations = 500*n;
-
-    params = struct('min_frame_size','* 0.000001', 'min_mesh_size', '* 0.000001', ...
-    'MAX_BB_EVAL', num2str(MaxFunctionEvaluations), 'max_eval',num2str(MaxFunctionEvaluations));
-
-    % As of NOMAD version 4.4.0 and OptiProfiler commit 24d8cc0, the following line is 
-    % necessary. Otherwise, NOMAD will throw an error, complaining that the blackbox 
-    % evaluation fails. This seems to be because OptiProfiler wraps the function 
-    % handle in a way that NOMAD does not expect: NOMAD expects a function handle 
-    % `fun` with the signature fun(x), where x is a column vector, while OptiProfiler 
-    % produces one with the signature @(varargin)featured_problem.fun(varargin{:}).
-    fun = @(x) fun(x(:));
-
-    [x, ~, ~, ~, ~] = nomadOpt(fun,x0,lb,ub,params);
-    
 end
 
 function x = cbds_simplified_test(fun, x0)
