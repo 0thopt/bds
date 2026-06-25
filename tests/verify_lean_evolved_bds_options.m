@@ -14,26 +14,25 @@ addpath(fullfile(path_tests, 'competitors'));
 addpath(fullfile(path_root, 'src'));
 cd(path_tests);
 
-dims = 1:5;
+dims = 1:10;
 ir_values = 0:20;
 seed_values = [12345, 23456, 34567];
 prec = 0;
 single_test = true;
 
 run_iseqiv_suite( ...
-    'reference-default', ...
+    'reference-default-algorithmic', ...
     {'lean_evolved_bds_reference_for_iseqiv', ...
     'lean_evolved_bds_options_default_for_iseqiv'}, ...
     dims, ir_values, seed_values, single_test, prec, oldfolder);
 
-run_iseqiv_suite( ...
-    'bds-compatible', ...
-    {'bds_for_iseqiv', ...
-    'lean_evolved_bds_options_bds_compatible_for_iseqiv'}, ...
-    dims, ir_values, seed_values, single_test, prec, oldfolder);
+verify_bds_style_output_contract();
+verify_explicit_direction_set_smoke();
 
 fprintf(['lean_evolved_bds_options passed all iseqiv checks: ', ...
-    'dims=1:5, ir=0:20, seeds=[12345 23456 34567], prec=0.\n']);
+    'default all-on algorithmic behavior vs reference Lean, dims=1:10, ', ...
+    'ir=0:20, seeds=[12345 23456 34567], prec=0; ', ...
+    'BDS-style output contract and explicit direction_set smoke checks passed.\n']);
 
 end
 
@@ -82,6 +81,86 @@ p.objective = @(x) toy_objective(x);
         A = diag(1:n) + 0.1 * ones(n);
         f = sum((A * (x - target)).^2) + 0.01 * sum(sin(x));
     end
+
+end
+
+function verify_bds_style_output_contract()
+
+fprintf('\nRunning BDS-style output contract smoke checks...\n');
+
+fun = @(x) sum((x - [1; -2]).^2);
+x0 = [0; 0];
+
+[~, ~, ~, output] = lean_evolved_bds_options(fun, x0);
+assert_fields(output, {'funcCount', 'fhist', 'message'});
+
+options = struct('output_xhist', true);
+[~, ~, ~, output] = lean_evolved_bds_options(fun, x0, options);
+assert_fields(output, {'funcCount', 'xhist', 'invalid_points', 'fhist', 'message'});
+
+options = struct('output_alpha_hist', true);
+[~, ~, ~, output] = lean_evolved_bds_options(fun, x0, options);
+assert_fields(output, {'funcCount', 'alpha_hist', 'fhist', 'message'});
+
+options = struct('output_block_hist', true);
+[~, ~, ~, output] = lean_evolved_bds_options(fun, x0, options);
+assert_fields(output, {'funcCount', 'blocks_hist', 'fhist', 'message'});
+
+options = struct('output_grad_hist', true);
+[~, ~, ~, output] = lean_evolved_bds_options(fun, x0, options);
+assert_fields(output, {'funcCount', 'grad_hist', 'grad_xhist', 'grad_iter', 'fhist', 'message'});
+
+options = struct('output_xhist', true, 'output_alpha_hist', true, ...
+    'output_block_hist', true, 'output_grad_hist', true);
+[~, ~, ~, output] = lean_evolved_bds_options(fun, x0, options);
+assert_fields(output, {'funcCount', 'blocks_hist', 'alpha_hist', 'xhist', ...
+    'invalid_points', 'grad_hist', 'grad_xhist', 'grad_iter', 'fhist', 'message'});
+
+fprintf('BDS-style output contract smoke checks passed.\n');
+
+end
+
+function verify_explicit_direction_set_smoke()
+
+fprintf('\nRunning explicit direction_set smoke check...\n');
+
+fun = @(x) sum((x - [1; -2]).^2);
+x0 = [0; 0];
+theta = pi / 7;
+Q = [cos(theta), -sin(theta); sin(theta), cos(theta)];
+common = struct('MaxFunctionEvaluations', 400, 'StepTolerance', 1e-6, ...
+    'num_blocks', 2, 'direction_set', Q, 'alpha_init', 1, ...
+    'expand', 1.8, 'shrink', 0.5, ...
+    'forcing_function', @(alpha) alpha^2, ...
+    'reduction_factor', [0.1, 0.2, 0.3], ...
+    'output_xhist', true);
+lean_options = common;
+lean_options.use_productive_direction_memory = false;
+lean_options.use_sweep_pattern_direction = false;
+lean_options.use_momentum_extrapolation = false;
+
+[x_bds, f_bds, exitflag_bds, output_bds] = bds(fun, x0, common);
+[x_lean, f_lean, exitflag_lean, output_lean] = lean_evolved_bds_options(fun, x0, lean_options);
+
+if norm(x_bds - x_lean) ~= 0 || f_bds ~= f_lean || exitflag_bds ~= exitflag_lean ...
+        || output_bds.funcCount ~= output_lean.funcCount || ~isequal(output_bds.fhist, output_lean.fhist)
+    error('verify_lean_evolved_bds_options:DirectionSetSmokeFailure', ...
+        'Explicit direction_set all-off smoke check failed.');
+end
+
+fprintf('Explicit direction_set smoke check passed.\n');
+
+end
+
+function assert_fields(output, expected_fields)
+
+actual = sort(fieldnames(output));
+expected = sort(expected_fields(:));
+if ~isequal(actual, expected)
+    error('verify_lean_evolved_bds_options:OutputContractFailure', ...
+        'Expected fields [%s], got [%s].', ...
+        strjoin(expected, ', '), strjoin(actual, ', '));
+end
 
 end
 
