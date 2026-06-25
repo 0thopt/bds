@@ -46,13 +46,22 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
     if ~isfield(options, 'savepath')
         options.savepath = fullfile(fileparts(mfilename('fullpath')), 'testdata');
     end
+    custom_feature_kind = '';
     if contains(options.feature_name, 'noisy')
         options.noise_level = parse_feature_value(options.feature_name, 1e-3);
         if startsWith(options.feature_name, 'permuted_noisy')
             options.feature_name = 'custom';
             options.permuted = true;
+            custom_feature_kind = 'permuted';
+            options.feature_stamp = strcat('permuted_noisy_', int2str(int32(-log10(options.noise_level))));
         elseif startsWith(options.feature_name, 'rotation_noisy')
             options.feature_name = 'custom';
+            custom_feature_kind = 'rotation';
+            options.feature_stamp = strcat('rotation_noisy_', int2str(int32(-log10(options.noise_level))));
+        elseif startsWith(options.feature_name, 'linearly_transformed_noisy')
+            options.feature_name = 'custom';
+            custom_feature_kind = 'linearly_transformed';
+            options.feature_stamp = strcat('linearly_transformed_noisy_', int2str(int32(-log10(options.noise_level))));
         else
             options.feature_name = 'noisy';
         end
@@ -330,7 +339,7 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @nomad_test;
             case {'lean-evolved-bds', 'evolved-bds-lean'}
                 solvers{i} = @lean_evolved_bds_test;
-            case 'lean-evolved-bds-full-options'
+            case {'lean-evolved-bds-full-options', 'lean-evolved-bds-options', 'lean_evolved_bds_options'}
                 solvers{i} = @(fun, x0) lean_evolved_bds_options_test(fun, x0, true, true, true);
             case 'lean-evolved-bds-no-memory'
                 solvers{i} = @(fun, x0) lean_evolved_bds_options_test(fun, x0, false, true, true);
@@ -378,15 +387,19 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 options.benchmark_id = [options.benchmark_id, '_', options.feature_name, '_', noise_level_str, '_no_rotation'];
             end
         case 'custom'
-            % The same notation as above. The only difference is that we will distinguish permuted_noisy and rotation_noisy.
-            if abs(log10(options.noise_level) - floor(log10(options.noise_level))) < 1e-10 || abs(log10(options.noise_level) - ceil(log10(options.noise_level))) < 1e-10
-                noise_level_str = int2str(int32(-log10(options.noise_level)));
+            if isfield(options, 'feature_stamp')
+                options.benchmark_id = [options.benchmark_id, '_', options.feature_stamp];
             else
-                noise_level_str = strrep(num2str(options.noise_level), '.', '_');
-            end
-            options.benchmark_id = [options.benchmark_id, '_', 'permuted_noisy', '_', noise_level_str];
-            if ~(isfield(options, 'permuted') && options.permuted)
-                options.benchmark_id = strrep(options.benchmark_id, 'permuted', 'rotation');
+                % The same notation as above. The only difference is that we will distinguish permuted_noisy and rotation_noisy.
+                if abs(log10(options.noise_level) - floor(log10(options.noise_level))) < 1e-10 || abs(log10(options.noise_level) - ceil(log10(options.noise_level))) < 1e-10
+                    noise_level_str = int2str(int32(-log10(options.noise_level)));
+                else
+                    noise_level_str = strrep(num2str(options.noise_level), '.', '_');
+                end
+                options.benchmark_id = [options.benchmark_id, '_', 'permuted_noisy', '_', noise_level_str];
+                if ~(isfield(options, 'permuted') && options.permuted)
+                    options.benchmark_id = strrep(options.benchmark_id, 'permuted', 'rotation');
+                end
             end
         case 'truncated'
             options.benchmark_id = [options.benchmark_id, '_', options.feature_name, '_', int2str(options.significant_digits)];
@@ -504,17 +517,17 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
     
     if strcmp(options.feature_name, 'custom')
 
-        if ~isfield(options, 'permuted')
+        if strcmp(custom_feature_kind, 'permuted')
+            options.mod_x0 = @mod_x0_permuted;
+            options.mod_affine = @perm_affine;
+            if isfield(options, 'permuted')
+                options = rmfield(options, 'permuted');
+            end
+        else
             % We need mod_x0 to make sure that the linearly transformed problem is mathematically equivalent
             % to the original problem.
             options.mod_x0 = @mod_x0;
             options.mod_affine = @mod_affine;
-            options.feature_stamp = strcat('rotation_noisy_', int2str(int32(-log10(options.noise_level))));
-        else
-            options.mod_x0 = @mod_x0_permuted;
-            options.mod_affine = @perm_affine;
-            options.feature_stamp = strcat('permuted_noisy_', int2str(int32(-log10(options.noise_level))));
-            options = rmfield(options, 'permuted');
         end
         % We only modify mod_fun since we are dealing with unconstrained problems.
         switch options.noise_level
