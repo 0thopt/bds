@@ -1,15 +1,26 @@
 clear all
-options.mindim = 1;
-options.maxdim = 1;
+options.mindim = 6;
+options.maxdim = 50;
 options.plibs = 's2mpj';
-options.feature_name = 'plain';
+options.max_eval_factor = 200;
+options.n_runs = 5;
+options.solver_names = {'lean_evolved_bds_options', 'nomad'};
 
-% options.max_eval_factor = 200;
-% options.solver_names = {'bds', 'ds', 'nelder-mead', 'bfo', 'pds', 'nomad'};
-% profile_optiprofiler(options);
-% options.solver_names = {'BDS-scaled', 'BDS-default'};
-options.solver_names = {'bds', 'bds-simplified'};
-% options.feature_name = 'random_nan_1';
-% profile_optiprofiler(options);
-% options.feature_name = 'random_nan_5';
-profile_optiprofiler(options);
+feature_names = { ...
+    'plain', ...
+    'noisy_1e-1', ...
+    'noisy_1e-2', ...
+    'noisy_1e-3', ...
+    'noisy_1e-4', ...
+    'linearly_transformed', ...
+    'linearly_transformed_noisy_1e-1', ...
+    'linearly_transformed_noisy_1e-2', ...
+    'linearly_transformed_noisy_1e-3', ...
+    'linearly_transformed_noisy_1e-4' ...
+};
+
+for k = 1:numel(feature_names)
+    options.feature_name = feature_names{k};
+    fprintf('Running %d/%d: %s\n', k, numel(feature_names), options.feature_name);
+    profile_optiprofiler(options);
+end

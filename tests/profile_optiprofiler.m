@@ -10,6 +10,7 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
     if exist(path_tools, 'dir')
         addpath(path_tools);
     end
+    ensure_optiprofiler_on_path();
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Example 1 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -43,27 +44,54 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
     if ~isfield(options, 'feature_name')
         error('Please provide the feature name');
     end
+    input_feature_name = char(options.feature_name);
+    if isfield(options, 'feature_display_name')
+        feature_display_name = char(options.feature_display_name);
+        options = rmfield(options, 'feature_display_name');
+    else
+        feature_display_name = '';
+    end
     if ~isfield(options, 'savepath')
         options.savepath = fullfile(fileparts(mfilename('fullpath')), 'testdata');
     end
     custom_feature_kind = '';
     if contains(options.feature_name, 'noisy')
         options.noise_level = parse_feature_value(options.feature_name, 1e-3);
+        noise_level_label = format_noise_level_for_display(options.noise_level);
         if startsWith(options.feature_name, 'permuted_noisy')
             options.feature_name = 'custom';
             options.permuted = true;
             custom_feature_kind = 'permuted';
             options.feature_stamp = strcat('permuted_noisy_', int2str(int32(-log10(options.noise_level))));
+            if isempty(feature_display_name)
+                feature_display_name = ['permuted_noisy_', noise_level_label];
+            end
         elseif startsWith(options.feature_name, 'rotation_noisy')
             options.feature_name = 'custom';
             custom_feature_kind = 'rotation';
             options.feature_stamp = strcat('rotation_noisy_', int2str(int32(-log10(options.noise_level))));
+            if isempty(feature_display_name)
+                feature_display_name = ['rotation_noisy_', noise_level_label];
+            end
         elseif startsWith(options.feature_name, 'linearly_transformed_noisy')
             options.feature_name = 'custom';
             custom_feature_kind = 'linearly_transformed';
             options.feature_stamp = strcat('linearly_transformed_noisy_', int2str(int32(-log10(options.noise_level))));
+            if isempty(feature_display_name)
+                feature_display_name = ['linearly_transformed_noisy_', noise_level_label];
+            end
         else
             options.feature_name = 'noisy';
+            if isempty(feature_display_name)
+                feature_display_name = ['noisy_', noise_level_label];
+            end
+        end
+    end
+    if isempty(feature_display_name)
+        if strcmp(input_feature_name, 'custom') && isfield(options, 'feature_stamp')
+            feature_display_name = char(options.feature_stamp);
+        else
+            feature_display_name = input_feature_name;
         end
     end
     if startsWith(options.feature_name, 'truncated')
@@ -550,6 +578,116 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
 
     end
     [solver_scores, profile_scores] = benchmark(solvers, options);
+    postprocess_summary_feature_titles(options, feature_display_name);
+
+end
+
+function postprocess_summary_feature_titles(options, feature_display_name)
+
+    if isempty(feature_display_name) || ~isfield(options, 'savepath') || ~isfield(options, 'benchmark_id')
+        return;
+    end
+
+    path_out = fullfile(options.savepath, options.benchmark_id);
+    if ~exist(path_out, 'dir')
+        return;
+    end
+
+    listing = dir(fullfile(path_out, '*', 'summary_*.pdf'));
+    for i_file = 1:numel(listing)
+        try
+            fix_summary_feature_titles(fullfile(listing(i_file).folder, listing(i_file).name), feature_display_name);
+        catch err
+            warning('profile_optiprofiler:SummaryTitlePostprocessFailed', ...
+                'Failed to update the feature title in %s: %s', ...
+                fullfile(listing(i_file).folder, listing(i_file).name), err.message);
+        end
+    end
+
+    try
+        summary_files = dir(fullfile(path_out, '*', 'summary_*.pdf'));
+        summary_time_stamps = arrayfun(@(f) datetime(f.name(end-18:end-4), ...
+            'InputFormat', 'yyyyMMdd_HHmmss'), summary_files);
+        [~, idx] = sort(summary_time_stamps, 'descend');
+        summary_files = summary_files(idx);
+        summary_files = summary_files(1:min(10, numel(summary_files)));
+        summary_paths = arrayfun(@(f) fullfile(f.folder, f.name), ...
+            summary_files, 'UniformOutput', false);
+        merge_summary_pdfs(summary_paths, fullfile(path_out, 'summary.pdf'));
+    catch err
+        warning('profile_optiprofiler:SummaryMergeAfterRetitleFailed', ...
+            'Failed to rebuild summary.pdf after updating the feature title under %s: %s', ...
+            path_out, err.message);
+    end
+
+end
+
+function merge_summary_pdfs(summary_paths, output_file)
+
+    if isempty(summary_paths)
+        return;
+    end
+
+    if exist(output_file, 'file')
+        delete(output_file);
+    end
+
+    if numel(summary_paths) == 1
+        copyfile(summary_paths{1}, output_file);
+        return;
+    end
+
+    command = ['pdfunite ', strjoin(cellfun(@shell_quote, summary_paths, ...
+        'UniformOutput', false), ' '), ' ', shell_quote(output_file)];
+    [status, output] = system(command);
+    if status ~= 0
+        error('profile_optiprofiler:PdfMergeFailed', ...
+            'pdfunite failed while rebuilding %s: %s', output_file, output);
+    end
+
+end
+
+function quoted = shell_quote(text)
+
+    quoted = ['''', strrep(char(text), '''', '''"''"'''), ''''];
+
+end
+
+function label = format_noise_level_for_display(noise_level)
+
+    exponent = round(log10(noise_level));
+    if noise_level > 0 && abs(noise_level - 10^exponent) <= 10 * eps(max(1, abs(noise_level)))
+        label = sprintf('1e%d', exponent);
+    else
+        label = num2str(noise_level, '%.15g');
+    end
+
+end
+
+function ensure_optiprofiler_on_path()
+
+    if exist('benchmark', 'file')
+        return;
+    end
+
+    home_dir = char(java.lang.System.getProperty('user.home'));
+    optiprofiler_root = fullfile(home_dir, 'local', 'optiprofiler');
+    candidate_paths = { ...
+        fullfile(optiprofiler_root, 'matlab', 'optiprofiler'), ...
+        fullfile(optiprofiler_root, 'matlab'), ...
+        fullfile(optiprofiler_root, 'python', 'optiprofiler') ...
+    };
+
+    for i_path = 1:numel(candidate_paths)
+        if exist(candidate_paths{i_path}, 'dir')
+            addpath(candidate_paths{i_path});
+        end
+    end
+
+    if ~exist('benchmark', 'file')
+        error('profile_optiprofiler:OptiProfilerNotFound', ...
+            'Cannot find benchmark. Add the OptiProfiler MATLAB package to the path.');
+    end
 
 end
 
@@ -1336,6 +1474,8 @@ function x = nomad_test(fun, x0)
     % Dimension:
     n = numel(x0);
 
+    ensure_nomad_on_path();
+
     % Set the default bounds.
     lb = -inf(n, 1);
     ub = inf(n, 1);
@@ -1365,6 +1505,34 @@ function x = nomad_test(fun, x0)
 
     [x, ~, ~, ~, ~] = nomadOpt(fun,x0,lb,ub,params);
     
+end
+
+function ensure_nomad_on_path()
+
+    if exist('nomadOpt', 'file')
+        return;
+    end
+
+    home_dir = char(java.lang.System.getProperty('user.home'));
+    nomad_root = fullfile(home_dir, 'local', 'nomad');
+    candidate_paths = { ...
+        fullfile(nomad_root, 'interfaces', 'Matlab_MEX', 'Functions'), ...
+        fullfile(nomad_root, 'build', 'release', 'interfaces', 'Matlab_MEX'), ...
+        fullfile(nomad_root, 'build', 'release', 'lib') ...
+    };
+
+    for i_path = 1:numel(candidate_paths)
+        if exist(candidate_paths{i_path}, 'dir')
+            addpath(candidate_paths{i_path});
+        end
+    end
+
+    if ~exist('nomadOpt', 'file')
+        error('profile_optiprofiler:NomadNotFound', ...
+            ['Cannot find nomadOpt. Add the NOMAD Matlab_MEX Functions ', ...
+            'and compiled MEX directories to the MATLAB path.']);
+    end
+
 end
 
 function x = lean_evolved_bds_test(fun, x0)
