@@ -361,6 +361,8 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @pds_200n_test;
             case 'bfo'
                 solvers{i} = @bfo_test;
+            case {'bfo-200n', 'bfo_200n'}
+                solvers{i} = @bfo_200n_test;
             case 'newuoa'
                 solvers{i} = @newuoa_test;
             case {'newuoa-200n', 'newuoa_200n'}
@@ -1472,6 +1474,13 @@ function x = bfo_test(fun, x0)
     maxeval = 500*n;
 
     [x, ~, ~, ~, ~] = bfo(fun, x0, 'epsilon', StepTolerance, 'maxeval', maxeval);
+    
+end
+
+function x = bfo_200n_test(fun, x0)
+
+    options.MaxFunctionEvaluations = 200*length(x0);
+    x = bfo_wrapper(fun, x0, options);
     
 end
 
