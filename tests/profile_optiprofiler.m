@@ -219,6 +219,13 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @(fun, x0) fminunc_adaptive(fun, x0, options.noise_level);
             case 'fd-bfgs'
                 solvers{i} = @fminunc_test;
+            case {'bfgs-200n', 'bfgs_200n'}
+                if isfield(options, 'noise_level')
+                    noise_level_for_bfgs = options.noise_level;
+                    solvers{i} = @(fun, x0) bfgs_200n_test(fun, x0, true, noise_level_for_bfgs);
+                else
+                    solvers{i} = @(fun, x0) bfgs_200n_test(fun, x0, false, []);
+                end
             case 'default-fd-bfgs'
                 solvers{i} = @(fun, x0) fminunc_adaptive_tmp(fun, x0, options.noise_level);
             case 'praxis'
@@ -839,6 +846,23 @@ function x = fminunc_adaptive_tmp(fun, x0, noise_level)
     options.with_gradient = true;
     options.noise_level = noise_level;
     x = fminunc_wrapper_tmp(fun, x0, options);
+
+end
+
+function x = bfgs_200n_test(fun, x0, with_gradient, noise_level)
+
+    n = numel(x0);
+    options = struct();
+    options.with_gradient = with_gradient;
+
+    if with_gradient
+        options.noise_level = noise_level;
+        options.MaxFunctionEvaluations = max(1, floor(200 * n / (n + 1)));
+    else
+        options.MaxFunctionEvaluations = 200 * n;
+    end
+
+    x = fminunc_wrapper(fun, x0, options);
 
 end
 
