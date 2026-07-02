@@ -369,6 +369,8 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @lean_evolved_bds_test;
             case {'lean-evolved-bds-full-options', 'lean-evolved-bds-options', 'lean_evolved_bds_options'}
                 solvers{i} = @(fun, x0) lean_evolved_bds_options_test(fun, x0, true, true, true);
+            case {'lean-evolved-bds-options-budget-limited', 'lean_evolved_bds_options_budget_limited'}
+                solvers{i} = @lean_evolved_bds_options_budget_limited_test;
             case 'lean-evolved-bds-no-memory'
                 solvers{i} = @(fun, x0) lean_evolved_bds_options_test(fun, x0, false, true, true);
             case 'lean-evolved-bds-memory-only'
@@ -1546,6 +1548,16 @@ function x = lean_evolved_bds_options_test(fun, x0, use_memory, use_pattern, use
     options.use_productive_direction_memory = use_memory;
     options.use_sweep_pattern_direction = use_pattern;
     options.use_momentum_extrapolation = use_momentum;
+    x = lean_evolved_bds_options(fun, x0, options);
+
+end
+
+function x = lean_evolved_bds_options_budget_limited_test(fun, x0)
+
+    options.use_productive_direction_memory = true;
+    options.use_sweep_pattern_direction = true;
+    options.use_momentum_extrapolation = true;
+    options.StepTolerance = 1e-12;
     x = lean_evolved_bds_options(fun, x0, options);
 
 end
