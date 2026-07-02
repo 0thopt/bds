@@ -359,6 +359,8 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @bfo_test;
             case 'newuoa'
                 solvers{i} = @newuoa_test;
+            case {'newuoa-200n', 'newuoa_200n'}
+                solvers{i} = @newuoa_200n_test;
             case 'lam'
                 solvers{i} = @lam_test;
             case 'fmds'
@@ -1454,7 +1456,16 @@ end
 
 function x = newuoa_test(fun, x0)
 
+    ensure_newuoa_on_path();
     options.maxfun = 500*length(x0);
+    x = newuoa(fun, x0, options);
+    
+end
+
+function x = newuoa_200n_test(fun, x0)
+
+    ensure_newuoa_on_path();
+    options.maxfun = 200*length(x0);
     x = newuoa(fun, x0, options);
     
 end
@@ -1533,6 +1544,32 @@ function ensure_nomad_on_path()
         error('profile_optiprofiler:NomadNotFound', ...
             ['Cannot find nomadOpt. Add the NOMAD Matlab_MEX Functions ', ...
             'and compiled MEX directories to the MATLAB path.']);
+    end
+
+end
+
+function ensure_newuoa_on_path()
+
+    if exist('newuoa', 'file')
+        return;
+    end
+
+    home_dir = char(java.lang.System.getProperty('user.home'));
+    prima_root = fullfile(home_dir, 'local', 'prima');
+    candidate_paths = { ...
+        fullfile(prima_root, 'matlab', 'interfaces'), ...
+        fullfile(prima_root, 'matlab') ...
+    };
+
+    for i_path = 1:numel(candidate_paths)
+        if exist(candidate_paths{i_path}, 'dir')
+            addpath(candidate_paths{i_path});
+        end
+    end
+
+    if ~exist('newuoa', 'file')
+        error('profile_optiprofiler:NewuoaNotFound', ...
+            'Cannot find newuoa. Add the PRIMA Matlab interfaces directory to the MATLAB path.');
     end
 
 end
