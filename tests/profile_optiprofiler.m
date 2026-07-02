@@ -227,6 +227,8 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @fminsearch_test;
             case 'ds'
                 solvers{i} = @ds_test;
+            case {'ds-200n', 'ds_200n'}
+                solvers{i} = @ds_200n_test;
             case 'direct-search-orig'
                 solvers{i} = @ds_orig_test;
             case 'ds-block'
@@ -355,6 +357,8 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @cbds_construct_directions_from_x0_test;
             case 'pds'
                 solvers{i} = @pds_test;
+            case {'pds-200n', 'pds_200n'}
+                solvers{i} = @pds_200n_test;
             case 'bfo'
                 solvers{i} = @bfo_test;
             case 'newuoa'
@@ -866,6 +870,14 @@ end
 function x = ds_test(fun, x0)
 
     option.Algorithm = 'ds';
+    x = bds(fun, x0, option);
+
+end
+
+function x = ds_200n_test(fun, x0)
+
+    option.Algorithm = 'ds';
+    option.MaxFunctionEvaluations = 200*length(x0);
     x = bds(fun, x0, option);
 
 end
@@ -1438,6 +1450,15 @@ function x = pds_test(fun, x0)
 
     option.expand = 2;
     option.shrink = 0.5;
+    x = pds(fun, x0, option);
+    
+end
+
+function x = pds_200n_test(fun, x0)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.MaxFunctionEvaluations = 200*length(x0);
     x = pds(fun, x0, option);
     
 end
