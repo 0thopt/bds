@@ -122,6 +122,14 @@ solver_specs(end+1).name = "R3";
 solver_specs(end).solve = @(fun, x0, maxfun) run_nbds(fun, x0, maxfun, 0.95, 1, ...
     Inf, Inf, 3, true, false, Inf, 0, 0, 0);
 
+solver_specs(end+1).name = "L3";
+solver_specs(end).solve = @(fun, x0, maxfun) run_nbds(fun, x0, maxfun, 0.95, 1, ...
+    Inf, Inf, 3, false, false, Inf, 0, 0, 0);
+
+solver_specs(end+1).name = "LS3";
+solver_specs(end).solve = @(fun, x0, maxfun) run_nbds(fun, x0, maxfun, 0.95, 0.5, ...
+    Inf, Inf, 3, false, false, Inf, 0, 0, 0);
+
 solver_specs(end+1).name = "Q3";
 solver_specs(end).solve = @(fun, x0, maxfun) run_nbds(fun, x0, maxfun, 0.95, 1, ...
     Inf, Inf, 3, true, false, Inf, 0, 0.25, 0);
