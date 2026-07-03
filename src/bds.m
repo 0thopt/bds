@@ -41,13 +41,17 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               initial step size of each block is set to alpha_init. If alpha_init 
 %                               is a vector, then the initial step size of the i-th block is
 %                               set to alpha_init(i). If alpha_init is "auto", then the initial 
-%                               coordinate step sizes follow the initial
-%                               simplex convention in MATLAB fminsearch:
-%                               0.05*abs(x0(i)) for nonzero coordinates and
-%                               2.5e-4 for zero coordinates, bounded below by
-%                               StepTolerance. If a block contains several
-%                               coordinates, its initial step size is the
-%                               maximum coordinate step size in that block.
+%                               coordinate step sizes combine the
+%                               fminsearch initial simplex scale with a BDS
+%                               neutral-scale safeguard: exact zero
+%                               coordinates receive step 1, small nonzero
+%                               coordinates keep their own scale bounded
+%                               below by StepTolerance, and large
+%                               coordinates use the larger of 1 and a
+%                               relative perturbation of abs(x0(i)). If a
+%                               block contains several coordinates, its
+%                               initial step size is the maximum coordinate
+%                               step size in that block.
 %                               This rule is primarily intended for the
 %                               default coordinate direction set; with a
 %                               custom direction_set, the same column/block

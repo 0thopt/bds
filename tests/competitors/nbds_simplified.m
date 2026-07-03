@@ -36,9 +36,50 @@ weak_min_failures = get_option(options, "weak_min_failures", 0);
 weak_accept_resets_failures = get_option(options, "weak_accept_resets_failures", false);
 weak_accept_resets_reference = get_option(options, "weak_accept_resets_reference", false);
 max_weak_per_cycle = get_option(options, "max_weak_per_cycle", Inf);
+max_weak_per_cycle_fraction = get_option(options, "max_weak_per_cycle_fraction", Inf);
 weak_min_stalled_cycles = get_option(options, "weak_min_stalled_cycles", 0);
 weak_min_failed_block_fraction = get_option(options, "weak_min_failed_block_fraction", 0);
 weak_min_failed_blocks_in_cycle = get_option(options, "weak_min_failed_blocks_in_cycle", 0);
+weak_credit_window = get_option(options, "weak_credit_window", Inf);
+weak_credit_window_factor = get_option(options, "weak_credit_window_factor", Inf);
+weak_credit_cooldown = get_option(options, "weak_credit_cooldown", 0);
+weak_credit_cooldown_factor = get_option(options, "weak_credit_cooldown_factor", Inf);
+weak_credit_gain_coeff = get_option(options, "weak_credit_gain_coeff", 0);
+weak_credit_max_pending = get_option(options, "weak_credit_max_pending", Inf);
+weak_credit_max_pending_fraction = get_option(options, "weak_credit_max_pending_fraction", Inf);
+weak_burst_gain_coeff = get_option(options, "weak_burst_gain_coeff", 0);
+weak_burst_cooldown_cycles = get_option(options, "weak_burst_cooldown_cycles", 0);
+
+if max_weak_per_cycle_fraction < 0
+    error("options.max_weak_per_cycle_fraction must be nonnegative.");
+end
+if isfinite(max_weak_per_cycle_fraction)
+    max_weak_per_cycle = min(max_weak_per_cycle, ...
+        max(0, ceil(max_weak_per_cycle_fraction * n)));
+end
+
+if weak_credit_window < 0 || weak_credit_window_factor < 0 ...
+        || weak_credit_cooldown < 0 || weak_credit_cooldown_factor < 0 ...
+        || weak_credit_gain_coeff < 0 || weak_credit_max_pending < 0 ...
+        || weak_credit_max_pending_fraction < 0 ...
+        || weak_burst_gain_coeff < 0 || weak_burst_cooldown_cycles < 0
+    error("Weak-credit options must be nonnegative.");
+end
+if isfinite(weak_credit_window_factor)
+    weak_credit_window = min(weak_credit_window, ...
+        max(0, ceil(weak_credit_window_factor * n)));
+end
+if isfinite(weak_credit_cooldown_factor)
+    weak_credit_cooldown = max(weak_credit_cooldown, ...
+        max(0, ceil(weak_credit_cooldown_factor * n)));
+end
+if isfinite(weak_credit_max_pending_fraction)
+    weak_credit_max_pending = min(weak_credit_max_pending, ...
+        max(0, ceil(weak_credit_max_pending_fraction * n)));
+end
+weak_credit_active = isfinite(weak_credit_window) && weak_credit_window > 0 ...
+    && weak_credit_cooldown > 0;
+weak_burst_active = weak_burst_cooldown_cycles > 0;
 
 if eta < 0 || eta >= 1
     error("options.eta must satisfy 0 <= eta < 1 for this prototype.");
@@ -55,6 +96,7 @@ exitflag = 0;
 terminate = false;
 
 f0 = fun(x0);
+fscale = max(1, abs(f0));
 fhist = f0;
 xhist = x0;
 nf = 1;
@@ -78,19 +120,53 @@ strong_success_count = 0;
 weak_success_count = 0;
 failure_count = 0;
 cycle_failure_count = 0;
+attempt_count = 0;
+weak_credit_deadlines = [];
+weak_credit_cooldown_remaining = 0;
+weak_credit_paid_count = 0;
+weak_credit_debt_count = 0;
+weak_credit_blocked_count = 0;
+weak_burst_paid_count = 0;
+weak_burst_debt_count = 0;
+weak_burst_blocked_count = 0;
+weak_burst_cooldown_remaining = 0;
 
 for iter = 1:maxit
     cycle_strong_success = false;
     cycle_weak_count = 0;
     cycle_failed_block_count = 0;
+    cycle_fbest_start = fopt;
     failed_block_gate = max(weak_min_failed_blocks_in_cycle, ...
         ceil(weak_min_failed_block_fraction * n));
     for i = 1:n
+        attempt_count = attempt_count + 1;
+        if weak_credit_active
+            expired = weak_credit_deadlines < attempt_count;
+            if any(expired)
+                weak_credit_debt_count = weak_credit_debt_count + sum(expired);
+                weak_credit_deadlines(expired) = [];
+                weak_credit_cooldown_remaining = max( ...
+                    weak_credit_cooldown_remaining, weak_credit_cooldown);
+            end
+        end
+
         direction_indices = grouped_direction_indices{i};
-        allow_weak = block_failure_count(i) >= weak_min_failures ...
+        base_allow_weak = block_failure_count(i) >= weak_min_failures ...
             && cycle_failure_count >= weak_min_stalled_cycles ...
             && cycle_failed_block_count >= failed_block_gate ...
             && cycle_weak_count < max_weak_per_cycle;
+        credit_allows_weak = ~weak_credit_active ...
+            || (weak_credit_cooldown_remaining <= 0 ...
+                && numel(weak_credit_deadlines) < weak_credit_max_pending);
+        burst_allows_weak = ~weak_burst_active ...
+            || weak_burst_cooldown_remaining <= 0;
+        if base_allow_weak && ~credit_allows_weak
+            weak_credit_blocked_count = weak_credit_blocked_count + 1;
+        end
+        if base_allow_weak && credit_allows_weak && ~burst_allows_weak
+            weak_burst_blocked_count = weak_burst_blocked_count + 1;
+        end
+        allow_weak = base_allow_weak && credit_allows_weak && burst_allows_weak;
         alpha_before = alpha_all(i);
         fbase_before = fbase;
         fbest_before = fopt;
@@ -147,6 +223,25 @@ for iter = 1:maxit
         end
         best_improved = fopt < fbest_before;
 
+        if weak_credit_active
+            best_gain = max(0, fbest_before - fopt);
+            paid_now = best_gain > 0 ...
+                && best_gain >= weak_credit_gain_coeff * fscale;
+            if paid_now
+                weak_credit_paid_count = weak_credit_paid_count ...
+                    + numel(weak_credit_deadlines);
+                weak_credit_deadlines = [];
+                weak_credit_cooldown_remaining = 0;
+            end
+            if sub_output.accepted && ~sub_output.strong_success
+                if paid_now
+                    weak_credit_paid_count = weak_credit_paid_count + 1;
+                else
+                    weak_credit_deadlines(end+1) = attempt_count + weak_credit_window; %#ok<AGROW>
+                end
+            end
+        end
+
         trace = append_trace(trace, iter, i, nf, sub_output, allow_weak, ...
             alpha_before, alpha_all(i), fbase_before, fbase, fbest_before, ...
             fopt, C_before, block_failure_before, block_failure_count(i), ...
@@ -180,11 +275,29 @@ for iter = 1:maxit
             exitflag = 1;
             break;
         end
+        if weak_credit_active && weak_credit_cooldown_remaining > 0
+            weak_credit_cooldown_remaining = weak_credit_cooldown_remaining - 1;
+        end
     end
     if cycle_strong_success
         cycle_failure_count = 0;
     else
         cycle_failure_count = cycle_failure_count + 1;
+    end
+    if weak_burst_active
+        if cycle_weak_count > 0
+            cycle_gain = max(0, cycle_fbest_start - fopt);
+            if cycle_gain >= weak_burst_gain_coeff * fscale
+                weak_burst_paid_count = weak_burst_paid_count + 1;
+                weak_burst_cooldown_remaining = 0;
+            else
+                weak_burst_debt_count = weak_burst_debt_count + 1;
+                weak_burst_cooldown_remaining = max( ...
+                    weak_burst_cooldown_remaining, weak_burst_cooldown_cycles);
+            end
+        elseif weak_burst_cooldown_remaining > 0
+            weak_burst_cooldown_remaining = weak_burst_cooldown_remaining - 1;
+        end
     end
     if terminate
         break;
@@ -213,9 +326,27 @@ output.weak_min_failures = weak_min_failures;
 output.weak_accept_resets_failures = weak_accept_resets_failures;
 output.weak_accept_resets_reference = weak_accept_resets_reference;
 output.max_weak_per_cycle = max_weak_per_cycle;
+output.max_weak_per_cycle_fraction = max_weak_per_cycle_fraction;
 output.weak_min_stalled_cycles = weak_min_stalled_cycles;
 output.weak_min_failed_block_fraction = weak_min_failed_block_fraction;
 output.weak_min_failed_blocks_in_cycle = weak_min_failed_blocks_in_cycle;
+output.weak_credit_active = weak_credit_active;
+output.weak_credit_window = weak_credit_window;
+output.weak_credit_cooldown = weak_credit_cooldown;
+output.weak_credit_gain_coeff = weak_credit_gain_coeff;
+output.weak_credit_max_pending = weak_credit_max_pending;
+output.weak_credit_paid_count = weak_credit_paid_count;
+output.weak_credit_debt_count = weak_credit_debt_count;
+output.weak_credit_blocked_count = weak_credit_blocked_count;
+output.weak_credit_pending_count = numel(weak_credit_deadlines);
+output.weak_credit_cooldown_remaining = weak_credit_cooldown_remaining;
+output.weak_burst_active = weak_burst_active;
+output.weak_burst_gain_coeff = weak_burst_gain_coeff;
+output.weak_burst_cooldown_cycles = weak_burst_cooldown_cycles;
+output.weak_burst_paid_count = weak_burst_paid_count;
+output.weak_burst_debt_count = weak_burst_debt_count;
+output.weak_burst_blocked_count = weak_burst_blocked_count;
+output.weak_burst_cooldown_remaining = weak_burst_cooldown_remaining;
 output.block_failure_count = block_failure_count;
 output.cycle_failure_count = cycle_failure_count;
 output.iterations = iter;

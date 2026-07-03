@@ -130,6 +130,36 @@ solver_specs(end+1).name = "LS3";
 solver_specs(end).solve = @(fun, x0, maxfun) run_nbds(fun, x0, maxfun, 0.95, 0.5, ...
     Inf, Inf, 3, false, false, Inf, 0, 0, 0);
 
+solver_specs(end+1).name = "LC3";
+solver_specs(end).solve = @(fun, x0, maxfun) run_nbds(fun, x0, maxfun, 0.95, 1, ...
+    Inf, Inf, 3, false, false, 3, 0, 0, 0);
+
+solver_specs(end+1).name = "LC5";
+solver_specs(end).solve = @(fun, x0, maxfun) run_nbds(fun, x0, maxfun, 0.95, 1, ...
+    Inf, Inf, 3, false, false, 5, 0, 0, 0);
+
+solver_specs(end+1).name = "LF10";
+solver_specs(end).solve = @(fun, x0, maxfun) run_nbds(fun, x0, maxfun, 0.95, 1, ...
+    Inf, Inf, 3, false, false, Inf, 0, 0, 0, 0.10);
+
+solver_specs(end+1).name = "CF10";
+solver_specs(end).solve = @(fun, x0, maxfun) run_nbds(fun, x0, maxfun, 0.95, 1, ...
+    Inf, Inf, 3, false, false, Inf, 0, 0, 0, 0.10, 2, 1, 1e-8, 0.10);
+
+solver_specs(end+1).name = "CF20";
+solver_specs(end).solve = @(fun, x0, maxfun) run_nbds(fun, x0, maxfun, 0.95, 1, ...
+    Inf, Inf, 3, false, false, Inf, 0, 0, 0, 0.20, 2, 1, 1e-8, 0.20);
+
+solver_specs(end+1).name = "BF10";
+solver_specs(end).solve = @(fun, x0, maxfun) run_nbds(fun, x0, maxfun, 0.95, 1, ...
+    Inf, Inf, 3, false, false, Inf, 0, 0, 0, 0.10, ...
+    Inf, Inf, 0, Inf, 1e-8, 1);
+
+solver_specs(end+1).name = "BF20";
+solver_specs(end).solve = @(fun, x0, maxfun) run_nbds(fun, x0, maxfun, 0.95, 1, ...
+    Inf, Inf, 3, false, false, Inf, 0, 0, 0, 0.20, ...
+    Inf, Inf, 0, Inf, 1e-8, 1);
+
 solver_specs(end+1).name = "Q3";
 solver_specs(end).solve = @(fun, x0, maxfun) run_nbds(fun, x0, maxfun, 0.95, 1, ...
     Inf, Inf, 3, true, false, Inf, 0, 0.25, 0);
@@ -142,7 +172,33 @@ end
 function [xopt, fopt, exitflag, output] = run_nbds(fun, x0, maxfun, eta, weak_factor, ...
     slack_coeff, best_slack_coeff, weak_min_failures, weak_accept_resets_failures, ...
     weak_accept_resets_reference, max_weak_per_cycle, weak_min_stalled_cycles, ...
-    weak_min_failed_block_fraction, weak_min_failed_blocks_in_cycle)
+    weak_min_failed_block_fraction, weak_min_failed_blocks_in_cycle, ...
+    max_weak_per_cycle_fraction, weak_credit_window_factor, ...
+    weak_credit_cooldown_factor, weak_credit_gain_coeff, ...
+    weak_credit_max_pending_fraction, weak_burst_gain_coeff, ...
+    weak_burst_cooldown_cycles)
+
+if nargin < 15
+    max_weak_per_cycle_fraction = Inf;
+end
+if nargin < 16
+    weak_credit_window_factor = Inf;
+end
+if nargin < 17
+    weak_credit_cooldown_factor = Inf;
+end
+if nargin < 18
+    weak_credit_gain_coeff = 0;
+end
+if nargin < 19
+    weak_credit_max_pending_fraction = Inf;
+end
+if nargin < 20
+    weak_burst_gain_coeff = 0;
+end
+if nargin < 21
+    weak_burst_cooldown_cycles = 0;
+end
 
 wrapped = budgeted_fun(fun, maxfun);
 options.maxfun = maxfun;
@@ -154,6 +210,13 @@ options.weak_min_failures = weak_min_failures;
 options.weak_accept_resets_failures = weak_accept_resets_failures;
 options.weak_accept_resets_reference = weak_accept_resets_reference;
 options.max_weak_per_cycle = max_weak_per_cycle;
+options.max_weak_per_cycle_fraction = max_weak_per_cycle_fraction;
+options.weak_credit_window_factor = weak_credit_window_factor;
+options.weak_credit_cooldown_factor = weak_credit_cooldown_factor;
+options.weak_credit_gain_coeff = weak_credit_gain_coeff;
+options.weak_credit_max_pending_fraction = weak_credit_max_pending_fraction;
+options.weak_burst_gain_coeff = weak_burst_gain_coeff;
+options.weak_burst_cooldown_cycles = weak_burst_cooldown_cycles;
 options.weak_min_stalled_cycles = weak_min_stalled_cycles;
 options.weak_min_failed_block_fraction = weak_min_failed_block_fraction;
 options.weak_min_failed_blocks_in_cycle = weak_min_failed_blocks_in_cycle;

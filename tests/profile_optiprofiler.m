@@ -213,6 +213,18 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @bds_default;
             case 'bds-scaled'
                 solvers{i} = @bds_scaled;
+            case {'bds-hybrid-025', 'bds_hybrid_025'}
+                solvers{i} = @(fun, x0) bds_hybrid_scaled(fun, x0, 0.025);
+            case {'bds-hybrid-05', 'bds_hybrid_05'}
+                solvers{i} = @(fun, x0) bds_hybrid_scaled(fun, x0, 0.05);
+            case {'bds-hybrid-10', 'bds_hybrid_10'}
+                solvers{i} = @(fun, x0) bds_hybrid_scaled(fun, x0, 0.10);
+            case {'bds-hybrid-25', 'bds_hybrid_25'}
+                solvers{i} = @(fun, x0) bds_hybrid_scaled(fun, x0, 0.25);
+            case {'bds-hybrid-50', 'bds_hybrid_50'}
+                solvers{i} = @(fun, x0) bds_hybrid_scaled(fun, x0, 0.50);
+            case {'bds-hybrid-abs', 'bds_hybrid_abs'}
+                solvers{i} = @(fun, x0) bds_hybrid_scaled(fun, x0, 1.00);
             case {'bds-simplex-025', 'bds_simplex_025'}
                 solvers{i} = @(fun, x0) bds_simplex_scaled(fun, x0, 0.025);
             case {'bds-simplex-05', 'bds_simplex_05'}
@@ -408,6 +420,8 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @cbds_simplified_test;
             case {'nbds-r3', 'nbds_r3'}
                 solvers{i} = @nbds_r3_test;
+            case {'nbds-f10', 'nbds_f10'}
+                solvers{i} = @nbds_f10_test;
             case {'nbds-q3', 'nbds_q3'}
                 solvers{i} = @nbds_q3_test;
             case {'nbds-tq3', 'nbds_tq3'}
@@ -1721,6 +1735,16 @@ function x = nbds_r3_test(fun, x0)
 
 end
 
+function x = nbds_f10_test(fun, x0)
+
+    options = nbds_profile_options(x0);
+    options.weak_min_failures = 3;
+    options.weak_accept_resets_failures = false;
+    options.max_weak_per_cycle_fraction = 0.10;
+    [x, ~, ~, ~] = nbds_simplified(fun, x0, options);
+
+end
+
 function x = nbds_q3_test(fun, x0)
 
     options = nbds_profile_options(x0);
@@ -1811,12 +1835,36 @@ function x = bds_simplex_scaled(fun, x0, relative_delta)
 
 end
 
+function x = bds_hybrid_scaled(fun, x0, relative_delta)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.StepTolerance = 1e-6;
+    option.alpha_init = hybrid_alpha_init_for_profile(x0, option.StepTolerance, relative_delta);
+    x = bds(fun, x0, option);
+
+end
+
 function alpha_init = fminsearch_alpha_init_for_profile(x0, StepTolerance, relative_delta)
 
     zero_term_delta = 0.00025;
     abs_x0 = abs(x0(:));
     alpha_init = relative_delta * abs_x0;
     alpha_init(abs_x0 == 0) = zero_term_delta;
+    alpha_init = max(alpha_init, StepTolerance * ones(size(alpha_init)));
+
+end
+
+function alpha_init = hybrid_alpha_init_for_profile(x0, StepTolerance, relative_delta)
+
+    alpha_init = fminsearch_alpha_init_for_profile(x0, StepTolerance, relative_delta);
+    abs_x0 = abs(x0(:));
+
+    neutral_scale = ones(size(abs_x0));
+    small_nonzero = (abs_x0 > 0) & (abs_x0 <= 1);
+    neutral_scale(small_nonzero) = max(abs_x0(small_nonzero), StepTolerance);
+
+    alpha_init = max(alpha_init, neutral_scale);
     alpha_init = max(alpha_init, StepTolerance * ones(size(alpha_init)));
 
 end
