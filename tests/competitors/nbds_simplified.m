@@ -72,6 +72,7 @@ fbest_hist = fopt;
 alpha_min_hist = min(alpha_all);
 alpha_max_hist = max(alpha_all);
 block_failure_count = zeros(1, n);
+trace = init_trace();
 
 strong_success_count = 0;
 weak_success_count = 0;
@@ -90,6 +91,11 @@ for iter = 1:maxit
             && cycle_failure_count >= weak_min_stalled_cycles ...
             && cycle_failed_block_count >= failed_block_gate ...
             && cycle_weak_count < max_weak_per_cycle;
+        alpha_before = alpha_all(i);
+        fbase_before = fbase;
+        fbest_before = fopt;
+        C_before = C;
+        block_failure_before = block_failure_count(i);
         [sub_x, sub_f, sub_exitflag, sub_output] = inner_nonmonotone_search( ...
             fun, xbase, fbase, fopt, C, D(:, direction_indices), direction_indices, ...
             alpha_all(i), maxfun - nf, forcing_coeff, slack_coeff, ...
@@ -139,6 +145,12 @@ for iter = 1:maxit
             fopt = fopt_all(index);
             xopt = xopt_all(:, index);
         end
+        best_improved = fopt < fbest_before;
+
+        trace = append_trace(trace, iter, i, nf, sub_output, allow_weak, ...
+            alpha_before, alpha_all(i), fbase_before, fbase, fbest_before, ...
+            fopt, C_before, block_failure_before, block_failure_count(i), ...
+            cycle_failure_count, cycle_failed_block_count, best_improved);
 
         if reset_reference
             C = fbase;
@@ -188,6 +200,7 @@ output.fbase_hist = fbase_hist;
 output.fbest_hist = fbest_hist;
 output.alpha_min_hist = alpha_min_hist;
 output.alpha_max_hist = alpha_max_hist;
+output.trace = trace;
 output.strong_success_count = strong_success_count;
 output.weak_success_count = weak_success_count;
 output.failure_count = failure_count;
@@ -209,6 +222,77 @@ output.iterations = iter;
 
 end
 
+function trace = init_trace()
+trace.iter = [];
+trace.block = [];
+trace.nf = [];
+trace.accepted = [];
+trace.strong = [];
+trace.weak = [];
+trace.allow_weak = [];
+trace.best_improved = [];
+trace.trial_count = [];
+trace.alpha_before = [];
+trace.alpha_after = [];
+trace.fbase_before = [];
+trace.fbase_after = [];
+trace.fbest_before = [];
+trace.fbest_after = [];
+trace.C_before = [];
+trace.C_gap_before = [];
+trace.base_gap_before = [];
+trace.accept_gap_before = [];
+trace.block_failure_before = [];
+trace.block_failure_after = [];
+trace.cycle_failure_count = [];
+trace.cycle_failed_block_count = [];
+trace.accepted_trial_index = [];
+trace.accepted_trial_f = [];
+end
+
+function trace = append_trace(trace, iter, block, nf, sub_output, allow_weak, ...
+    alpha_before, alpha_after, fbase_before, fbase_after, fbest_before, ...
+    fbest_after, C_before, block_failure_before, block_failure_after, ...
+    cycle_failure_count, cycle_failed_block_count, best_improved)
+
+is_accepted = sub_output.accepted;
+is_strong = sub_output.strong_success;
+is_weak = is_accepted && ~is_strong;
+if is_accepted
+    accepted_trial_index = sub_output.accepted_trial_index;
+    accepted_trial_f = sub_output.accepted_trial_f;
+else
+    accepted_trial_index = NaN;
+    accepted_trial_f = NaN;
+end
+
+trace.iter(end+1) = iter;
+trace.block(end+1) = block;
+trace.nf(end+1) = nf;
+trace.accepted(end+1) = is_accepted;
+trace.strong(end+1) = is_strong;
+trace.weak(end+1) = is_weak;
+trace.allow_weak(end+1) = allow_weak;
+trace.best_improved(end+1) = best_improved;
+trace.trial_count(end+1) = sub_output.nf;
+trace.alpha_before(end+1) = alpha_before;
+trace.alpha_after(end+1) = alpha_after;
+trace.fbase_before(end+1) = fbase_before;
+trace.fbase_after(end+1) = fbase_after;
+trace.fbest_before(end+1) = fbest_before;
+trace.fbest_after(end+1) = fbest_after;
+trace.C_before(end+1) = C_before;
+trace.C_gap_before(end+1) = C_before - fbest_before;
+trace.base_gap_before(end+1) = fbase_before - fbest_before;
+trace.accept_gap_before(end+1) = fbase_after - fbest_before;
+trace.block_failure_before(end+1) = block_failure_before;
+trace.block_failure_after(end+1) = block_failure_after;
+trace.cycle_failure_count(end+1) = cycle_failure_count;
+trace.cycle_failed_block_count(end+1) = cycle_failed_block_count;
+trace.accepted_trial_index(end+1) = accepted_trial_index;
+trace.accepted_trial_f(end+1) = accepted_trial_f;
+end
+
 function [xaccepted, faccepted, exitflag, output] = inner_nonmonotone_search( ...
     fun, xbase, fbase, fbest, C, D, direction_indices, alpha, submaxfun, ...
     forcing_coeff, slack_coeff, best_slack_coeff, allow_weak)
@@ -223,6 +307,8 @@ faccepted = fbase;
 accepted = false;
 strong_success = false;
 fnew = fbase;
+accepted_trial_index = NaN;
+accepted_trial_f = NaN;
 
 for j = 1:length(direction_indices)
     if nf >= submaxfun
@@ -248,6 +334,8 @@ for j = 1:length(direction_indices)
     if accepted
         xaccepted = xnew;
         faccepted = fnew;
+        accepted_trial_index = j;
+        accepted_trial_f = fnew;
         direction_indices(1:j) = direction_indices([j, 1:j-1]);
         break;
     end
@@ -265,6 +353,8 @@ output.fhist = fhist;
 output.xhist = xhist;
 output.accepted = accepted;
 output.strong_success = accepted && strong_success;
+output.accepted_trial_index = accepted_trial_index;
+output.accepted_trial_f = accepted_trial_f;
 end
 
 function [Cnew, Qnew] = update_reference(C, Q, fnew, eta)

@@ -41,13 +41,17 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %                               initial step size of each block is set to alpha_init. If alpha_init 
 %                               is a vector, then the initial step size of the i-th block is
 %                               set to alpha_init(i). If alpha_init is "auto", then the initial 
-%                               step size in coordinate i is derived from |x0(i)| by a
-%                               continuous piecewise rule with tau_i = StepTolerance(i):
-%                               linearly connect (0, 1) and (tau_i, tau_i), keep |x0(i)|
-%                               on (tau_i, 1], and use sqrt(|x0(i)|) when |x0(i)| > 1.
-%                               This option assumes the default direction set
-%                               [e_1, -e_1, ..., e_n, -e_n], ordered by coordinates 1, 2,
-%                               ..., n, with [e_i, -e_i] treated as one block.
+%                               coordinate step sizes follow the initial
+%                               simplex convention in MATLAB fminsearch:
+%                               0.05*abs(x0(i)) for nonzero coordinates and
+%                               2.5e-4 for zero coordinates, bounded below by
+%                               StepTolerance. If a block contains several
+%                               coordinates, its initial step size is the
+%                               maximum coordinate step size in that block.
+%                               This rule is primarily intended for the
+%                               default coordinate direction set; with a
+%                               custom direction_set, the same column/block
+%                               indices are used.
 %                               Default: 1.
 %   forcing_function            The forcing function used for deciding whether the step achieves a 
 %                               sufficient decrease. forcing_function should be a function handle.

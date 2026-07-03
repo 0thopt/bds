@@ -192,46 +192,27 @@ end
 % If alpha_init is a vector, then the initial step size of the i-th block is set to 
 % alpha_init(i). We first verify it is a numeric vector to avoid accepting strings that happen
 % to have the same length (for example, 'auto' when num_blocks = 4).
-% If alpha_init is "auto", then the initial step size in coordinate i is
-% derived from |x0(i)| and StepTolerance(i). Zero coordinates receive a
-% neutral step size 1. Small nonzero coordinates keep their scale, bounded
-% below by StepTolerance(i). Large coordinates keep their scale when the
-% nonzero coordinates of x0 are comparable. Otherwise, logarithmic damping is
-% used for large coordinates.
-% This option assumes the default direction set [e_1, -e_1, ..., e_n, -e_n], ordered by
-% coordinates 1, 2, ..., n, with [e_i, -e_i] treated as one block.
+% If alpha_init is "auto", then coordinate scales are initialized by the
+% fminsearch initial-simplex convention: a 5 percent relative perturbation for
+% nonzero coordinates and a small absolute perturbation for zero coordinates.
+% The solver's StepTolerance is enforced as a lower bound. If a block contains
+% several coordinates, its initial step size is the maximum coordinate scale in
+% that block.
 if isfield(options, "alpha_init")
-    if isscalar(options.alpha_init)
+    if isrealscalar(options.alpha_init)
         options.alpha_init = options.alpha_init * ones(options.num_blocks, 1);
     elseif isnumvec(options.alpha_init) && (length(options.alpha_init) == options.num_blocks)
         options.alpha_init = options.alpha_init(:);
     elseif strcmpi(options.alpha_init, "auto")
-        % Set the initial step sizes from the coordinate scales of x0.
-        alpha_vec = zeros(n, 1);
-        abs_x0 = abs(x0(:));
-        tau = options.StepTolerance(:);
-
-        nonzero_abs_x0 = abs_x0(abs_x0 > 0);
-        if isempty(nonzero_abs_x0)
-            x0_scale_ratio = 1;
-        else
-            x0_scale_ratio = max(nonzero_abs_x0) / min(nonzero_abs_x0);
+        alpha_coord = get_fminsearch_alpha_init(x0);
+        grouped_direction_indices = divide_direction_set(n, options.num_blocks, options);
+        alpha_block = zeros(options.num_blocks, 1);
+        for i = 1:options.num_blocks
+            direction_indices = grouped_direction_indices{i};
+            coordinate_indices = unique(ceil(direction_indices(:) / 2));
+            alpha_block(i) = max(max(alpha_coord(coordinate_indices)), options.StepTolerance(i));
         end
-
-        for i = 1:n
-            abs_x0_i = abs_x0(i);
-
-            if abs_x0_i == 0
-                alpha_vec(i) = 1;
-            elseif abs_x0_i <= 1
-                alpha_vec(i) = max(abs_x0_i, tau(i));
-            elseif x0_scale_ratio <= 1e2
-                alpha_vec(i) = abs_x0_i;
-            else
-                alpha_vec(i) = 1 + log(abs_x0_i);
-            end
-        end
-        options.alpha_init = alpha_vec;
+        options.alpha_init = alpha_block;
     else
         error('BDS:set_options:InvalidAlphaInit', ...
             'options.alpha_init must be a positive scalar, a vector of length options.num_blocks, or "auto".');
@@ -318,4 +299,16 @@ if  options.output_xhist
         warning("xhist will be not included in the output due to the limit of memory.");
     end
 end
+end
+
+function alpha_coord = get_fminsearch_alpha_init(x0)
+%GET_FMINSEARCH_ALPHA_INIT returns fminsearch-inspired coordinate step sizes.
+
+usual_delta = 0.05;
+zero_term_delta = 0.00025;
+
+abs_x0 = abs(x0(:));
+alpha_coord = usual_delta * abs_x0;
+alpha_coord(abs_x0 == 0) = zero_term_delta;
+
 end

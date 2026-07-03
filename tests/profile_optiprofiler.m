@@ -213,6 +213,12 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @bds_default;
             case 'bds-scaled'
                 solvers{i} = @bds_scaled;
+            case {'bds-simplex-025', 'bds_simplex_025'}
+                solvers{i} = @(fun, x0) bds_simplex_scaled(fun, x0, 0.025);
+            case {'bds-simplex-05', 'bds_simplex_05'}
+                solvers{i} = @(fun, x0) bds_simplex_scaled(fun, x0, 0.05);
+            case {'bds-simplex-10', 'bds_simplex_10'}
+                solvers{i} = @(fun, x0) bds_simplex_scaled(fun, x0, 0.10);
             case 'our-method'
                 solvers{i} = @cbds_orig_test;
             case 'adaptive-fd-bfgs'
@@ -698,6 +704,8 @@ function ensure_optiprofiler_on_path()
     home_dir = char(java.lang.System.getProperty('user.home'));
     optiprofiler_root = fullfile(home_dir, 'local', 'optiprofiler');
     candidate_paths = { ...
+        fullfile(optiprofiler_root, 'matlab', 'optiprofiler', 'src'), ...
+        fullfile(optiprofiler_root, 'matlab', 'optiprofiler', 'problem_libs'), ...
         fullfile(optiprofiler_root, 'matlab', 'optiprofiler'), ...
         fullfile(optiprofiler_root, 'matlab'), ...
         fullfile(optiprofiler_root, 'python', 'optiprofiler') ...
@@ -1791,6 +1799,26 @@ function x = bds_scaled(fun, x0)
     option.alpha_init = 'auto';
     x = bds(fun, x0, option);
     
+end
+
+function x = bds_simplex_scaled(fun, x0, relative_delta)
+
+    option.expand = 2;
+    option.shrink = 0.5;
+    option.StepTolerance = 1e-6;
+    option.alpha_init = fminsearch_alpha_init_for_profile(x0, option.StepTolerance, relative_delta);
+    x = bds(fun, x0, option);
+
+end
+
+function alpha_init = fminsearch_alpha_init_for_profile(x0, StepTolerance, relative_delta)
+
+    zero_term_delta = 0.00025;
+    abs_x0 = abs(x0(:));
+    alpha_init = relative_delta * abs_x0;
+    alpha_init(abs_x0 == 0) = zero_term_delta;
+    alpha_init = max(alpha_init, StepTolerance * ones(size(alpha_init)));
+
 end
 
 function x = bds_tmp_test(fun, x0)
