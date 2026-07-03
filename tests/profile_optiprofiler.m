@@ -232,6 +232,8 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @praxis_test;
             case 'nelder-mead'
                 solvers{i} = @fminsearch_test;
+            case {'nelder-mead-200n', 'nelder_mead_200n', 'fminsearch-200n', 'fminsearch_200n'}
+                solvers{i} = @fminsearch_200n_test;
             case 'ds'
                 solvers{i} = @ds_test;
             case {'ds-200n', 'ds_200n'}
@@ -791,6 +793,13 @@ function x = fminsearch_test(fun, x0)
     options = optimset("MaxFunEvals", MaxFunctionEvaluations, "maxiter", 10^20, "tolfun", eps, "tolx", tol);    
 
     x = fminsearch(fun, x0, options);
+    
+end
+
+function x = fminsearch_200n_test(fun, x0)
+
+    options.MaxFunctionEvaluations = 200*length(x0);
+    x = fminsearch_wrapper(fun, x0, options);
     
 end
 
@@ -1491,6 +1500,8 @@ end
 
 function x = bfo_test(fun, x0)
 
+    ensure_bfo_on_path();
+
     % Dimension
     n = numel(x0);
 
@@ -1503,6 +1514,7 @@ end
 
 function x = bfo_200n_test(fun, x0)
 
+    ensure_bfo_on_path();
     options.MaxFunctionEvaluations = 200*length(x0);
     x = bfo_wrapper(fun, x0, options);
     
@@ -1572,6 +1584,33 @@ function x = nomad_test(fun, x0)
 
     [x, ~, ~, ~, ~] = nomadOpt(fun,x0,lb,ub,params);
     
+end
+
+function ensure_bfo_on_path()
+
+    if exist('bfo', 'file')
+        return;
+    end
+
+    home_dir = char(java.lang.System.getProperty('user.home'));
+    bfo_root = fullfile(home_dir, 'local', 'BFO');
+    candidate_paths = { ...
+        bfo_root, ...
+        fullfile(bfo_root, 'src'), ...
+        fullfile(bfo_root, 'matlab') ...
+    };
+
+    for i_path = 1:numel(candidate_paths)
+        if exist(candidate_paths{i_path}, 'dir')
+            addpath(candidate_paths{i_path});
+        end
+    end
+
+    if ~exist('bfo', 'file')
+        error('profile_optiprofiler:BfoNotFound', ...
+            'Cannot find bfo. Add the BFO directory to the MATLAB path.');
+    end
+
 end
 
 function ensure_nomad_on_path()
