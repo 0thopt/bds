@@ -400,6 +400,12 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @cbds_simplified_test;
             case 'cbds-simplified'
                 solvers{i} = @cbds_simplified_test;
+            case {'nbds-r3', 'nbds_r3'}
+                solvers{i} = @nbds_r3_test;
+            case {'nbds-q3', 'nbds_q3'}
+                solvers{i} = @nbds_q3_test;
+            case {'nbds-tq3', 'nbds_tq3'}
+                solvers{i} = @nbds_tq3_test;
             case 'cbds-orig-termination'
                 solvers{i} = @cbds_orig_termination_test;
             case 'cbds-orig-smart-alpha-init'
@@ -1695,6 +1701,50 @@ end
 function x = cbds_simplified_test(fun, x0)
 
     x = bds_simplified(fun, x0);
+
+end
+
+function x = nbds_r3_test(fun, x0)
+
+    options = nbds_profile_options(x0);
+    options.weak_min_failures = 3;
+    options.weak_accept_resets_failures = true;
+    [x, ~, ~, ~] = nbds_simplified(fun, x0, options);
+
+end
+
+function x = nbds_q3_test(fun, x0)
+
+    options = nbds_profile_options(x0);
+    options.weak_min_failures = 3;
+    options.weak_accept_resets_failures = true;
+    options.weak_min_failed_block_fraction = 0.25;
+    [x, ~, ~, ~] = nbds_simplified(fun, x0, options);
+
+end
+
+function x = nbds_tq3_test(fun, x0)
+
+    options = nbds_profile_options(x0);
+    options.weak_min_failures = 3;
+    options.weak_accept_resets_failures = true;
+    options.weak_min_stalled_cycles = 1;
+    options.weak_min_failed_block_fraction = 0.25;
+    [x, ~, ~, ~] = nbds_simplified(fun, x0, options);
+
+end
+
+function options = nbds_profile_options(x0)
+
+    n = numel(x0);
+    options.maxfun = 500 * n;
+    options.alpha_tol = 1e-6;
+    options.expand = 2;
+    options.shrink = 0.5;
+    options.eta = 0.95;
+    options.weak_factor = 1;
+    options.slack_coeff = Inf;
+    options.best_slack_coeff = Inf;
 
 end
 

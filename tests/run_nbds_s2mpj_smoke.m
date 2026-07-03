@@ -38,6 +38,9 @@ end
 if ~isfield(options, "verbose")
     options.verbose = true;
 end
+if ~isfield(options, "solver_family")
+    options.solver_family = "activation";
+end
 if ~isfield(options, "problem_names")
     problem_names = select_s2mpj_problems(options);
 else
@@ -166,35 +169,50 @@ solver_specs(end).solve = make_nbds_handle(0.95, 1, Inf, Inf, 2, true, false);
 solver_specs(end+1).name = "R3-0.95";
 solver_specs(end).solve = make_nbds_handle(0.95, 1, Inf, Inf, 3, true, false);
 
-solver_specs(end+1).name = "C2-0.95";
-solver_specs(end).solve = make_nbds_handle(0.95, 1, Inf, Inf, 2, true, true);
+solver_specs(end+1).name = "T2-0.95";
+solver_specs(end).solve = make_nbds_handle(0.95, 1, Inf, Inf, 2, true, false, Inf, 1, 0, 0);
 
-solver_specs(end+1).name = "S2-0.95";
-solver_specs(end).solve = make_nbds_handle(0.95, 1, Inf, 10, 2, true, false);
+solver_specs(end+1).name = "T3-0.95";
+solver_specs(end).solve = make_nbds_handle(0.95, 1, Inf, Inf, 3, true, false, Inf, 1, 0, 0);
 
-solver_specs(end+1).name = "S3-0.95";
-solver_specs(end).solve = make_nbds_handle(0.95, 1, Inf, 10, 3, true, false);
+solver_specs(end+1).name = "Q2-0.95";
+solver_specs(end).solve = make_nbds_handle(0.95, 1, Inf, Inf, 2, true, false, Inf, 0, 0.25, 0);
 
-solver_specs(end+1).name = "P2-0.95";
-solver_specs(end).solve = make_nbds_handle(0.95, 1, Inf, Inf, 2, true, false, 1);
+solver_specs(end+1).name = "Q3-0.95";
+solver_specs(end).solve = make_nbds_handle(0.95, 1, Inf, Inf, 3, true, false, Inf, 0, 0.25, 0);
 
-solver_specs(end+1).name = "P3-0.95";
-solver_specs(end).solve = make_nbds_handle(0.95, 1, Inf, Inf, 3, true, false, 1);
+solver_specs(end+1).name = "TQ2-0.95";
+solver_specs(end).solve = make_nbds_handle(0.95, 1, Inf, Inf, 2, true, false, Inf, 1, 0.25, 0);
+
+solver_specs(end+1).name = "TQ3-0.95";
+solver_specs(end).solve = make_nbds_handle(0.95, 1, Inf, Inf, 3, true, false, Inf, 1, 0.25, 0);
 end
 
 function handle = make_nbds_handle(eta, weak_factor, slack_coeff, best_slack_coeff, weak_min_failures, ...
-    weak_accept_resets_failures, weak_accept_resets_reference, max_weak_per_cycle)
+    weak_accept_resets_failures, weak_accept_resets_reference, max_weak_per_cycle, ...
+    weak_min_stalled_cycles, weak_min_failed_block_fraction, weak_min_failed_blocks_in_cycle)
 if nargin < 8
     max_weak_per_cycle = Inf;
 end
+if nargin < 9
+    weak_min_stalled_cycles = 0;
+end
+if nargin < 10
+    weak_min_failed_block_fraction = 0;
+end
+if nargin < 11
+    weak_min_failed_blocks_in_cycle = 0;
+end
 handle = @(fun, x0, maxfun) run_nbds(fun, x0, maxfun, eta, weak_factor, ...
     slack_coeff, best_slack_coeff, weak_min_failures, weak_accept_resets_failures, ...
-    weak_accept_resets_reference, max_weak_per_cycle);
+    weak_accept_resets_reference, max_weak_per_cycle, weak_min_stalled_cycles, ...
+    weak_min_failed_block_fraction, weak_min_failed_blocks_in_cycle);
 end
 
 function [xopt, fopt, exitflag, output] = run_nbds(fun, x0, maxfun, eta, weak_factor, ...
     slack_coeff, best_slack_coeff, weak_min_failures, weak_accept_resets_failures, ...
-    weak_accept_resets_reference, max_weak_per_cycle)
+    weak_accept_resets_reference, max_weak_per_cycle, weak_min_stalled_cycles, ...
+    weak_min_failed_block_fraction, weak_min_failed_blocks_in_cycle)
 wrapped = budgeted_fun(fun, maxfun);
 options.maxfun = maxfun;
 options.eta = eta;
@@ -205,6 +223,9 @@ options.weak_min_failures = weak_min_failures;
 options.weak_accept_resets_failures = weak_accept_resets_failures;
 options.weak_accept_resets_reference = weak_accept_resets_reference;
 options.max_weak_per_cycle = max_weak_per_cycle;
+options.weak_min_stalled_cycles = weak_min_stalled_cycles;
+options.weak_min_failed_block_fraction = weak_min_failed_block_fraction;
+options.weak_min_failed_blocks_in_cycle = weak_min_failed_blocks_in_cycle;
 [xopt, fopt, exitflag, output] = nbds_simplified(wrapped, x0, options);
 output.fhist = output.fhist(:);
 end

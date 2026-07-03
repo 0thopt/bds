@@ -36,6 +36,9 @@ weak_min_failures = get_option(options, "weak_min_failures", 0);
 weak_accept_resets_failures = get_option(options, "weak_accept_resets_failures", false);
 weak_accept_resets_reference = get_option(options, "weak_accept_resets_reference", false);
 max_weak_per_cycle = get_option(options, "max_weak_per_cycle", Inf);
+weak_min_stalled_cycles = get_option(options, "weak_min_stalled_cycles", 0);
+weak_min_failed_block_fraction = get_option(options, "weak_min_failed_block_fraction", 0);
+weak_min_failed_blocks_in_cycle = get_option(options, "weak_min_failed_blocks_in_cycle", 0);
 
 if eta < 0 || eta >= 1
     error("options.eta must satisfy 0 <= eta < 1 for this prototype.");
@@ -78,9 +81,14 @@ cycle_failure_count = 0;
 for iter = 1:maxit
     cycle_strong_success = false;
     cycle_weak_count = 0;
+    cycle_failed_block_count = 0;
+    failed_block_gate = max(weak_min_failed_blocks_in_cycle, ...
+        ceil(weak_min_failed_block_fraction * n));
     for i = 1:n
         direction_indices = grouped_direction_indices{i};
         allow_weak = block_failure_count(i) >= weak_min_failures ...
+            && cycle_failure_count >= weak_min_stalled_cycles ...
+            && cycle_failed_block_count >= failed_block_gate ...
             && cycle_weak_count < max_weak_per_cycle;
         [sub_x, sub_f, sub_exitflag, sub_output] = inner_nonmonotone_search( ...
             fun, xbase, fbase, fopt, C, D(:, direction_indices), direction_indices, ...
@@ -113,6 +121,7 @@ for iter = 1:maxit
         else
             alpha_all(i) = shrink * alpha_all(i);
             failure_count = failure_count + 1;
+            cycle_failed_block_count = cycle_failed_block_count + 1;
             block_failure_count(i) = block_failure_count(i) + 1;
             reset_reference = false;
         end
@@ -191,6 +200,9 @@ output.weak_min_failures = weak_min_failures;
 output.weak_accept_resets_failures = weak_accept_resets_failures;
 output.weak_accept_resets_reference = weak_accept_resets_reference;
 output.max_weak_per_cycle = max_weak_per_cycle;
+output.weak_min_stalled_cycles = weak_min_stalled_cycles;
+output.weak_min_failed_block_fraction = weak_min_failed_block_fraction;
+output.weak_min_failed_blocks_in_cycle = weak_min_failed_blocks_in_cycle;
 output.block_failure_count = block_failure_count;
 output.cycle_failure_count = cycle_failure_count;
 output.iterations = iter;
