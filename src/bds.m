@@ -40,17 +40,18 @@ function [xopt, fopt, exitflag, output] = bds(fun, x0, options)
 %   alpha_init                  Initial step size. If alpha_init is a positive scalar, then the 
 %                               initial step size of each block is set to alpha_init. If alpha_init 
 %                               is a vector, then the initial step size of the i-th block is
-%                               set to alpha_init(i). If alpha_init is "auto", then the initial 
-%                               coordinate step sizes combine the
-%                               fminsearch initial simplex scale with a BDS
-%                               neutral-scale safeguard: exact zero
-%                               coordinates receive step 1, small nonzero
-%                               coordinates keep their own scale bounded
-%                               below by StepTolerance, and large
-%                               coordinates use the larger of 1 and a
-%                               relative perturbation of abs(x0(i)). If a
-%                               block contains several coordinates, its
-%                               initial step size is the maximum coordinate
+%                               set to alpha_init(i). If alpha_init is "auto",
+%                               then the initial polling steps are chosen by
+%                               a fminsearch-inspired scale-aware rule:
+%                               MATLAB's fminsearch constructs its initial
+%                               simplex using coordinate-dependent
+%                               perturbations of x0; analogously, BDS uses
+%                               the coordinate scales of the starting point.
+%                               Nonzero coordinates receive
+%                               max(abs(x0(i)), StepTolerance), while exact
+%                               zero coordinates keep the neutral BDS unit
+%                               step. If a block contains several coordinates,
+%                               its initial step size is the maximum coordinate
 %                               step size in that block.
 %                               This rule is primarily intended for the
 %                               default coordinate direction set; with a

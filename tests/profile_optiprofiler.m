@@ -211,7 +211,7 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @bds_test;
             case 'bds-default'
                 solvers{i} = @bds_default;
-            case 'bds-scaled'
+            case {'bds-scaled', 'bds-auto', 'bds_auto'}
                 solvers{i} = @bds_scaled;
             case {'bds-hybrid-025', 'bds_hybrid_025'}
                 solvers{i} = @(fun, x0) bds_hybrid_scaled(fun, x0, 0.025);

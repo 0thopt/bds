@@ -192,13 +192,10 @@ end
 % If alpha_init is a vector, then the initial step size of the i-th block is set to 
 % alpha_init(i). We first verify it is a numeric vector to avoid accepting strings that happen
 % to have the same length (for example, 'auto' when num_blocks = 4).
-% If alpha_init is "auto", then coordinate scales are initialized by a
-% fminsearch-inspired relative perturbation, protected by the neutral BDS
-% scale 1. Exact zero coordinates receive step 1; small nonzero coordinates
-% keep their own scale, bounded below by StepTolerance; large coordinates use
-% the larger of 1 and a relative perturbation of abs(x0). If a block contains
-% several coordinates, its initial step size is the maximum coordinate scale in
-% that block.
+% If alpha_init is "auto", then use a fminsearch-inspired scale-aware rule
+% adapted to BDS polling steps: nonzero coordinates receive max(abs(x0),
+% StepTolerance), exact zero coordinates keep the neutral unit step, and
+% block steps are the maximum coordinate steps in each block.
 if isfield(options, "alpha_init")
     if isrealscalar(options.alpha_init)
         options.alpha_init = options.alpha_init * ones(options.num_blocks, 1);
@@ -303,20 +300,11 @@ end
 end
 
 function alpha_coord = get_auto_alpha_init(x0, StepTolerance)
-%GET_AUTO_ALPHA_INIT returns protected fminsearch-inspired coordinate steps.
-
-usual_delta = 0.10;
-zero_term_delta = 0.00025;
+%GET_AUTO_ALPHA_INIT returns protected coordinate-wise initial steps.
 
 abs_x0 = abs(x0(:));
-simplex_scale = usual_delta * abs_x0;
-simplex_scale(abs_x0 == 0) = zero_term_delta;
-
-neutral_scale = ones(size(abs_x0));
-small_nonzero = (abs_x0 > 0) & (abs_x0 <= 1);
-neutral_scale(small_nonzero) = max(abs_x0(small_nonzero), StepTolerance);
-
-alpha_coord = max(simplex_scale, neutral_scale);
+alpha_coord = max(abs_x0, StepTolerance * ones(size(abs_x0)));
+alpha_coord(abs_x0 == 0) = 1;
 alpha_coord = max(alpha_coord, StepTolerance * ones(size(alpha_coord)));
 
 end
