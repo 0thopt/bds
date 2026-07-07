@@ -1,5 +1,5 @@
-function results = run_lean_evolved_bds_memory_ablation()
-%RUN_LEAN_EVOLVED_BDS_MEMORY_ABLATION Controlled ablation for Lean strategies.
+function results = run_accelerated_bds_memory_ablation()
+%RUN_ACCELERATED_BDS_MEMORY_ABLATION Controlled ablation for acceleration strategies.
 %
 % The experiment is deliberately small and deterministic.  It compares the
 % productive-direction memory against the sweep-pattern and momentum
@@ -24,7 +24,7 @@ variants = make_variants();
 
 rows = struct([]);
 row = 0;
-fprintf('Running Lean Evolved BDS memory ablation...\n');
+fprintf('Running accelerated BDS memory ablation...\n');
 fprintf('Problems=%d, dims=%d, seeds=%d, variants=%d\n', ...
     numel(problems), numel(dims), numel(seeds), numel(variants));
 
@@ -40,7 +40,7 @@ for ip = 1:numel(problems)
                 variant = variants(iv);
                 options = make_options(variant, n);
                 tstart = tic;
-                [~, fopt, exitflag, output] = lean_evolved_bds_options(fun, x0, options);
+                [~, fopt, exitflag, output] = accelerated_bds_options(fun, x0, options);
                 elapsed = toc(tstart);
 
                 row = row + 1;
@@ -67,7 +67,7 @@ if ~exist(out_dir, 'dir')
     mkdir(out_dir);
 end
 timestamp = datestr(now, 'yyyymmdd_HHMMSS');
-out_csv = fullfile(out_dir, ['lean_evolved_bds_memory_ablation_', timestamp, '.csv']);
+out_csv = fullfile(out_dir, ['accelerated_bds_memory_ablation_', timestamp, '.csv']);
 writetable(results, out_csv);
 
 fprintf('\nSaved raw results to:\n%s\n', out_csv);

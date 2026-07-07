@@ -110,9 +110,11 @@ end
 % N.B.: In some tests, we may invoke this function with solvers{1} == solvers{2}. So do NOT assume
 % that one of the solvers is 'SOLVER' and the other is 'SOLVER_norma'.
 
-% Use function handle to avoid `feval`.
-solver1 = str2func(solvers{1});
-solver2 = str2func(solvers{2});
+% Use function handles to avoid `feval`.  Existing callers may pass solver
+% names; verification helpers may pass local function handles to avoid creating
+% one wrapper file per test scenario.
+solver1 = solver_to_function(solvers{1});
+solver2 = solver_to_function(solvers{2});
 
 % Randomly pass x0 as a row vector. Solvers should preserve the input shape
 % externally while using column vectors internally when needed.
@@ -161,6 +163,13 @@ end
 
 return
 
+function solver = solver_to_function(solver)
+    if isa(solver, 'function_handle')
+        return;
+    end
+    solver = str2func(solver);
+    return
+
 
 function eq = iseq(x, f, exitflag, output, xx, ff, ee, oo, prec)
     eq = true;
@@ -198,7 +207,4 @@ function eq = iseq(x, f, exitflag, output, xx, ff, ee, oo, prec)
     end
     
     return
-
-
-
 

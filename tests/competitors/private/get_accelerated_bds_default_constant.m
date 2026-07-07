@@ -1,8 +1,8 @@
-function constant_value = get_lean_evolved_bds_default_constant(constant_name)
-%GET_LEAN_EVOLVED_BDS_DEFAULT_CONSTANT Defaults for lean_evolved_bds_options.
+function constant_value = get_accelerated_bds_default_constant(constant_name)
+%GET_ACCELERATED_BDS_DEFAULT_CONSTANT Defaults for accelerated_bds_options.
 %
-% These defaults intentionally preserve the reference Lean solver where it
-% differs from bds.m. Explicit user options remain authoritative.
+% These defaults intentionally preserve the historical reference solver where
+% it differs from bds.m. Explicit user options remain authoritative.
 
 switch constant_name
     case "MaxFunctionEvaluations_dim_factor"
@@ -11,8 +11,24 @@ switch constant_name
         constant_value = -inf;
     case "StepTolerance"
         constant_value = 1e-6;
+    case "use_function_value_stop"
+        constant_value = false;
+    case "func_window_size"
+        constant_value = 20;
+    case "func_tol"
+        constant_value = 1e-6;
+    case "use_estimated_gradient_stop"
+        constant_value = false;
+    case "grad_window_size"
+        constant_value = 1;
+    case "grad_tol"
+        constant_value = 1e-6;
+    case "lipschitz_constant"
+        constant_value = 1e3;
     case "block_visiting_pattern"
         constant_value = "sorted";
+    case "seed"
+        constant_value = "shuffle";
     case "alpha_init"
         constant_value = 1;
     case "expand"
@@ -43,7 +59,9 @@ switch constant_name
         constant_value = false;
     case "iprint"
         constant_value = 0;
+    case "debug_flag"
+        constant_value = false;
     otherwise
-        error("Unknown Lean Evolved BDS constant name '%s'.", constant_name);
+        error("Unknown accelerated BDS constant name '%s'.", constant_name);
 end
 end

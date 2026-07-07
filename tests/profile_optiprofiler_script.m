@@ -4,7 +4,7 @@ options.maxdim = 50;
 options.plibs = 's2mpj';
 options.max_eval_factor = 200;
 options.n_runs = 5;
-options.solver_names = {'lean_evolved_bds_options', 'nomad'};
+options.solver_names = {'accelerated-bds', 'nomad'};
 
 feature_names = { ...
     'plain', ...

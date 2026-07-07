@@ -303,8 +303,8 @@ function alpha_coord = get_auto_alpha_init(x0, StepTolerance)
 %GET_AUTO_ALPHA_INIT returns protected coordinate-wise initial steps.
 
 abs_x0 = abs(x0(:));
-alpha_coord = max(abs_x0, StepTolerance * ones(size(abs_x0)));
+alpha_coord = max(abs_x0, StepTolerance);
 alpha_coord(abs_x0 == 0) = 1;
-alpha_coord = max(alpha_coord, StepTolerance * ones(size(alpha_coord)));
+alpha_coord = max(alpha_coord, StepTolerance);
 
 end

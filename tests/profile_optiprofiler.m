@@ -402,16 +402,22 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @nomad_test;
             case {'lean-evolved-bds', 'evolved-bds-lean'}
                 solvers{i} = @lean_evolved_bds_test;
-            case {'lean-evolved-bds-full-options', 'lean-evolved-bds-options', 'lean_evolved_bds_options'}
-                solvers{i} = @(fun, x0) lean_evolved_bds_options_test(fun, x0, true, true, true);
-            case {'lean-evolved-bds-options-budget-limited', 'lean_evolved_bds_options_budget_limited'}
-                solvers{i} = @lean_evolved_bds_options_budget_limited_test;
+            case {'accelerated-bds', 'accelerated_bds', 'accelerated-bds-options', ...
+                    'accelerated_bds_options', 'lean-evolved-bds-full-options', ...
+                    'lean-evolved-bds-options', 'lean_evolved_bds_options'}
+                solvers{i} = @(fun, x0) accelerated_bds_options_test(fun, x0, true, true, true);
+            case {'accelerated-bds-budget-limited', 'accelerated_bds_budget_limited', ...
+                    'accelerated-bds-options-budget-limited', ...
+                    'accelerated_bds_options_budget_limited', ...
+                    'lean-evolved-bds-options-budget-limited', ...
+                    'lean_evolved_bds_options_budget_limited'}
+                solvers{i} = @accelerated_bds_options_budget_limited_test;
             case 'lean-evolved-bds-no-memory'
-                solvers{i} = @(fun, x0) lean_evolved_bds_options_test(fun, x0, false, true, true);
+                solvers{i} = @(fun, x0) accelerated_bds_options_test(fun, x0, false, true, true);
             case 'lean-evolved-bds-memory-only'
-                solvers{i} = @(fun, x0) lean_evolved_bds_options_test(fun, x0, true, false, false);
+                solvers{i} = @(fun, x0) accelerated_bds_options_test(fun, x0, true, false, false);
             case 'lean-evolved-bds-pattern-momentum'
-                solvers{i} = @(fun, x0) lean_evolved_bds_options_test(fun, x0, false, true, true);
+                solvers{i} = @(fun, x0) accelerated_bds_options_test(fun, x0, false, true, true);
             case 'bds-no-additional-stopping'
                 solvers{i} = @cbds_simplified_test;
             case 'bds-simplified'
@@ -1701,22 +1707,22 @@ function x = lean_evolved_bds_test(fun, x0)
 
 end
 
-function x = lean_evolved_bds_options_test(fun, x0, use_memory, use_pattern, use_momentum)
+function x = accelerated_bds_options_test(fun, x0, use_memory, use_pattern, use_momentum)
 
     options.use_productive_direction_memory = use_memory;
     options.use_sweep_pattern_direction = use_pattern;
     options.use_momentum_extrapolation = use_momentum;
-    x = lean_evolved_bds_options(fun, x0, options);
+    x = accelerated_bds_options(fun, x0, options);
 
 end
 
-function x = lean_evolved_bds_options_budget_limited_test(fun, x0)
+function x = accelerated_bds_options_budget_limited_test(fun, x0)
 
     options.use_productive_direction_memory = true;
     options.use_sweep_pattern_direction = true;
     options.use_momentum_extrapolation = true;
     options.StepTolerance = 1e-12;
-    x = lean_evolved_bds_options(fun, x0, options);
+    x = accelerated_bds_options(fun, x0, options);
 
 end
 
