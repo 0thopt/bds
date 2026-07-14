@@ -505,9 +505,8 @@ end
 
 function filename = default_stage3_pair_summary_file()
 path_tests = fileparts(mfilename('fullpath'));
-filename = fullfile(path_tests, 'testdata', ...
-    'ds_vs_cbds_high_noise_primary_20260712_165527', 'analysis', ...
-    'noise_matched_profiles', 'noise_matched_pair_summary.csv');
+filename = fullfile(path_tests, 'stage6_inputs', ...
+    'noise_matched_pair_summary.csv');
 end
 
 function options = set_default(options, name, value)

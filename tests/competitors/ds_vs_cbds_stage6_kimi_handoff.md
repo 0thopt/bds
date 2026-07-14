@@ -116,7 +116,7 @@ All relative paths below are relative to the BDS repository root.
 | --- | --- | --- |
 | `tests/competitors/ds_vs_cbds_high_noise_investigation_plan.md` | Full research protocol and stage definitions | Update Stage 6 status only after verified completion |
 | `tests/competitors/ds_vs_cbds_high_noise_investigation_results.md` | Results from Stages 1-5 and Stage 6 handoff | Append evidence-backed Stage 6 findings only |
-| `tests/testdata/ds_vs_cbds_high_noise_primary_20260712_165527/analysis/noise_matched_problem_ranking/stage5_case_selection/stage6_targeted_replay_matrix.csv` | Authoritative 18-combination replay matrix | Read-only; never edit or replace |
+| `tests/stage6_inputs/stage6_targeted_replay_matrix.csv` | Version-controlled immutable snapshot of the authoritative 18-combination replay matrix | Read-only; never edit or replace |
 | `tests/run_ds_vs_cbds_high_noise_replay.m` | Builds paired tasks, runs traces, writes manifest, and audits each invocation | Read-only during normal execution |
 | `tests/analyze_ds_vs_cbds_high_noise_replay.m` | Computes relevant-`tau` hits, windows, stability, reports, and trace audit | Read-only during normal execution |
 | `tests/competitors/trace_ds_cbds_baseline.m` | Validated instrumented baseline DS/CBDS implementation | Read-only; changing it invalidates the 180/180 gate |
@@ -125,13 +125,18 @@ All relative paths below are relative to the BDS repository root.
 | `tests/run_stage6_trace_equivalence_gate.m` | Fixed 180-run gate driver | Read-only; do not execute for this task |
 | `tests/competitors/private/set_accelerated_bds_options.m` | Normalizes the traced DS/CBDS options | Read-only; its hash must match locally and remotely |
 | `tests/competitors/private/get_accelerated_bds_default_constant.m` | Supplies baseline defaults used by the option normalizer | Read-only; its hash must match locally and remotely |
-| `tests/testdata/ds_vs_cbds_high_noise_primary_20260712_165527/analysis/noise_matched_profiles/noise_matched_pair_summary.csv` | Stage 3 plateau definitions used by analyzer | Read-only |
+| `tests/stage6_inputs/noise_matched_pair_summary.csv` | Version-controlled immutable snapshot of the Stage 3 plateau definitions used by analyzer | Read-only |
 | `tests/testdata/ds_vs_cbds_high_noise_primary_20260712_165527/aggregate_manifest.mat` | Stage 3 aggregate identity and data | Read-only |
 | This handoff file | Execution contract | Read-only |
 
 If a core Stage 6 file appears defective, do not silently patch it and continue. Record the exact
 failure in the checkpoint and stop for review. A change to the tracer would invalidate the accepted
 equivalence gate.
+
+The two files under `tests/stage6_inputs` are execution snapshots copied byte-for-byte from the
+historical Stage 3/5 analysis artifacts under `tests/testdata`. The snapshots are the portable,
+Git-tracked inputs for local and server execution; the historical originals remain provenance and
+must not be moved, deleted, or modified.
 
 ## 6. Obsolete Files That Must Not Drive Execution
 
@@ -461,9 +466,8 @@ tests/competitors/ds_vs_cbds_high_noise_investigation_results.md
 tests/testdata/ds_vs_cbds_high_noise_primary_20260712_165527/analysis/
   noise_matched_problem_ranking/stage5_case_selection/
   stage5_representative_problem_shortlist.md
-tests/testdata/ds_vs_cbds_high_noise_primary_20260712_165527/analysis/
-  noise_matched_problem_ranking/stage5_case_selection/
-  stage6_targeted_replay_matrix.csv
+tests/stage6_inputs/stage6_targeted_replay_matrix.csv
+tests/stage6_inputs/noise_matched_pair_summary.csv
 tests/run_ds_vs_cbds_high_noise_replay.m
 tests/analyze_ds_vs_cbds_high_noise_replay.m
 tests/competitors/trace_ds_cbds_baseline.m
@@ -546,11 +550,8 @@ tests/analyze_ds_vs_cbds_high_noise_replay.m
 tests/competitors/trace_ds_cbds_baseline.m
 tests/competitors/private/set_accelerated_bds_options.m
 tests/competitors/private/get_accelerated_bds_default_constant.m
-tests/testdata/ds_vs_cbds_high_noise_primary_20260712_165527/analysis/
-  noise_matched_problem_ranking/stage5_case_selection/
-  stage6_targeted_replay_matrix.csv
-tests/testdata/ds_vs_cbds_high_noise_primary_20260712_165527/analysis/
-  noise_matched_profiles/noise_matched_pair_summary.csv
+tests/stage6_inputs/stage6_targeted_replay_matrix.csv
+tests/stage6_inputs/noise_matched_pair_summary.csv
 ```
 
 Also compare the BDS repository commit and the OptiProfiler repository commit when available.
@@ -635,9 +636,7 @@ Create a MATLAB driver under `orchestration/drivers`, for example
 
 ```matlab
 repo = '/home/lhtian97/Work/bds';
-matrix_file = fullfile(repo, 'tests', 'testdata', ...
-    'ds_vs_cbds_high_noise_primary_20260712_165527', 'analysis', ...
-    'noise_matched_problem_ranking', 'stage5_case_selection', ...
+matrix_file = fullfile(repo, 'tests', 'stage6_inputs', ...
     'stage6_targeted_replay_matrix.csv');
 savepath = fullfile(repo, 'tests', 'testdata', ...
     'ds_vs_cbds_high_noise_stage6_replay_20260714');
