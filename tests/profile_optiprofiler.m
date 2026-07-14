@@ -256,6 +256,15 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @ds_test;
             case {'ds-200n', 'ds_200n'}
                 solvers{i} = @ds_200n_test;
+            case {'ds-baseline-200n', 'ds_baseline_200n'}
+                solvers{i} = @(fun, x0) accelerated_bds_options_profile_test( ...
+                    fun, x0, 'ds', false, false, false, 200, 1e-6);
+            case {'ds-pattern-momentum-200n', 'ds_pattern_momentum_200n'}
+                solvers{i} = @(fun, x0) accelerated_bds_options_profile_test( ...
+                    fun, x0, 'ds', false, true, true, 200, 1e-6);
+            case {'accelerated-ds-all-on-200n', 'accelerated_ds_all_on_200n'}
+                solvers{i} = @(fun, x0) accelerated_bds_options_profile_test( ...
+                    fun, x0, 'ds', true, true, true, 200, 1e-6);
             case 'direct-search-orig'
                 solvers{i} = @ds_orig_test;
             case 'ds-block'
@@ -344,6 +353,28 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @(fun, x0) scbds_test_noisy(fun, x0, true);
             case 'cbds'
                 solvers{i} = @cbds_test;
+            case {'cbds-200n', 'cbds_200n'}
+                solvers{i} = @cbds_200n_test;
+            case {'cbds-500n', 'cbds_500n'}
+                solvers{i} = @cbds_500n_test;
+            case {'cbds-baseline-200n', 'cbds_baseline_200n'}
+                solvers{i} = @(fun, x0) accelerated_bds_options_profile_test( ...
+                    fun, x0, 'cbds', false, false, false, 200, 1e-6);
+            case {'cbds-memory-only-200n', 'cbds_memory_only_200n'}
+                solvers{i} = @(fun, x0) accelerated_bds_options_profile_test( ...
+                    fun, x0, 'cbds', true, false, false, 200, 1e-6);
+            case {'cbds-pattern-only-200n', 'cbds_pattern_only_200n'}
+                solvers{i} = @(fun, x0) accelerated_bds_options_profile_test( ...
+                    fun, x0, 'cbds', false, true, false, 200, 1e-6);
+            case {'cbds-momentum-only-200n', 'cbds_momentum_only_200n'}
+                solvers{i} = @(fun, x0) accelerated_bds_options_profile_test( ...
+                    fun, x0, 'cbds', false, false, true, 200, 1e-6);
+            case {'cbds-pattern-momentum-200n', 'cbds_pattern_momentum_200n'}
+                solvers{i} = @(fun, x0) accelerated_bds_options_profile_test( ...
+                    fun, x0, 'cbds', false, true, true, 200, 1e-6);
+            case {'accelerated-bds-all-on-200n', 'accelerated_bds_all_on_200n'}
+                solvers{i} = @(fun, x0) accelerated_bds_options_profile_test( ...
+                    fun, x0, 'cbds', true, true, true, 200, 1e-6);
             case 'cbds-development'
                 solvers{i} = @cbds_development_test;
             case 'cbds-cycle-all'
@@ -400,6 +431,10 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
                 solvers{i} = @fmds_test;
             case 'nomad'
                 solvers{i} = @nomad_test;
+            case {'nomad-200n', 'nomad_200n'}
+                solvers{i} = @nomad_test;
+            case {'nomad-500n', 'nomad_500n'}
+                solvers{i} = @nomad_500n_test;
             case {'lean-evolved-bds', 'evolved-bds-lean'}
                 solvers{i} = @lean_evolved_bds_test;
             case {'accelerated-bds', 'accelerated_bds', 'accelerated-bds-options', ...
@@ -947,6 +982,24 @@ function x = ds_200n_test(fun, x0)
 
     option.Algorithm = 'ds';
     option.MaxFunctionEvaluations = 200*length(x0);
+    x = bds(fun, x0, option);
+
+end
+
+function x = cbds_200n_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.MaxFunctionEvaluations = 200*length(x0);
+    option.StepTolerance = 1e-6;
+    x = bds(fun, x0, option);
+
+end
+
+function x = cbds_500n_test(fun, x0)
+
+    option.Algorithm = 'cbds';
+    option.MaxFunctionEvaluations = 500*length(x0);
+    option.StepTolerance = 1e-12;
     x = bds(fun, x0, option);
 
 end
@@ -1584,6 +1637,18 @@ end
 
 function x = nomad_test(fun, x0)
     
+    x = nomad_with_budget_test(fun, x0, 200);
+    
+end
+
+function x = nomad_500n_test(fun, x0)
+    
+    x = nomad_with_budget_test(fun, x0, 500);
+    
+end
+
+function x = nomad_with_budget_test(fun, x0, max_eval_factor)
+    
     % Dimension:
     n = numel(x0);
 
@@ -1594,7 +1659,7 @@ function x = nomad_test(fun, x0)
     ub = inf(n, 1);
 
     % Set MAXFUN to the maximum number of function evaluations.
-    MaxFunctionEvaluations = 200*n;
+    MaxFunctionEvaluations = max_eval_factor*n;
 
     % We deliberately do not set MIN_FRAME_SIZE or MIN_MESH_SIZE here. In
     % NOMAD 4, their parameter documentation says "No default value"; during
@@ -1712,6 +1777,20 @@ function x = accelerated_bds_options_test(fun, x0, use_memory, use_pattern, use_
     options.use_productive_direction_memory = use_memory;
     options.use_sweep_pattern_direction = use_pattern;
     options.use_momentum_extrapolation = use_momentum;
+    x = accelerated_bds_options(fun, x0, options);
+
+end
+
+function x = accelerated_bds_options_profile_test( ...
+    fun, x0, algorithm, use_memory, use_pattern, use_momentum, ...
+    max_eval_factor, step_tolerance)
+
+    options.Algorithm = algorithm;
+    options.use_productive_direction_memory = use_memory;
+    options.use_sweep_pattern_direction = use_pattern;
+    options.use_momentum_extrapolation = use_momentum;
+    options.MaxFunctionEvaluations = max_eval_factor*length(x0);
+    options.StepTolerance = step_tolerance;
     x = accelerated_bds_options(fun, x0, options);
 
 end

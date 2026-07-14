@@ -1,0 +1,90 @@
+{
+  "schema_version": 2,
+  "catalog_id": "bds-ds-vs-cbds-stage6-v1",
+  "action_namespace": "bds.stage6",
+  "execution_enabled": false,
+  "states": [
+    "PRECHECK",
+    "EQUIVALENCE_GATE",
+    "TIER1_RUNS_1_TO_20",
+    "INITIAL_ANALYSIS",
+    "UNCERTAIN_RUNS_21_TO_30",
+    "TIER2_RUNS",
+    "FINAL_AUDIT",
+    "COMPLETE"
+  ],
+  "actions": [
+    {
+      "id": "bds.stage6.check_status",
+      "description": "Inspect supplied Stage 6 artifacts and report the current gate without running anything.",
+      "kind": "read_only",
+      "allowed_from": ["PRECHECK", "EQUIVALENCE_GATE", "TIER1_RUNS_1_TO_20", "INITIAL_ANALYSIS", "UNCERTAIN_RUNS_21_TO_30", "TIER2_RUNS", "FINAL_AUDIT", "COMPLETE"],
+      "next_state": null,
+      "argument_keys": [],
+      "requires_codex_authorization": true
+    },
+    {
+      "id": "bds.stage6.verify_equivalence",
+      "description": "Recommend the strict 180-solver-run trace-equivalence gate; execution remains disabled.",
+      "kind": "gated_experiment",
+      "allowed_from": ["EQUIVALENCE_GATE"],
+      "next_state": "TIER1_RUNS_1_TO_20",
+      "argument_keys": [],
+      "requires_codex_authorization": true
+    },
+    {
+      "id": "bds.stage6.run_tier1",
+      "description": "Recommend the first 20 paired runs for all 13 Tier 1 combinations; execution remains disabled.",
+      "kind": "gated_experiment",
+      "allowed_from": ["TIER1_RUNS_1_TO_20"],
+      "next_state": "INITIAL_ANALYSIS",
+      "argument_keys": [],
+      "requires_codex_authorization": true
+    },
+    {
+      "id": "bds.stage6.analyze",
+      "description": "Recommend deterministic Stage 6 replay analysis and uncertainty classification.",
+      "kind": "analysis",
+      "allowed_from": ["INITIAL_ANALYSIS"],
+      "next_state": "UNCERTAIN_RUNS_21_TO_30",
+      "argument_keys": [],
+      "requires_codex_authorization": true
+    },
+    {
+      "id": "bds.stage6.extend_unstable",
+      "description": "Recommend runs 21 through 30 only for combinations failing the 70 percent stability rule.",
+      "kind": "gated_experiment",
+      "allowed_from": ["UNCERTAIN_RUNS_21_TO_30"],
+      "next_state": "TIER2_RUNS",
+      "argument_keys": [],
+      "requires_codex_authorization": true
+    },
+    {
+      "id": "bds.stage6.run_tier2",
+      "description": "Recommend the five Tier 2 replay combinations after Tier 1 uncertainty is resolved.",
+      "kind": "gated_experiment",
+      "allowed_from": ["TIER2_RUNS"],
+      "next_state": "FINAL_AUDIT",
+      "argument_keys": [],
+      "requires_codex_authorization": true
+    },
+    {
+      "id": "bds.stage6.final_audit",
+      "description": "Recommend final deterministic completeness, budget, pairing, and trace-integrity audits.",
+      "kind": "read_only",
+      "allowed_from": ["FINAL_AUDIT"],
+      "next_state": "COMPLETE",
+      "argument_keys": [],
+      "requires_codex_authorization": true
+    },
+    {
+      "id": "bds.stage6.stop_and_report",
+      "description": "Stop progression and report a blocker with artifact evidence.",
+      "kind": "read_only",
+      "allowed_from": ["PRECHECK", "EQUIVALENCE_GATE", "TIER1_RUNS_1_TO_20", "INITIAL_ANALYSIS", "UNCERTAIN_RUNS_21_TO_30", "TIER2_RUNS", "FINAL_AUDIT", "COMPLETE"],
+      "next_state": null,
+      "argument_keys": [],
+      "requires_codex_authorization": true
+    }
+  ]
+}
