@@ -1,79 +1,75 @@
-# Automatic Initial Step Size Tuning for BDS
+# BDS 的 automatic initial step size 调参
 
-This file is the execution checklist for selecting the coefficients in the
-automatic initial step size rule. The work belongs to the `bds` software
-repository. Interpret all code paths and commands below relative to the root of
-that repository, regardless of where this file is currently stored.
+本文件是为 automatic initial step size rule 选择 coefficient 的执行 checklist。
+相关工作属于 `bds` software repository。无论本文件目前存放在哪里，下文所有
+code path 和 command 均应相对于该 repository 的根目录来理解。
 
-## Status
+## 状态
 
-Use the following status labels.
+使用以下 status label。
 
-- `[todo]`: not started.
-- `[progress]`: implementation or experiments are under way.
-- `[blocked]`: cannot proceed until a named dependency is resolved.
-- `[done]`: completed, checked, and linked to its output.
+- `[todo]`：尚未开始。
+- `[progress]`：implementation 或实验正在进行。
+- `[blocked]`：在指定 dependency 得到解决之前无法继续。
+- `[done]`：已完成、已检查，并已链接到对应 output。
 
-Protocol design status: `[done]`.
+实验方案设计状态：`[done]`。
 
-Experimental execution status: `[todo]`.
+实验执行状态：`[todo]`。
 
-No coefficient pair has been selected. Do not change the released default or
-the manuscript formula until the experiments and checks in this file are
-complete.
+尚未选定任何 coefficient pair。在本文件中的实验与检查完成之前，不得修改
+released default 或 manuscript formula。
 
-## Objective
+## 目标
 
-Select one coefficient pair for the `alpha_init = "auto"` rule of the cyclic
-BDS solver. During this study, omitting `alpha_init` continues to select unit
-initial steps. Promotion of the completed automatic rule to the released
-default is a later integration decision, made only after the coefficient study
-and combined solver checks pass. The selected pair must be suitable for
-released software, not merely favorable in one performance profile.
+为 cyclic BDS solver 的 `alpha_init = "auto"` rule 选择一个 coefficient pair。
+在本研究期间，省略 `alpha_init` 仍然选择 unit initial steps。是否将完成后的
+automatic rule 提升为 released default，是后续的 integration decision；只有在
+coefficient study 和 combined solver checks 均通过后才能作出。所选 coefficient
+pair 必须适用于 released software，而不能只是在某一张 performance profile 中
+表现有利。
 
-The study must answer the following questions.
+本研究必须回答以下问题。
 
-1. How much of the scale indicated by the initial point should BDS use?
-2. How far above the step tolerance should a scale based initial step begin?
-3. Does one coefficient pair remain reliable under both `200*N` and `500*N`
-   function evaluation budgets?
-4. Does the selected rule improve on unit initial steps without introducing a
-   material regression relative to the current automatic rule?
-5. Can the same rule be used in the plain solver and in the final solver that
-   combines acceleration and termination?
+1. BDS 应当使用 initial point 所指示 scale 的多大比例？
+2. 基于 scale 的 initial step 应当设为 step tolerance 的多少倍？
+3. 同一组 coefficient pair 在 `200*N` 和 `500*N` 两种 function evaluation
+   budget 下是否都保持可靠？
+4. 所选 rule 能否在不相对于当前 automatic rule 引入实质性 regression 的前提下，
+   改进 unit initial steps？
+5. 同一个 rule 能否用于 plain solver，以及结合 acceleration 和 termination 的
+   final solver？
 
-The outcome must be one documented automatic rule and one coefficient pair. Do
-not adopt different coefficients for `200*N` and `500*N`, and do not introduce
-any benchmark dependent runtime selection rule.
+最终结果必须是一条有文档记录的 automatic rule 和一个 coefficient pair。不得为
+`200*N` 和 `500*N` 采用不同的 coefficient，也不得引入任何依赖于 benchmark 的
+runtime selection rule。
 
-## Scope
+## 范围
 
-The primary object is the default coordinate version of cyclic BDS.
+主要研究对象是 cyclic BDS 的 default coordinate version。
 
-- The direction pairs are `{e_i, -e_i}` for `i = 1, ..., N`.
-- Each coordinate pair is one block.
-- Each block has its own initial step size.
-- The mathematical dimension is denoted by `N`. The MATLAB code may continue
-  to use `n` for the dimension.
+- direction pair 为 `{e_i, -e_i}`，其中 `i = 1, ..., N`。
+- 每个 coordinate pair 构成一个 block。
+- 每个 block 都有自己的 initial step size。
+- 数学上的 dimension 记为 `N`。MATLAB code 中可继续使用 `n` 表示 dimension。
 
-The coefficient study concerns plain BDS first. Acceleration and the optional
-stopping tests are disabled during coefficient selection. The selected
-candidate is checked with the final combined solver only after the plain study
-is complete.
+coefficient study 首先针对 plain BDS。在 coefficient selection 期间禁用
+acceleration 和 optional stopping tests。只有完成 plain study 后，才使用最终的
+combined solver 检查所选 candidate。
 
-The following tasks are outside the scope of this study.
+以下任务不属于本研究的范围。
 
-- Tuning acceleration parameters.
-- Tuning termination parameters.
-- Explaining the large noise DS comparison.
-- Choosing the main paper budget.
-- Completing comparisons with external solvers.
-- Designing an automatic scale rule for arbitrary noncoordinate directions.
+- 调整 acceleration 的 parameters。
+- 调整 termination 的 parameters。
+- 解释 large noise DS comparison。
+- 选择 main paper budget。
+- 完成与 external solvers 的比较。
+- 为任意 noncoordinate directions 设计 automatic scale rule。
 
-## Candidate Rule
+## Candidate rule（候选规则）
 
-Let `epsilon_i` be the step tolerance for coordinate block `i`. For positive
-coefficients `c_x` and `c_tau`, define
+令 `epsilon_i` 表示 coordinate block `i` 的 step tolerance。对 positive
+coefficients `c_x` 和 `c_tau`，定义
 
 \[
   b_i(c_x)=
@@ -83,168 +79,152 @@ coefficients `c_x` and `c_tau`, define
   \end{cases}
 \]
 
-and
+以及
 
 \[
   \alpha_0^i(c_x,c_\tau)
   =\max\{b_i(c_x),c_\tau\epsilon_i\}.
 \]
 
-Thus exact zero coordinates retain the neutral unit scale unless
-`c_tau*epsilon_i > 1`. Nonzero coordinates use a fraction of the magnitude of
-the corresponding entry of the initial point, subject to a lower bound tied to
-the step tolerance.
+因此，除非 `c_tau*epsilon_i > 1`，exact zero coordinates 采用 neutral unit
+scale。nonzero coordinates 使用 initial point 中对应 entry magnitude 的一部分，
+同时受与 step tolerance 关联的 lower bound 约束。
 
-This distinction at exact zero is intentional. An exact zero entry is treated
-as providing no usable positive coordinate scale, so the rule falls back to
-the neutral unit step. Every nonzero entry is treated as an intentional scale
-signal supplied through the initial point, even when its magnitude is small.
-Consequently, continuity of the automatic rule as a nonzero entry approaches
-zero is not a design requirement. Tests should record and preserve this
-semantic convention rather than treat the discontinuity as a coefficient
-tuning problem.
+对 exact zero 作此区分是有意的。exact zero entry 被视为不提供可用的 positive
+coordinate scale，因此该 rule 回退到 neutral unit step。每个 nonzero entry 都被
+视为通过 initial point 有意提供的 scale signal，即使其 magnitude 很小也是如此。
+因此，当 nonzero entry 趋近于零时，automatic rule 的 continuity 并非 design
+requirement。tests 应记录并保留这一 semantic convention，而不应将该
+discontinuity 视为 coefficient tuning 问题。
 
-For a future implementation that combines several coordinate pairs in one
-block `j`, the natural extension is
+对于未来将多个 coordinate pairs 合并到同一 block `j` 中的 implementation，
+自然的 extension 是
 
 \[
   \alpha_0^j=\max_{i\in I_j}\alpha_0^i,
 \]
 
-where `I_j` is the set of coordinate pairs in block `j`. This extension is not
-part of the coefficient selection experiment. Do not infer coordinate indices
-from arbitrary direction indices unless the direction set is known to consist
-of ordered coordinate pairs.
+其中，`I_j` 是 block `j` 中 coordinate pairs 的集合。该 extension 不属于
+coefficient selection experiment。除非已知 direction set 由有序的 coordinate
+pairs 构成，否则不得从任意 direction indices 推断 coordinate indices。
 
-### Interpretation of `c_x`
+### `c_x` 的含义
 
-- `c_x = 1` is the current simple scale rule for nonzero coordinates and is
-  the reliable incumbent in this study.
-- Values below one make the first trial more local relative to `x0` and are
-  challengers to the incumbent.
-- The advisor suggested examining values near `0.1` to `0.5`.
-- The study retains `1` so that the current rule is always included as a
-  baseline.
+- `c_x = 1` 是当前用于 nonzero coordinates 的 simple scale rule，也是本研究中
+  可靠的 incumbent。
+- 小于一的取值会使 first trial 相对于 `x0` 更加 local，它们是 incumbent 的
+  challengers。
+- 导师建议考察 `0.1` 至 `0.5` 附近的取值。
+- 本研究保留 `1`，以确保当前 rule 始终作为 baseline 纳入比较。
 
-### Interpretation of `c_tau`
+### `c_tau` 的含义
 
-The coefficient `c_tau` controls how many unsuccessful contractions remain
-before an initial step near the lower bound falls below `StepTolerance`. If the
-contraction factor is `theta = 0.5` and the initial step equals
-`c_tau*epsilon_i`, the minimum number of consecutive contractions needed to
-make the step strictly smaller than `epsilon_i` is the smallest integer `m`
-such that
+coefficient `c_tau` 控制 lower bound 附近的 initial step 在降至
+`StepTolerance` 以下之前还会经历多少次 unsuccessful contractions。若
+contraction factor 为 `theta = 0.5`，且 initial step 等于
+`c_tau*epsilon_i`，则使该 step 严格小于 `epsilon_i` 所需的最少 consecutive
+contractions 次数，是满足下式的最小整数 `m`：
 
 \[
   0.5^m c_\tau < 1.
 \]
 
-Across the integer domain `1, ..., 10`, the contraction-depth groups are
+在整数 domain `1, ..., 10` 上，contraction-depth groups 为
 
-- `{1}`: one contraction,
-- `{2, 3}`: two contractions,
-- `{4, 5, 6, 7}`: three contractions, and
-- `{8, 9, 10}`: four contractions.
+- `{1}`：一次 contraction；
+- `{2, 3}`：两次 contractions；
+- `{4, 5, 6, 7}`：三次 contractions；
+- `{8, 9, 10}`：四次 contractions。
 
-The values `{1, 2, 5, 10}` are the preselected representatives of these four
-groups for the general benchmark. This interpretation and the reason for using
-these representatives must be recorded when the final value is selected.
-Treat `c_tau = 1` as the incumbent. The values `{2, 5, 10}` are challengers,
-not equally preferred alternatives.
+取值 `{1, 2, 5, 10}` 是为 general benchmark 预先选定的四个 groups 各自的
+representative。选定最终取值时，必须记录这一解释以及使用这些 representatives
+的理由。将 `c_tau = 1` 视为 incumbent；取值 `{2, 5, 10}` 是 challengers，
+而不是具有同等优先级的备选值。
 
-## Candidate Values
+## Candidate values（候选取值）
 
-The predeclared coefficient values are
+预先声明的 coefficient values 为
 
 \[
   c_x\in\{0.1,0.2,0.5,1.0\}
 \]
 
-and
+以及
 
 \[
   c_\tau\in\{1,2,3,4,5,6,7,8,9,10\}.
 \]
 
-The `c_x` values are a coarse, preselected sensitivity screen: `0.1` and `0.5`
-cover the ends of the advisor's suggested range, `0.2` represents a local
-scale within that range, and `1` is the current automatic rule. Do not run a
-dense `c_x` grid merely to identify the visually best curve.
+这些 `c_x` values 用于一轮预先设定的 coarse sensitivity screen：`0.1` 和
+`0.5` 覆盖导师建议 range 的两端，`0.2` 表示该 range 内的一个 local scale，
+`1` 则是当前 automatic rule。不得仅仅为了找出视觉上最好的 curve 而运行 dense
+`c_x` grid。
 
-Treat `c_x = 1` as the incumbent. A value in `{0.1, 0.2, 0.5}` advances only
-when it separately shows a clear, stable, and material advantage over the
-incumbent at both the `200*N` and `500*N` checkpoints. Within each checkpoint,
-the direction of improvement must be broadly consistent across the principal
-accuracy levels and problem-level paired comparisons, the solved fraction must
-not decrease materially, and the improvement must not be driven by only a few
-problems or accompanied by a concentrated severe regression. Winning at only
-one checkpoint, tying at either checkpoint, or showing a merely visual
-advantage is not sufficient evidence to replace the incumbent.
+将 `c_x = 1` 视为 incumbent。`{0.1, 0.2, 0.5}` 中的某个取值，只有在
+`200*N` 和 `500*N` 两个 checkpoint 上分别相对于 incumbent 显示出明确、稳定且
+实质性的优势时，才能晋级。在每个 checkpoint 内，改进方向必须在主要 accuracy
+levels 和 problem-level paired comparisons 上大体一致，solved fraction 不得出现
+实质性下降，并且改进不能仅由少数 problems 驱动，也不能伴随集中出现的严重
+regression。只在一个 checkpoint 获胜、在任一 checkpoint 打平，或仅显示视觉上的
+优势，都不足以作为替换 incumbent 的证据。
 
-If no challenger meets the threshold, set `c_x = 1` for the remaining study.
-If exactly one challenger meets it, retain that challenger together with
-`c_x = 1` for the `c_tau` cross. If several challengers meet every advancement
-criterion, record all of them as finalists and defer the tie-breaking decision
-until their actual evidence is reviewed. Do not impose a ranking formula in
-advance, expand the parameter grid, or select one from a single favorable
-profile.
+如果没有 challenger 达到 threshold，则在后续研究中设定 `c_x = 1`。如果恰有一个
+challenger 达到 threshold，则在 `c_tau` cross 中同时保留该 challenger 和
+`c_x = 1`。如果多个 challengers 满足全部 advancement criterion，则将它们全部
+记录为 finalists，并推迟 tie-breaking decision，直至审查其实际 evidence。不得
+预先强加 ranking formula、扩展 parameter grid，也不得根据单张有利的 profile
+选择其中一个。
 
-Only when an interior challenger with a predeclared neighborhood advances,
-perform at most one local confirmation round with no more than two additional
-values. Use the following neighborhoods:
+只有当一个具有预先声明的 neighborhood 的 interior challenger 晋级时，才进行至多
+一轮 local confirmation，且新增取值不得超过两个。使用以下 neighborhoods：
 
-- around `0.2`, test `0.15` and `0.3`;
-- around `0.5`, test `0.3` and `0.7`;
-- do not extend below `0.1` or above `1` when either endpoint leads the screen.
+- 在 `0.2` 附近测试 `0.15` 和 `0.3`；
+- 在 `0.5` 附近测试 `0.3` 和 `0.7`；
+- 当任一 endpoint 在 screen 中领先时，不得扩展至 `0.1` 以下或 `1` 以上。
 
-The local round checks whether a single advancing challenger's advantage is
-stable in a broad neighborhood; it is not a recursive search for a numerical
-optimum. A nearby value advances only when it also clearly beats the incumbent
-at both budget checkpoints under the same advancement rule. If several coarse
-or local values satisfy every criterion, record them as finalists and defer
-their comparison rather than forcing a unique winner. Do not run a local round
-when no coarse value beats the incumbent, and do not refine the grid again
-after this confirmation round.
+local round 用于检查单个晋级 challenger 的优势在较宽 neighborhood 内是否稳定；
+它不是寻找 numerical optimum 的 recursive search。附近取值只有在相同 advancement
+rule 下也于两个 budget checkpoint 明确击败 incumbent 时，才能晋级。如果多个
+coarse 或 local values 满足所有 criterion，则将它们记录为 finalists 并推迟比较，
+而不是强行选出唯一 winner。若没有 coarse value 击败 incumbent，则不得运行 local
+round；在该 confirmation round 之后，也不得再次细化 grid。
 
-All ten integer `c_tau` values enter the low-cost activation audit and
-deterministic controlled tests, while only the preselected representatives
-`{1, 2, 5, 10}` enter the general benchmark. This representative set is fixed
-for the study and must not be expanded into a denser benchmark grid after the
-results are inspected. Any unresolved effect is documented and interpreted
-with the controlled tests rather than pursued through additional benchmark
-tuning.
+全部十个整数 `c_tau` values 都进入低成本 activation audit 和 deterministic
+controlled tests，而只有预先选定的 representatives `{1, 2, 5, 10}` 进入 general
+benchmark。该 representative set 在本研究中固定；查看结果后，不得将其扩展为更密的
+benchmark grid。任何尚未解释的 effect 都应使用 controlled tests 进行记录和解释，
+而不是通过额外的 benchmark tuning 继续追查。
 
-For each retained `c_x`, compare every `c_tau` challenger directly with
-`c_tau = 1` at the same `c_x`. A challenger can replace `1` only when it shows
-a clear, stable, and material advantage separately at both the `200*N` and
-`500*N` checkpoints under the same accuracy-level, problem-level, and material
-regression requirements used for `c_x`. Winning at only one checkpoint, tying
-at either checkpoint, or producing mixed evidence retains `c_tau = 1`. If the
-tolerance lower bound is effectively inactive on the general benchmark, retain
-`c_tau = 1` rather than infer a winner from numerical noise.
+对于每个保留的 `c_x`，在相同 `c_x` 下将每个 `c_tau` challenger 与
+`c_tau = 1` 直接比较。challenger 只有在 `200*N` 和 `500*N` 两个 checkpoint
+上分别表现出明确、稳定且实质性的优势，并满足与 `c_x` 相同的 accuracy-level
+consistency、problem-level evidence 和 material regression requirements 时，才能
+替换 `1`。只在一个 checkpoint
+获胜、在任一 checkpoint 打平或产生 mixed evidence 时，都保留 `c_tau = 1`。如果
+tolerance lower bound 在 general benchmark 上实际上没有激活，则保留
+`c_tau = 1`，而不是从 numerical noise 中推断 winner。
 
-If several `c_tau` challengers at the same `c_x` satisfy every advancement
-criterion, record all of them as finalists and defer their tie-breaking until
-the actual evidence is reviewed. Do not add an a priori ranking rule or expand
-the benchmark grid merely to force a unique value.
+如果同一 `c_x` 下有多个 `c_tau` challengers 满足全部 advancement criterion，
+则将它们全部记录为 finalists，并推迟 tie-breaking，直至审查实际 evidence。不得
+添加 a priori ranking rule，也不得仅仅为了强行得到唯一取值而扩展 benchmark grid。
 
-The controlled tests establish correctness, expose premature termination or
-wasted contractions, and explain the benchmark result. They may disqualify an
-unsafe challenger, but they do not by themselves select a value larger than
-`c_tau = 1` without the required two-checkpoint benchmark advantage.
+controlled tests 用于确认 correctness、揭示 premature termination 或 wasted
+contractions，并解释 benchmark result。它们可以淘汰不安全的 challenger，但在缺少
+所要求的 two-checkpoint benchmark advantage 时，不能仅凭 controlled tests 选择
+大于 `c_tau = 1` 的取值。
 
-The pair `(c_x, c_tau) = (1, 1)` is the current simple rule and must appear in
-every comparison used for a decision.
+coefficient pair `(c_x, c_tau) = (1, 1)` 是当前 simple rule，必须出现在每一项用于
+decision 的 comparison 中。
 
-## Current Implementation Differences
+## 当前 implementation 的差异
 
-Resolve these differences explicitly. Do not assume that all existing uses of
-`alpha_init = "auto"` implement the same rule.
+必须明确解决这些差异。不得假定现有对 `alpha_init = "auto"` 的所有用法都采用
+相同 rule。
 
 ### Released BDS
 
-`src/private/set_options.m` currently computes coordinate scales through
-`get_auto_alpha_init`. Its effective rule is
+`src/private/set_options.m` 当前通过 `get_auto_alpha_init` helper 计算 coordinate
+scales。其 effective rule 为
 
 \[
   \alpha_0^i=
@@ -254,50 +234,48 @@ Resolve these differences explicitly. Do not assume that all existing uses of
   \end{cases}
 \]
 
-The implementation expresses this rule through repeated assignments and
-`max` operations. The final production implementation should state the
-mathematical intent directly.
+该 implementation 通过重复 assignment 和 `max` operations 表达这一 rule。最终的
+production implementation 应直接表述其 mathematical intent。
 
-### Accelerated Experimental Solver
+### Accelerated experimental solver 中的差异
 
-`tests/competitors/private/set_accelerated_bds_options.m` currently uses a
-different rule. It computes a ratio of nonzero entries of `x0`, keeps large
-comparable scales, and applies `1 + log(abs(x0_i))` to large entries when that
-ratio exceeds a threshold. This is not the rule being tuned here.
+`tests/competitors/private/set_accelerated_bds_options.m` 当前使用另一条 rule。
+它计算 `x0` 中 nonzero entries 的 ratio，保留 magnitude 较大且彼此 comparable
+的 scales；当该
+ratio 超过 threshold 时，对较大 entries 应用 `1 + log(abs(x0_i))`。这不是此处
+正在调参的 rule。
 
-### Manuscript
+### Manuscript 中的描述
 
-The current manuscript describes the ratio and logarithm rule used by the
-accelerated experimental solver. It therefore does not match the simple rule
-in `src/private/set_options.m`.
+当前 manuscript 描述的是 accelerated experimental solver 使用的
+ratio-and-logarithm rule，因此与 `src/private/set_options.m` 中的 simple rule
+不一致。
 
-### Existing Profile Wrappers
+### 现有 profile wrappers
 
-`tests/profile_optiprofiler.m` contains wrappers such as `bds_scaled` that set
-`expand = 2` and `shrink = 0.5`. The released default in
-`src/private/get_default_constant.m` currently uses `expand = 1.8` on
-noiseless problems. Do not reuse an existing wrapper without making all base
-options explicit.
+`tests/profile_optiprofiler.m` 包含 `bds_scaled` 等 wrappers，它们设置
+`expand = 2` 和 `shrink = 0.5`。`src/private/get_default_constant.m` 中的 released
+default 当前在 noiseless problems 上使用 `expand = 1.8`。在没有明确设置全部 base
+options 的情况下，不得复用现有 wrapper。
 
-## Experimental Principles
+## 实验原则
 
-### Do Not Change the Released Default During Tuning
+### 调参期间不要更改 released default
 
-Implement the candidate formula in test code first. For each problem, compute
-the numeric vector `alpha_init` in the test wrapper and pass that vector to
-`bds`. This keeps `src/private/set_options.m` unchanged while candidates are
-being compared.
+首先在 test code 中实现 candidate formula。对于每个 problem，在 test wrapper 中
+计算 numeric vector `alpha_init`，并将该 vector 传给 `bds`。这样在比较 candidates
+期间，
+`src/private/set_options.m` 保持不变。
 
-Only after a coefficient pair is selected should the production helper and
-the public documentation be changed. Until then, the released behavior when
-`alpha_init` is omitted remains unit initial steps; `alpha_init = "auto"` is an
-explicit opt-in behavior. Completing this study does not by itself authorize a
-default change.
+只有选定一个 coefficient pair 后，才能修改 production helper 和公开文档。在此之前，省略
+`alpha_init` 时的 released behavior 仍为 unit initial steps；
+`alpha_init = "auto"` 是显式 opt-in behavior。完成本研究本身并不构成更改
+default 的授权。
 
-### Change Only the Initial Step Size
+### 仅更改 initial step size
 
-Every candidate in a comparison must use the same explicit values for all
-options except `alpha_init`. At minimum, record and fix
+参与同一 comparison 的每个 candidate，除 `alpha_init` 外的所有 option 都必须使用相同的
+显式值。至少应记录并固定以下 option：
 
 - `Algorithm`,
 - `MaxFunctionEvaluations`,
@@ -313,240 +291,222 @@ options except `alpha_init`. At minimum, record and fix
 - `polling_inner`,
 - `cycling_inner`,
 - `seed`,
-- `use_function_value_stop`, and
+- `use_function_value_stop`，以及
 - `use_estimated_gradient_stop`.
 
-Freeze the plain, noiseless tuning configuration to the current released BDS
-behavior, with the budget and numeric `alpha_init` vector as the only fields
-that vary between the prescribed analyses and candidates:
+将 plain、noiseless 调参配置冻结为当前 released BDS behavior；在预先规定的
+analysis 和 candidates 之间，只有 budget 和 numeric `alpha_init` vector 可以变化：
 
-- `Algorithm = "cbds"`, whose effective configuration is `direction_set =
-  eye(N)`, `num_blocks = N`, `batch_size = N`, and
-  `block_visiting_pattern = "sorted"`;
-- `StepTolerance = 1e-6`, `expand = 1.8`, and `shrink = 0.5`;
-- `is_noisy = false`, `forcing_function = @(alpha) alpha^2`,
-  `reduction_factor = [0, eps, eps]`, `polling_inner = "opportunistic"`, and
-  `cycling_inner = 1`;
-- `ftarget = -Inf`, `use_function_value_stop = false`, and
-  `use_estimated_gradient_stop = false`; and
-- BDS `seed = 0`, fixed by this experiment for reproducibility. The released
-  seed default is `"shuffle"`; do not describe the experimental seed as a
-  released default.
+- `Algorithm = "cbds"`，其 effective configuration 为 `direction_set =
+  eye(N)`、`num_blocks = N`、`batch_size = N` 和
+  `block_visiting_pattern = "sorted"`；
+- `StepTolerance = 1e-6`、`expand = 1.8` 和 `shrink = 0.5`；
+- `is_noisy = false`、`forcing_function = @(alpha) alpha^2`、
+  `reduction_factor = [0, eps, eps]`、`polling_inner = "opportunistic"` 和
+  `cycling_inner = 1`；
+- `ftarget = -Inf`、`use_function_value_stop = false` 和
+  `use_estimated_gradient_stop = false`；以及
+- BDS `seed = 0`，由本实验固定以确保可复现性。released seed default 是
+  `"shuffle"`；不得把实验使用的 seed 描述为 released default。
 
-Pass `Algorithm = "cbds"` rather than simultaneously passing its derived block
-fields, but record all effective values in the manifest. Do not inherit
-`expand = 2` from an old profile wrapper.
+传入 `Algorithm = "cbds"`，不要同时传入由它派生的 block fields，但应在
+manifest 中记录所有 effective values。不要从旧的 profile wrapper 继承
+`expand = 2`。
 
-### Common Problems, Targets, and Randomness
+### 统一 problem、target 与 randomness
 
-- Use the identical ordered problem list for every candidate.
-- Use the identical initial point supplied by each problem.
-- Use identical transformations and random seeds for every candidate.
-- Store raw histories before making profile figures.
-- Compute each target value from one common pool of all candidates and
-  baselines in the same stage and at the same analysis budget.
-- For the `200*N` analysis, truncate every saved history after `200*N`
-  evaluations and compute the common targets from those truncated histories.
-  For the `500*N` analysis, compute a separate set of common targets from the
-  complete histories. A target computed from the `500*N` histories must not be
-  reused for the `200*N` analysis.
-- If candidates are run in separate batches, merge the raw results and
-  recompute profiles with common targets. Do not rank candidates by comparing
-  PDFs whose target values were computed independently.
+- 所有 candidates 使用完全相同且顺序一致的 problem list。
+- 使用每个 problem 所提供的同一个 initial point。
+- 所有 candidates 使用相同的 transformation 和 random seed。
+- 绘制 profile 图之前，先保存 raw history。
+- 每个 target value 都必须由同一 stage、同一 analysis budget 下所有 candidates 和
+  baseline 组成的同一个 common pool 计算得到。
+- 对于 `200*N` 分析，将每条已保存的 history 截断至 `200*N` 次 evaluation，
+  并由这些截断后的 history 计算 common target。对于 `500*N` 分析，则由完整
+  history 单独计算另一组 common target。由 `500*N` history 计算出的 target
+  不得复用于 `200*N` 分析。
+- 如果 candidates 分不同 batch 运行，应合并 raw result，并使用 common target
+  重新计算 profile。不得通过比较 target value 各自独立计算的 PDF 来排序 candidates。
 
-### Reproducibility Manifest
+### 可复现性 manifest
 
-Every full run must save a manifest containing
+每次完整运行都必须保存一个 manifest，其中包括：
 
-- the BDS git commit,
-- the commit or version of the profile tool,
-- the MATLAB version,
-- the operating system,
-- the date and time,
-- the exact problem list,
-- the dimension limits,
-- the feature and transformation identifiers,
-- the budget,
-- all BDS options,
-- the coefficient pairs,
-- the solver labels,
-- all random seeds, and
-- the command used to start the run.
+- BDS git commit，
+- profile tool 的 commit 或 version，
+- MATLAB version，
+- operating system，
+- 日期和时间，
+- 完整的 problem list，
+- dimension limits，
+- feature 和 transformation identifiers，
+- budget，
+- 所有 BDS option，
+- coefficient pairs，
+- solver label，
+- 所有 random seed，以及
+- 启动本次运行所使用的 command。
 
-Use a machine readable format such as `.mat` or JSON and a short human readable
-text summary. A PDF alone is not an acceptable experimental record.
+使用 `.mat` 或 JSON 等 machine-readable format，并附上一份简短的
+human-readable text summary。仅有 PDF 不能作为可接受的实验记录。
 
-## Baselines
+## Baseline 设置
 
-Include the following baselines whenever a shortlist is compared.
+每当比较 shortlist 时，都应包含以下 baseline：
 
-1. `unit`: `alpha_init = ones(N, 1)`.
-2. `simple-current`: the candidate pair `(1, 1)`.
-3. `ctau-incumbent`: `(c_x, 1)` for every retained `c_x` used in a
-   `c_tau` comparison.
-4. `simple-candidate`: each shortlisted pair.
+1. `unit`：`alpha_init = ones(N, 1)`。
+2. `simple-current`：candidate pair `(1, 1)`。
+3. `ctau-incumbent`：对于 `c_tau` 比较中使用的每个保留的 `c_x`，采用
+   `(c_x, 1)`。
+4. `simple-candidate`：shortlist 中的每个 coefficient pair。
 
-After the shortlist is chosen, include the current ratio and logarithm rule as
-a diagnostic baseline named `historical-log-rule`. This diagnostic comparison
-is needed before replacing the automatic rule in the accelerated solver, but
-it must not be mixed into the initial coefficient screen.
+选定 shortlist 后，加入当前的 ratio-and-logarithm rule，并将其作为名为
+`historical-log-rule` 的 diagnostic baseline。在替换 accelerated solver 中的
+automatic rule 之前，需要进行这一 diagnostic comparison，但不得将其混入
+initial coefficient screen。
 
-Use labels that encode coefficients without ambiguity. For example,
+label 必须无歧义地编码 coefficients。例如：
 
 ```text
 auto-cx-0p3-ctau-5
 ```
 
-Do not use labels such as `new`, `best`, or `final` until a decision has been
-recorded.
+在记录正式决策之前，不得使用 `new`、`best` 或 `final` 之类的 label。
 
-## Test Sets and Budgets
+## Test set 与 budget
 
-### Primary Benchmark
+### 主要 benchmark
 
-Freeze the primary benchmark to the existing audited snapshot of 122
-unconstrained S2MPJ problems with dimensions `6` through `50` and the existing
-42-problem exclusion list. The ordered names and dimensions are those recorded
-in
-`tests/testdata/ds_vs_cbds_high_noise_primary_20260712_165527/ds_baseline_200n_cbds_baseline_200n_6_50_1_plain_s2mpj_26_07_12_16_55_29/ds_baseline_200n_cbds_baseline_200n_u_6_50_plain_20260712_165531/test_log/report.txt`.
-Copy that exact ordered snapshot into each run manifest rather than dynamically
-accepting a changed problem set from a later library version. The primary
-coefficient screen is noiseless and uses one run per problem.
+将 primary benchmark 冻结为现有已审计的 snapshot：122 个 dimension 介于 `6`
+和 `50` 之间的 unconstrained S2MPJ problems，以及现有的 42-problem exclusion
+list。
+problem names 的顺序及其 dimension 应在首次运行时冻结为 snapshot，并将这一顺序完全一致的
+snapshot 复制到每次运行的 manifest 中，而不是动态接受后续 library version 中发生变化的
+problem set。primary coefficient screen 为
+noiseless，每个 problem 只运行一次。
 
-### Transformation Check
+### Transformation 检查
 
-Check shortlisted candidates on the linearly transformed versions of the same
-problems. Use OptiProfiler's `linearly_transformed` feature with profile
-`seed = 0`, `n_runs = 5`, `rotated = true`, and `condition_factor = 0`. Thus
-this stage uses five fixed pure orthogonal rotations without additional axis
-scaling. Use the same five transformed instances for every candidate. The
-purpose is validation, not a second independent tuning pass.
+在相同 problems 的 linearly transformed version 上检查 shortlist 中的 candidates。
+使用 OptiProfiler 的 `linearly_transformed` feature，并设置 profile
+`seed = 0`、`n_runs = 5`、`rotated = true` 和 `condition_factor = 0`。因此，
+该 stage 使用五个固定的 pure orthogonal rotations，不附加 axis scaling。所有
+candidates 都使用相同的五个 transformed instances。其目的在于 validation，而不是
+进行第二轮独立 tuning pass。
 
-### Evaluation Budgets
+### Evaluation budget
 
-Run each solver/problem/configuration combination once with a limit of `500*N`
-function evaluations and save its complete raw history. Analyze that run at
-two budget checkpoints:
+每个 solver/problem/configuration combination 只运行一次，function evaluation
+上限为 `500*N`，并保存完整 raw history。随后在两个 budget checkpoint 上分析
+该次运行：
 
-- `200*N`, using only the first `200*N` evaluations of every history; and
-- `500*N`, using the complete history.
+- `200*N`：每条 history 仅使用前 `200*N` 次 evaluation；以及
+- `500*N`：使用完整 history。
 
-Each checkpoint has its own common targets, computed from the candidate and
-baseline histories available up to that checkpoint. Thus the `200*N` result is
-a genuine `200*N` benchmark reconstructed from the saved prefixes, not the
-value at `200*N` of a profile whose targets were computed from `500*N` data.
-This reconstruction changes only postprocessing and does not rerun the solver.
-Select one coefficient pair using both checkpoints.
+每个 checkpoint 都有自己的一组 common targets，这些 targets 由截至该 checkpoint
+时可用的 candidates 和 baseline histories 计算得到。因此，`200*N` 结果是由保存的
+history prefix 重建出的真正 `200*N` benchmark，而不是读取一个由 `500*N` 数据
+计算 target 的 profile 在 `200*N` 处的值。该重建仅改变 postprocessing，不会
+重新运行 solver。使用两个 checkpoints 共同选出一个 coefficient pair。
 
-### Accuracy Levels
+### Accuracy level
 
-At minimum, inspect
+至少检查：
 
 \[
   \tau\in\{10^{-1},10^{-2},10^{-3},10^{-4}\}.
 \]
 
-Do not choose a coefficient from one accuracy level. Keep any finer standard
-accuracy grid in the raw analysis so that unexpectedly poor high accuracy
-behavior is visible.
+不得根据单一 accuracy level 选择 coefficient。在 raw analysis 中保留更细的 standard
+accuracy grid，以便暴露出乎预期的较差 high-accuracy behavior。
 
-## Profile Types and Supporting Metrics
+## Profile 类型与辅助 metric
 
-### History Based Profiles
+### History-based profile 分析
 
-History based profiles are the primary evidence during plain BDS tuning. They
-measure how quickly each candidate first generates a point that reaches the
-common target accuracy.
+在 plain BDS tuning 中，history-based profile 是主要 evidence。它衡量每个 candidate
+首次生成达到 common target accuracy 的点有多快。
 
-### Output Based Profiles
+### Output-based profile 分析
 
-Also inspect the returned point at the actual end of the `500*N` run. With
-additional stopping tests disabled, most runs consume the full budget, so
-output based profiles mainly reveal the final fraction of successful problems
-rather than useful timing differences. A `500*N` run does not provide the
-solver's hypothetical returned point or termination status at `200*N`; use the
-truncated history, rather than an output based profile, for the `200*N`
-checkpoint. Do not interpret tied output costs as evidence of equal early
-efficiency.
+同时检查 `500*N` 实际运行结束时的 returned point。由于 additional stopping tests
+处于关闭状态，大多数运行会耗尽全部 budget，因此 output-based profile 主要揭示
+最终 solved fraction，而不是有意义的 timing difference。一次 `500*N` 运行无法
+提供 solver 若在 `200*N` 时终止所得到的 returned point 或 termination status；对于
+`200*N` checkpoint，应使用截断后的 history，而不是 output-based profile。不要将
+相同的 output cost 解读为 early efficiency 相同的证据。
 
-After the selected rule is inserted into the combined solver, regenerate both
-history based profiles at the two checkpoints and output based profiles at the
-actual end of the `500*N` runs, as required by the full solver study.
+将 selected rule 插入 combined solver 后，按照 full solver study 的要求，重新生成两个
+checkpoint 上的 history-based profile，以及 `500*N` 实际运行结束时的
+output-based profile。
 
-### Problem Level Data
+### Problem-level data 记录
 
-For every candidate, retain enough data to compute
+对每个 candidate，应保留足够的 data，以计算：
 
-- the number and fraction of problems solved at each accuracy,
-- the number of evaluations to the first target point,
-- paired evaluation ratios on jointly solved problems,
-- the final true objective value,
-- the returned point status,
-- the initial step vector,
-- the number of coordinates on which the tolerance lower bound is active, and
-- the reason for termination.
+- 每个 accuracy 下 solved problem 的数量与 solved fraction，
+- 首次到达 target point 所需的 evaluation 次数，
+- jointly solved problem 上的 paired evaluation ratio，
+- 最终 true objective value，
+- returned point status，
+- initial step vector，
+- tolerance lower bound 生效的 coordinate 数量，以及
+- termination reason。
 
-Profile figures are summaries. Make the decision from both profiles and paired
-problem level data.
+Profile 图只是 summary。应同时依据 profile 和 paired problem-level data 作出决策。
 
-## Mandatory Activation Audit
+## 必做的 activation audit
 
-Before expensive runs, determine whether `c_tau` can affect the primary
-benchmark at the default `StepTolerance`.
+在进行昂贵的运行之前，先确定在默认 `StepTolerance` 下，`c_tau` 是否会影响
+primary benchmark。
 
-This audit is descriptive, not part of the runtime rule. Its purpose is to
-show whether the benchmark contains enough active cases to interpret observed
-differences between fixed coefficient pairs. It must not be used to choose
-coefficients dynamically by problem, benchmark, budget, or activation rate.
-The released outcome remains one fixed pair.
+此 audit 仅用于描述，不是 runtime rule 的一部分。其目的是说明 benchmark
+是否包含足够多的 active cases，从而能够解释固定 coefficient pairs 之间观察到的
+差异。不得根据 problem、benchmark、budget 或 activation rate 动态选择
+coefficients。最终发布的结果仍然是一个固定 pair。
 
-For every problem and each `c_x`, record
+对于每个 problem 和每个 `c_x`，记录
 
-- the number of exact zero entries in `x0`,
-- the number of nonzero entries satisfying
-  `c_x*abs(x0_i) < c_tau*epsilon_i`, and
-- the fraction of coordinate blocks for which the tolerance lower bound changes
-  the initial step.
+- `x0` 中 exact zero entries 的数量；
+- 满足 `c_x*abs(x0_i) < c_tau*epsilon_i` 的 nonzero entries 数量；以及
+- tolerance lower bound 改变 initial step 的 coordinate blocks 比例。
 
-At `StepTolerance = 1e-6` and `c_tau <= 10`, a zero coordinate receives step
-one, so `c_tau` does not affect that coordinate. If almost no nonzero coordinate
-activates the tolerance lower bound, S2MPJ profiles cannot identify `c_tau`.
-In that case, no challenger can establish the required general-benchmark
-advantage, so retain `c_tau = 1`. Use the controlled tests below only to verify
-correctness and explain the lack of sensitivity. Do not claim that a generic
-profile selected a coefficient that was inactive on nearly every problem.
+当 `StepTolerance = 1e-6` 且 `c_tau <= 10` 时，zero coordinate 的 step 为
+1，因此 `c_tau` 不影响该 coordinate。如果几乎没有 nonzero coordinate
+激活 tolerance lower bound，S2MPJ profiles 就无法识别 `c_tau`。在这种情况下，
+任何 challenger 都无法建立所要求的 general benchmark 优势，因此保留
+`c_tau = 1`。下面的 controlled tests 仅用于验证 correctness 并解释为何缺乏
+sensitivity。不要声称一个 generic profile 选出了一个在几乎所有 problem 上都未
+激活的 coefficient。
 
-## Controlled Tests
+## Controlled tests 的设计
 
-Create deterministic tests that isolate the intended behavior before running
-profiles. A correctness failure disqualifies a candidate. Performance on these
-constructed cases does not promote `c_tau > 1`; selecting a larger tolerance
-coefficient still requires its two-checkpoint general-benchmark advantage over
-`c_tau = 1` at the same `c_x`.
+在运行 profiles 之前，创建能够隔离预期行为的 deterministic tests。任何
+correctness failure 都会使 candidate 失去资格。这些 constructed cases 上的
+performance 不能使 `c_tau > 1` 晋级；选择更大的 tolerance coefficient，仍要求
+它在相同 `c_x` 下，相比 `c_tau = 1` 在两个 checkpoint 的 general benchmark
+中具有优势。
 
-### Formula Tests
+### Formula tests 项目
 
-- `[todo]` Verify `(1, 1)` reproduces the current simple rule for ordinary
-  finite inputs.
-- `[todo]` Verify sign invariance. Replacing `x0` by `-x0` must not change the
-  initial steps.
-- `[todo]` Verify exact zero coordinates receive
-  `max(1, c_tau*StepTolerance)`.
-- `[todo]` Verify the intentional zero convention directly: replacing an exact
-  zero by a sufficiently small nonzero value may change the initial step from
-  the neutral unit scale to the tolerance lower bound.
-- `[todo]` Verify small nonzero coordinates receive the tolerance lower bound
-  when it is active.
-- `[todo]` Verify large coordinates receive `c_x*abs(x0_i)` when the lower
-  bound is inactive.
-- `[todo]` Verify scalar and coordinate sized `StepTolerance` inputs give the
-  intended result.
-- `[todo]` Verify all returned initial steps are finite and positive for all
-  supported finite inputs.
-- `[todo]` Verify the numeric `alpha_init` vector passed by the test wrapper is
-  unchanged by option processing.
+- `[todo]` 验证对于普通 finite inputs，`(1, 1)` 能复现当前的 simple rule。
+- `[todo]` 验证 sign invariance。将 `x0` 替换为 `-x0` 不得改变 initial steps。
+- `[todo]` 验证 exact zero coordinates 得到
+  `max(1, c_tau*StepTolerance)`。
+- `[todo]` 直接验证有意采用的 zero convention：将 exact zero 替换为足够小的
+  nonzero value，可能使 initial step 从 neutral unit scale 变为 tolerance lower
+  bound。
+- `[todo]` 验证在 tolerance lower bound 激活时，small nonzero coordinates
+  得到该 lower bound。
+- `[todo]` 验证在 lower bound 未激活时，large coordinates 得到
+  `c_x*abs(x0_i)`。
+- `[todo]` 验证 scalar 和 coordinate-sized `StepTolerance` inputs 得到预期结果。
+- `[todo]` 验证对于所有支持的 finite inputs，返回的所有 initial steps 都是
+  finite positive values。
+- `[todo]` 验证 test wrapper 传入的 numeric `alpha_init` vector 不会被 option
+  processing 改变。
 
-One explicit test case should include
+一个明确的 test case 应包括
 
 ```text
 x0 = [0; 2; -3; 1e-8]
@@ -556,60 +516,58 @@ c_tau = 5
 expected alpha_init = [1; 1; 1.5; 5e-6]
 ```
 
-### Tolerance Sensitive Problems
+### 对 StepTolerance 敏感的问题
 
-Construct a small deterministic suite containing initial points with
+构造一个小型 deterministic suite，其中 initial points 包含
 
-- exact zeros,
-- nonzero entries below `StepTolerance`,
-- nonzero entries between `StepTolerance` and `10*StepTolerance`,
-- entries near one,
-- large comparable entries, and
-- entries separated by many orders of magnitude.
+- exact zeros；
+- 小于 `StepTolerance` 的 nonzero entries；
+- 位于 `StepTolerance` 与 `10*StepTolerance` 之间的 nonzero entries；
+- 接近 1 的 entries；
+- 数值较大且彼此相近的 entries；以及
+- 相差多个 orders of magnitude 的 entries。
 
-Use simple objectives with known minimizers and record the complete step
-history. These tests should show how `c_tau` changes the number of contractions
-before the step tolerance terminates a coordinate search.
+使用 minimizers 已知的 simple objectives，并记录完整 step history。这些 tests
+应说明：在 step tolerance 终止某个 coordinate search 之前，`c_tau` 如何改变
+contractions 的次数。
 
-### Floating Point Scale Problems
+### Floating-point scale 问题
 
-Retain controlled examples where a unit displacement is lost when added to a
-large coordinate. Verify that every candidate under consideration generates a
-distinct trial point in the intended coordinate and that reducing `c_x` does
-not reintroduce the lost movement.
+保留这样的 controlled examples：unit displacement 与 large coordinate 相加时会
+丢失。验证每个待考察 candidate 都能在预期 coordinate 上生成 distinct trial
+point，并验证减小 `c_x` 不会重新引入这种 lost movement。
 
-## Staged Experiment Plan
+## 分阶段实验方案
 
-### T0: Freeze the Base Configuration
+### T0：冻结 base configuration
 
-- `[todo]` Record the fixed plain, noiseless released BDS options specified
-  above in the manifest.
-- `[todo]` Record that omitted `alpha_init` currently means unit steps and that
-  every candidate in the study is an explicit `alpha_init = "auto"` candidate
-  implemented through a numeric vector in test code.
-- `[todo]` Verify the effective options include `expand = 1.8`, `shrink = 0.5`,
-  `StepTolerance = 1e-6`, and both optional stopping tests disabled.
-- `[todo]` Load the exact ordered 122-problem S2MPJ snapshot and verify its
-  names and dimensions before running.
-- `[todo]` Record BDS seed `0` and the transformed-feature protocol
-  (`seed = 0`, `n_runs = 5`, `rotated = true`, `condition_factor = 0`).
-- `[todo]` Record the commits before running any benchmark.
+- `[todo]` 在 manifest 中记录上文规定的固定 plain、noiseless、released BDS
+  options。
+- `[todo]` 记录：当前省略 `alpha_init` 表示 unit steps；本研究中的每个
+  candidate 都是显式的 `alpha_init = "auto"` candidate，并通过 test code 中的
+  numeric vector 实现。
+- `[todo]` 验证 effective options 包括 `expand = 1.8`、`shrink = 0.5`、
+  `StepTolerance = 1e-6`，且两个 optional stopping tests 均被禁用。
+- `[todo]` 加载严格保持既定顺序的 122-problem S2MPJ snapshot，并在运行前验证
+  其 names 和 dimensions。
+- `[todo]` 记录 BDS seed `0` 和 transformed-feature protocol
+  (`seed = 0`, `n_runs = 5`, `rotated = true`, `condition_factor = 0`)。
+- `[todo]` 在运行任何 benchmark 前记录 commits。
 
-Output: `base_configuration` in the run manifest and a human readable copy in
-the result summary.
+输出：run manifest 中的 `base_configuration`，以及 result summary 中一份
+human-readable copy。
 
-### T1: Implement a Test Only Candidate Helper
+### T1：实现仅供测试的 candidate helper
 
-- `[todo]` Implement the formula in one test helper.
-- `[todo]` Keep the helper independent of the production private helper.
-- `[todo]` Add a wrapper that passes a numeric `alpha_init` vector to `bds`.
-- `[todo]` Make the budget and all base options explicit arguments or manifest
-  fields.
-- `[todo]` Add unambiguous solver labels derived from `c_x` and `c_tau`.
-- `[todo]` Do not add one switch case per coefficient pair to
-  `tests/profile_optiprofiler.m` if a parameterized runner can avoid it.
+- `[todo]` 在一个 test helper 中实现该 formula。
+- `[todo]` 保持该 helper 独立于 production private helper。
+- `[todo]` 添加一个 wrapper，将 numeric `alpha_init` vector 传给 `bds`。
+- `[todo]` 将 budget 和所有 base options 作为显式 arguments 或 manifest fields。
+- `[todo]` 添加由 `c_x` 和 `c_tau` 派生、无歧义的 solver labels。
+- `[todo]` 如果 parameterized runner 可以避免，就不要在
+  `tests/profile_optiprofiler.m` 中为每个 coefficient pair 添加一个 switch case。
 
-Proposed artifact names:
+建议的 artifact names：
 
 ```text
 tests/private/auto_alpha_init_candidate.m
@@ -617,393 +575,365 @@ tests/run_auto_alpha_init_tuning.m
 tests/analyze_auto_alpha_init_tuning.m
 ```
 
-These names are recommendations, not requirements. If different names are
-used, record them in this file.
+这些 names 是建议，而非要求。如果使用不同 names，请在本文件中记录。
 
-### T2: Run Unit and Smoke Tests
+### T2：运行 unit tests 和 smoke tests
 
-- `[todo]` Complete every formula test above.
-- `[todo]` Run the controlled tolerance suite for all values of `c_tau`.
-- `[todo]` Run a small set of S2MPJ problems for the four coarse `c_x` values.
-- `[todo]` Verify that changing the coefficients changes only `alpha_init`.
-- `[todo]` Verify deterministic reruns produce identical raw histories.
-- `[todo]` Check that result directories and manifests are complete.
+- `[todo]` 完成上面的每个 formula test。
+- `[todo]` 对 `c_tau` 的所有取值运行 controlled tolerance suite。
+- `[todo]` 对四个粗粒度 `c_x` 值运行一小组 S2MPJ problems。
+- `[todo]` 验证改变 coefficients 只会改变 `alpha_init`。
+- `[todo]` 验证 deterministic reruns 产生完全相同的 raw histories。
+- `[todo]` 检查 result directories 和 manifests 是否完整。
 
-Do not begin the full screen until T2 passes.
+T2 通过前，不得开始完整 screening。
 
-### T3: Audit Parameter Activation
+### T3：执行 parameter activation audit
 
-- `[todo]` Run the mandatory activation audit on the full primary problem list.
-- `[todo]` Summarize activation by problem, dimension, and coefficient.
-- `[todo]` Determine whether generic profiles contain enough active cases to
-  inform the `c_tau` comparison. If not, record that the incumbent `c_tau = 1`
-  is retained; use controlled tests only to explain the lack of sensitivity.
+- `[todo]` 在完整 primary problem list 上运行必做的 activation audit。
+- `[todo]` 按 problem、dimension 和 coefficient 汇总 activation。
+- `[todo]` 判断 generic profiles 是否包含足够多的 active cases，以支持
+  `c_tau` comparison。如果不够，则记录保留 incumbent `c_tau = 1`；controlled
+  tests 仅用于解释为何缺乏 sensitivity。
 
-Output: a table of activation counts and a short conclusion.
+输出：一张 activation counts table 和一个简短 conclusion。
 
-### T4: Screen `c_x`
+### T4：粗筛 `c_x`
 
-Hold `c_tau = 1` and compare the four coarse values
-`c_x in {0.1, 0.2, 0.5, 1}` on plain S2MPJ problems. Run each candidate once
-to `500*N` and screen it using both its `200*N` history prefix and its complete
-`500*N` history.
+固定 `c_tau = 1`，在 plain S2MPJ problems 上比较四个粗粒度取值
+`c_x \in \{0.1, 0.2, 0.5, 1\}`。每个 candidate 只运行一次到 `500*N`，并同时使用
+其 `200*N` history prefix 和完整 `500*N` history 进行 screening。
 
-- `[todo]` Generate raw histories for all candidates and the unit baseline.
-- `[todo]` Compute separate common targets from the `200*N` prefixes and the
-  complete `500*N` histories of the complete candidate pool.
-- `[todo]` Produce history based profiles at both checkpoints and the required
-  accuracies.
-- `[todo]` Produce a problem level table of paired evaluation counts.
-- `[todo]` Compare each challenger directly with the `c_x = 1` incumbent.
-- `[todo]` Eliminate every challenger that does not clearly beat the incumbent
-  at both checkpoints, loses solved fraction materially at either checkpoint,
-  or has a severe regression concentrated in a recognizable problem class.
-- `[todo]` Identify every coarse value with a clear, stable, and material
-  advantage over the incumbent separately at both checkpoints, with broadly
-  consistent accuracy-level and problem-level evidence.
-- `[todo]` If exactly one coarse challenger advances, run the single predeclared
-  local confirmation round with at most two additional values, after applying
-  the same formula and smoke checks to those values.
-- `[todo]` If several candidates satisfy all advancement criteria, record them
-  as finalists and defer tie-breaking until their actual evidence is reviewed;
-  do not expand the grid or force a ranking from one profile.
-- `[todo]` Do not recursively refine the `c_x` grid after local confirmation.
+- `[todo]` 为所有 candidates 和 unit baseline 生成 raw histories。
+- `[todo]` 分别根据完整 candidate pool 的 `200*N` prefixes 和完整 `500*N`
+  histories 计算各自的 common targets。
+- `[todo]` 在两个 checkpoints 和所要求的 accuracies 下生成 history-based
+  profiles。
+- `[todo]` 生成 paired evaluation counts 的 problem-level table。
+- `[todo]` 将每个 challenger 与 `c_x = 1` incumbent 直接比较。
+- `[todo]` 淘汰以下任一 challenger：未能在两个 checkpoints 都明确击败
+  incumbent；在任一 checkpoint 的 solved fraction 出现实质下降；或在一个可识别的
+  problem class 中出现集中且严重的 regression。
+- `[todo]` 找出所有在两个 checkpoints 分别都相对 incumbent 具有清晰、稳定且
+  实质优势的粗粒度值；其 accuracy-level 和 problem-level evidence 应在总体上保持
+  一致。
+- `[todo]` 如果恰有一个粗粒度 challenger 晋级，则运行一次预先声明的 local
+  confirmation round，最多加入两个额外值；对这些值也先执行相同 formula checks
+  和 smoke checks。
+- `[todo]` 如果多个 candidates 满足所有晋级标准，则将它们记录为 finalists，并在
+  审阅实际 evidence 后再决定 tie-breaking；不要扩展 grid，也不要根据一个 profile
+  强行排名。
+- `[todo]` local confirmation 后，不得递归细化 `c_x` grid。
 
-If no challenger clearly beats the incumbent, retain only `c_x = 1`. If one
-challenger advances, the `c_x` shortlist for the later cross with `c_tau`
-contains it and `c_x = 1`. Multiple qualifying candidates remain finalists
-pending an evidence-based discussion; their existence does not authorize a
-larger search.
+如果没有 challenger 明确击败 incumbent，则只保留 `c_x = 1`。如果有一个
+challenger 晋级，供后续与 `c_tau` 交叉比较的 `c_x` shortlist 包含该 challenger
+和 `c_x = 1`。多个合格 candidates 继续作为 finalists，等待基于 evidence 的讨论；
+它们的存在并不授权扩大 search。
 
-### T5: Screen `c_tau`
+### T5：粗筛 `c_tau`
 
-Use the activation audit and controlled tolerance suite for all ten values of
-`c_tau`. On the general benchmark, compare only the preselected
-representatives `{1, 2, 5, 10}` with the retained `c_x` values. The activation
-audit determines how these benchmark results are interpreted; it does not
-decide whether the four preselected representatives are run.
+对 `c_tau` 的全部十个取值使用 activation audit 和 controlled tolerance suite。
+在 general benchmark 中，只比较预选的 representatives `{1, 2, 5, 10}` 与已保留的
+`c_x` values。activation audit 决定如何解释这些 benchmark results；它不决定是否
+运行这四个预选 representatives。
 
-- `[todo]` For each retained `c_x`, compare `{2, 5, 10}` directly with the
-  `c_tau = 1` incumbent at the same `c_x`.
-- `[todo]` Require a challenger to show a clear, stable, and material advantage
-  over `c_tau = 1` separately at both the `200*N` and `500*N` checkpoints.
-- `[todo]` Retain `c_tau = 1` when the evidence ties, is mixed between budgets,
-  or the tolerance lower bound is effectively inactive.
-- `[todo]` If several `c_tau` challengers satisfy all criteria, record them as
-  finalists and defer tie-breaking until their actual evidence is reviewed;
-  do not expand the grid or impose an a priori ranking.
-- `[todo]` Record the observed number of contractions near the tolerance.
-- `[todo]` Check for premature step tolerance termination.
-- `[todo]` Check whether larger values waste evaluations after progress has
-  stalled.
-- `[todo]` Use `{1, 2, 5, 10}` to represent the four contraction-depth groups
-  in the general benchmark.
+- `[todo]` 对每个保留的 `c_x`，将 `{2, 5, 10}` 与相同 `c_x` 下的
+  `c_tau = 1` incumbent 直接比较。
+- `[todo]` 要求 challenger 在 `200*N` 和 `500*N` 两个 checkpoints 上分别都
+  相对 `c_tau = 1` 展现清晰、稳定且实质的优势。
+- `[todo]` 当 evidence 无法区分二者、在两个 budgets 间表现混合，或 tolerance lower
+  bound 实际上未激活时，保留 `c_tau = 1`。
+- `[todo]` 如果多个 `c_tau` challengers 满足所有标准，则将它们记录为
+  finalists，并在审阅实际 evidence 后再决定 tie-breaking；不要扩展 grid，也不要
+  强加 a priori ranking。
+- `[todo]` 记录在 tolerance 附近观察到的 contractions 次数。
+- `[todo]` 检查是否发生 premature step tolerance termination。
+- `[todo]` 检查较大的值是否会在 optimization progress 已停滞后浪费 evaluations。
+- `[todo]` 在 general benchmark 中，用 `{1, 2, 5, 10}` 代表四个
+  contraction-depth groups。
 
-Controlled tests may disqualify an unsafe challenger and explain observed
-differences, but they do not independently select a value larger than
-`c_tau = 1`. Do not manufacture a tuning conclusion from numerical noise,
-expand beyond the four fixed representatives, or run the full integer grid
-merely to search for a visually best curve.
+controlled tests 可以淘汰不安全的 challenger，并解释观察到的差异，但不能独立
+选出大于 `c_tau = 1` 的值。不要从 numerical noise 中得出 tuning conclusion，
+不要扩展到四个固定 representatives 之外，也不要仅为寻找视觉上最好的 curve 而运行
+完整 integer grid。
 
-### T6: Compare the Shortlist Under Both Budgets
+### T6：在两个 budgets 下比较 shortlist
 
-Cross the retained `c_x` and `c_tau` values. For every configuration not
-already available, run the primary benchmark once to `500*N`. Analyze the
-saved histories at both the `200*N` and `500*N` checkpoints.
+对保留的 `c_x` 和 `c_tau` values 做交叉组合。对于尚无结果的每个 configuration，
+将 primary benchmark 运行一次到 `500*N`。在 `200*N` 和 `500*N` 两个
+checkpoints 上分析已保存的 histories。
 
-- `[todo]` Recompute separate common targets from the `200*N` history prefixes
-  and the complete `500*N` histories.
-- `[todo]` Inspect history based profiles.
-- `[todo]` Inspect the returned point and final solved fraction at `500*N`.
-- `[todo]` Compare problem level paired costs.
-- `[todo]` Identify candidates whose ranking reverses materially between
-  budgets.
-- `[todo]` Reject budget specific defaults.
+- `[todo]` 分别根据 `200*N` history prefixes 和完整 `500*N` histories 重新计算
+  各自的 common targets。
+- `[todo]` 检查 history-based profiles。
+- `[todo]` 检查 `500*N` 时的 returned point 和 final solved fraction。
+- `[todo]` 比较 problem-level paired costs。
+- `[todo]` 找出 ranking 在两个 budgets 间发生实质反转的 candidates。
+- `[todo]` 拒绝 budget-specific defaults。
 
-If the results reveal a material interaction that the staged design cannot
-resolve, record a specific follow-up hypothesis. Do not restore a `c_x`
-challenger eliminated in T4 or fall back to a dense two-parameter grid. If
-several candidates remain qualified, keep them as finalists until their actual
-evidence is discussed.
+如果结果揭示了分阶段设计无法解决的 material interaction，则记录一个具体的
+follow-up hypothesis。不要恢复 T4 中已淘汰的 `c_x` challenger，也不要退回 dense
+two-parameter grid。如果仍有多个 candidates 合格，则保留它们作为 finalists，直到
+讨论其实际 evidence。
 
-### T7: Validate on Transformed Problems
+### T7：在 transformed problems 上验证
 
-- `[todo]` Run the shortlist on linearly transformed problems once to `500*N`
-  and analyze the saved histories at both checkpoints.
-- `[todo]` Compute separate common targets from the `200*N` prefixes and the
-  complete `500*N` histories.
-- `[todo]` Use fixed and recorded transformation seeds.
-- `[todo]` Check whether a coefficient selected on plain problems causes a
-  material loss after transformation.
-- `[todo]` Treat this as validation. Do not retune solely for transformed
-  problems.
+- `[todo]` 在 linearly transformed problems 上将 shortlist 运行一次到 `500*N`，
+  并在两个 checkpoints 上分析已保存的 histories。
+- `[todo]` 分别根据 `200*N` prefixes 和完整 `500*N` histories 计算各自的
+  common targets。
+- `[todo]` 使用固定且已记录的 transformation seeds。
+- `[todo]` 检查在 plain problems 上选出的 coefficient 是否在 transformation 后
+  造成 material loss。
+- `[todo]` 将此阶段视为 validation。不要仅针对 transformed problems 重新 tuning。
 
-### T8: Select a Provisional Pair
+### T8：选择 provisional pair
 
-Use the decision rules below and record
+使用下文 decision rules，并记录
 
-- the selected pair,
-- the rejected finalists,
-- the main evidence,
-- any problem classes with regressions,
-- sensitivity to budget,
-- sensitivity to transformations, and
-- whether the tolerance coefficient was meaningfully active.
+- selected pair；
+- rejected finalists；
+- main evidence；
+- 出现 regressions 的所有 problem classes；
+- 对 budget 的 sensitivity；
+- 对 transformations 的 sensitivity；以及
+- tolerance coefficient 是否有实质性 activation。
 
-The activation result is evidence about how to interpret the comparison, not
-a reason to define different coefficient pairs for different problems or
-budgets.
+activation result 是解释 comparison 的 evidence，而不是针对不同 problems 或
+budgets 定义不同 coefficient pairs 的理由。
 
-Mark the pair as provisional until the combined solver check passes.
+在 combined solver check 通过之前，将该 pair 标记为 provisional。
 
-### T9: Check the Combined Solver
+### T9：检查 combined solver
 
-After acceleration and termination mechanisms are frozen, compare
+在 acceleration 和 termination mechanisms 冻结后，比较
 
-- the combined solver with unit initial steps,
-- the combined solver with `(1, 1)`,
-- the combined solver with the provisional pair, and
-- the combined solver with the historical ratio and logarithm rule.
+- 使用 unit initial steps 的 combined solver；
+- 使用 `(1, 1)` 的 combined solver；
+- 使用 provisional pair 的 combined solver；以及
+- 使用 historical ratio-and-logarithm rule 的 combined solver。
 
-Run each configuration once to `500*N`. Use history based profiles with
-separately computed common targets at the `200*N` and `500*N` checkpoints, and
-use output based profiles only for the actual returned points at `500*N`.
-This stage checks transfer of the plain result. It is not a new unrestricted
-tuning pass.
+每个 configuration 只运行一次到 `500*N`。在 `200*N` 和 `500*N` checkpoints
+上使用分别计算 common targets 的 history-based profiles，并且只针对 `500*N` 的
+actual returned points 使用 output-based profiles。此阶段检查 plain result 的
+transfer，不是新的 unrestricted tuning pass。
 
-- `[todo]` Confirm the provisional pair remains competitive.
-- `[todo]` Check interactions with acceleration.
-- `[todo]` Check interactions with early termination.
-- `[todo]` Confirm the same pair is suitable for the production
-  `alpha_init = "auto"` rule. Whether omitted `alpha_init` should invoke that
-  rule remains the separate T10 release decision.
+- `[todo]` 确认 provisional pair 仍有竞争力。
+- `[todo]` 检查与 acceleration 的 interactions。
+- `[todo]` 检查与 early termination 的 interactions。
+- `[todo]` 确认同一 pair 适用于 production `alpha_init = "auto"` rule。省略
+  `alpha_init` 是否应调用该 rule，仍属于独立的 T10 release decision。
 
-If the provisional pair fails, document the failure and return to T6 with a
-specific hypothesis. Do not choose a replacement from one favorable figure.
+如果 provisional pair 失败，则记录该 failure，并带着具体 hypothesis 回到 T6。不要
+根据一张有利的 figure 选择 replacement。
 
-### T10: Integrate and Audit the Production Rule
+### T10：集成并 audit production rule
 
-- `[todo]` Rewrite the production helper so that the code directly matches the
-  selected mathematical formula.
-- `[todo]` Decide explicitly whether omitting `alpha_init` should continue to
-  mean unit steps or should invoke the completed automatic rule. Make this
-  release decision only after the provisional pair passes the combined solver
-  check; do not change the default implicitly while rewriting the helper.
-- `[todo]` Decide whether `c_x` and `c_tau` are fixed internal constants or
-  documented user options. Prefer fixed constants unless users have a clear
-  need to change them.
-- `[todo]` Remove duplicated or obsolete automatic step rules.
-- `[todo]` Make the released solver and accelerated implementation use the same
-  helper or demonstrably equivalent logic.
-- `[todo]` Add regression tests for the final formula and coefficients.
-- `[todo]` Run the ordinary BDS test suite.
-- `[todo]` Run acceleration equivalence tests with acceleration disabled.
-- `[todo]` Run the final combined solver tests.
-- `[todo]` Ask for a focused human review of the final helper and tests.
+- `[todo]` 重写 production helper，使代码与 selected mathematical formula 直接
+  一致。
+- `[todo]` 明确决定：省略 `alpha_init` 应继续表示 unit steps，还是应调用已完成的
+  automatic rule。只有在 provisional pair 通过 combined solver check 后，才能作出
+  此 release decision；重写 helper 时不要隐式改变 default。
+- `[todo]` 决定 `c_x` 和 `c_tau` 是 fixed internal constants，还是 documented user
+  options。除非 users 明确需要改变它们，否则优先使用 fixed constants。
+- `[todo]` 删除重复或 obsolete automatic step rules。
+- `[todo]` 让 released solver 和 accelerated implementation 使用同一个 helper，
+  或使用 provably equivalent logic。
+- `[todo]` 为 final formula 和 coefficients 添加 regression tests。
+- `[todo]` 运行 ordinary BDS test suite。
+- `[todo]` 在禁用 acceleration 时运行 acceleration equivalence tests。
+- `[todo]` 运行最终的 combined solver tests。
+- `[todo]` 请求针对 final helper 和 tests 的 focused human review。
 
-### T11: Synchronize the Manuscript
+### T11：同步 manuscript
 
-Only after T10 is complete:
+仅在 T10 完成后：
 
-- `[todo]` Replace the manuscript formula with the released formula.
-- `[todo]` State the selected coefficient values.
-- `[todo]` Explain the zero coordinate convention.
-- `[todo]` Explain the role of the tolerance multiplier briefly.
-- `[todo]` Regenerate the internal initial step size comparison.
-- `[todo]` Ensure all external solver comparisons use the selected rule.
-- `[todo]` Update the numerical experiment plan and S6 status.
+- `[todo]` 用 released formula 替换 manuscript formula。
+- `[todo]` 说明 selected coefficient values。
+- `[todo]` 解释 zero coordinate convention。
+- `[todo]` 简要解释 tolerance multiplier 的作用。
+- `[todo]` 重新生成 internal initial step size comparison。
+- `[todo]` 确保所有 external solver comparisons 使用 selected rule。
+- `[todo]` 更新 numerical experiment plan 和 S6 status。
 
-The paper should report the selected rule and focused evidence. It need not
-show the complete parameter search.
+paper 应报告 selected rule 和 focused evidence，无需展示完整 parameter search。
 
-## Decision Rules
+## 决策规则（Decision Rules）
 
-Write the final decision from these rules rather than selecting the visually
-best curve.
+最终 decision 必须依据以下规则写出，而不是选择视觉上最好的 curve。
 
-1. Correctness is mandatory. A candidate that violates formula tests or causes
-   invalid initial steps is rejected.
-2. Robustness has priority over a small gain in one profile. Avoid a candidate
-   with a material loss in final solved fraction under either budget.
-3. Use paired problem level evidence. Determine whether gains and losses are
-   broad or driven by a few problems.
-4. Require consistency across the principal accuracy levels.
-5. Require a `c_x` challenger to show a clear, stable, and material advantage
-   over `c_x = 1` separately at both `200*N` and `500*N`. Winning at only one
-   checkpoint or tying at either checkpoint does not qualify.
-6. Use transformed problems as a regression check.
-7. Treat `c_x = 1` as the incumbent. A different `c_x` must show a stable and
-   material advantage to replace it; practical equivalence favors the
-   incumbent.
-8. If several candidates satisfy every advancement criterion, retain them as
-   finalists and defer tie-breaking until their actual evidence is reviewed.
-   Do not expand the grid or impose an a priori ranking merely to force one
-   winner.
-9. Treat `c_tau = 1` as the incumbent. At the same `c_x`, a larger value must
-   clearly outperform it separately at both budget checkpoints; a tie, mixed
-   budget result, or inactive lower bound retains `c_tau = 1`.
-10. Controlled tests may reject an unsafe `c_tau`, but cannot by themselves
-    select a larger value without the required benchmark advantage.
-11. Do not use a weighted aggregate score unless its weights and interpretation
-   are fixed before the final results are inspected.
-12. Record uncertainty from random transformations or other randomized
-    features. Do not interpret small differences within run variation as a
-    ranking.
+1. Correctness 是强制要求。任何违反 formula tests 或产生无效 initial
+   steps 的 candidate 都必须淘汰。
+2. Robustness 优先于某一张 profile 上的小幅收益。避免选择在任一 budget
+   下造成 final solved fraction 实质下降的 candidate。
+3. 使用 paired problem-level evidence，判断收益与损失是否广泛存在，还是
+   仅由少数 problems 驱动。
+4. 要求 candidate 在主要 accuracy levels 上保持一致。
+5. `c_x` challenger 必须在 `200*N` 和 `500*N` 两个 checkpoint 上分别对
+   `c_x = 1` 展现清晰、稳定且实质的优势。只在一个 checkpoint 获胜，或在
+   任一 checkpoint 打平，均不满足晋级条件。
+6. 使用 transformed problems 进行 regression check。
+7. 将 `c_x = 1` 视为 incumbent。其他 `c_x` 必须展现稳定且实质的优势才能
+   替换它；若实际等价，则保留 incumbent。
+8. 如果多个 candidates 满足全部 advancement criteria，将它们全部保留为
+   finalists，并在查看实际 evidence 后再进行 tie-breaking。不得仅为强行选出
+   一个 winner 而扩大 grid 或预设 a priori ranking。
+9. 将 `c_tau = 1` 视为 incumbent。在相同 `c_x` 下，更大的取值必须在两个
+   budget checkpoint 上分别明确优于它；出现 tie、mixed budget result 或
+   inactive lower bound 时，均保留 `c_tau = 1`。
+10. Controlled tests 可以淘汰不安全的 `c_tau`，但如果没有满足要求的
+    benchmark advantage，不能仅凭 controlled tests 选择更大的取值。
+11. 除非在查看最终结果前已经固定 weights 及其解释，否则不得使用 weighted
+    aggregate score。
+12. 记录 random transformations 或其他 randomized features 带来的
+    uncertainty。不得将 run variation 范围内的小差异解释为 ranking。
 
-For this study, a decrease of more than one percentage point in solved fraction
-at either budget checkpoint is a material regression. A consistent paired cost
-increase across a broad part of the jointly solved problem set is also a
-material regression even when the solved fraction is unchanged. These criteria
-are fixed before the screening results are inspected and must not be relaxed
-afterward.
+在本研究中，任一 budget checkpoint 的 solved fraction 下降超过一个百分点，
+即构成 material regression。即使 solved fraction 不变，如果 jointly solved
+problem set 中相当大比例的 paired costs 持续上升，同样构成 material regression。
+这些 criteria 在查看 screening results 前即已固定，之后不得放宽。
 
-## Required Outputs
+## 必需输出（Required Outputs）
 
-The completed study must provide
+完成本研究时必须提供：
 
-- the test helper and runner,
-- formula unit tests,
-- the controlled tolerance suite,
-- the activation audit,
-- raw run data,
-- reproducibility manifests,
-- separate common target tables for the `200*N` prefixes and `500*N`
-  histories,
-- history based profiles,
-- output diagnostics,
-- paired problem level tables,
-- results for `200*N` and `500*N`,
-- transformed problem validation,
-- the combined solver transfer check,
-- a written coefficient decision, and
-- the final production patch and regression tests.
+- test helper 和 runner；
+- formula unit tests；
+- controlled tolerance suite；
+- activation audit；
+- raw run data；
+- reproducibility manifests；
+- 分别对应 `200*N` prefixes 和 `500*N` histories 的 common target tables；
+- history-based profiles；
+- output diagnostics；
+- paired problem-level tables；
+- `200*N` 和 `500*N` 的结果；
+- transformed problem validation；
+- combined solver transfer check；
+- 书面的 coefficient decision；以及
+- 最终 production patch 和 regression tests。
 
-Suggested result directory stamp:
+建议的 result directory stamp：
 
 ```text
 auto_alpha_init_tuning_<stage>_<budget>_<feature>_<timestamp>
 ```
 
-Suggested summary file:
+建议的 summary file：
 
 ```text
 DECISION_auto_initial_step_size.md
 ```
 
-## Decision Record
+## 决策记录（Decision Record）
 
-Fill this section as the study proceeds.
+随着研究推进填写本节。
 
-### Fixed Screening Protocols
+### 固定的 screening protocols
 
-`c_x` screening:
+`c_x` screening：
 
-- Treat `c_x = 1` as the incumbent and always retain it through the `c_x`
-  screen.
-- A challenger advances only by showing a clear, stable, and material
-  advantage over the incumbent separately at both `200*N` and `500*N`;
-  winning at only one checkpoint or tying at either checkpoint does not
-  advance.
-- A decrease of more than one percentage point in solved fraction at either
-  checkpoint is a material regression and disqualifies the challenger.
-- If no challenger advances, use only `c_x = 1`. If exactly one advances,
-  retain it with the incumbent. If several advance, record all as finalists and
-  defer tie-breaking until their actual evidence is reviewed.
-- Run at most one predeclared local confirmation round for an advancing
-  interior challenger; never refine recursively.
-- Multiple finalists do not authorize a wider grid or an a priori ranking.
+- 将 `c_x = 1` 视为 incumbent，并在整个 `c_x` screen 中始终保留。
+- challenger 只有在 `200*N` 和 `500*N` 上分别对 incumbent 展现清晰、稳定且
+  实质的优势，才能晋级；只赢一个 checkpoint 或在任一 checkpoint 打平都不能
+  晋级。
+- 任一 checkpoint 的 solved fraction 下降超过一个百分点即为 material
+  regression，并淘汰该 challenger。
+- 如果没有 challenger 晋级，则只使用 `c_x = 1`；如果恰有一个晋级，则将它与
+  incumbent 一起保留；如果多个 challenger 晋级，则全部记录为 finalists，并在
+  查看实际 evidence 后再进行 tie-breaking。
+- 对晋级的 interior challenger 最多运行一次预先声明的 local confirmation
+  round；不得进行 recursive refinement。
+- 出现多个 finalists 不构成扩大 grid 或预设 a priori ranking 的理由。
 
-`c_tau` coverage:
+`c_tau` coverage：
 
-- Use all integers `1, ..., 10` in the activation audit and deterministic
-  controlled tests.
-- Use only the fixed representatives `{1, 2, 5, 10}` in the general benchmark;
-  do not expand this set after inspecting results.
-- Treat `c_tau = 1` as the incumbent. At each retained `c_x`, `{2, 5, 10}` can
-  replace it only by clearly outperforming it separately at both `200*N` and
-  `500*N`.
-- A tie, mixed budget result, or effectively inactive tolerance lower bound
-  retains `c_tau = 1`.
-- Controlled tests may disqualify an unsafe challenger and explain results,
-  but do not independently select a larger `c_tau`.
-- If several challengers satisfy every criterion, record them as finalists and
-  defer tie-breaking until their actual evidence is reviewed; do not expand the
-  grid to force a unique choice.
+- 在 activation audit 和 deterministic controlled tests 中使用全部整数
+  `1, ..., 10`。
+- general benchmark 只使用固定 representatives `{1, 2, 5, 10}`；查看结果后
+  不得扩大该集合。
+- 将 `c_tau = 1` 视为 incumbent。对每个保留的 `c_x`，`{2, 5, 10}` 只有在
+  `200*N` 和 `500*N` 上分别明确优于它，才能替换它。
+- 出现 tie、mixed budget result 或 effectively inactive tolerance lower
+  bound 时，保留 `c_tau = 1`。
+- Controlled tests 可以淘汰不安全的 challenger 并解释结果，但不能独立选择更大的
+  `c_tau`。
+- 如果多个 challengers 满足全部 criteria，则全部记录为 finalists，并在查看实际
+  evidence 后再进行 tie-breaking；不得为了强行得到唯一选择而扩大 grid。
 
-Budget and target protocol:
+Budget 与 target protocol：
 
-- Run each solver/problem/configuration combination only once, to `500*N`.
-- Reconstruct the `200*N` benchmark from the first `200*N` evaluations of each
-  saved history.
-- Compute the `200*N` common targets from the complete pool of `200*N` history
-  prefixes and compute the `500*N` common targets separately from the complete
-  `500*N` histories.
-- Do not use targets computed from `500*N` data in the `200*N` analysis.
-- Use history based evidence at both checkpoints and returned-point/output
-  evidence only at the actual end of the `500*N` runs.
+- 每个 solver/problem/configuration combination 只运行一次，直到 `500*N`。
+- 使用每条已保存 history 的前 `200*N` 次 evaluations 重建 `200*N` benchmark。
+- 从完整的 `200*N` history prefixes pool 计算 `200*N` common targets；另行从
+  完整的 `500*N` histories 计算 `500*N` common targets。
+- `200*N` analysis 不得使用由 `500*N` data 计算的 targets。
+- 两个 checkpoint 都使用 history-based evidence；returned-point/output
+  evidence 只用于 `500*N` runs 的实际终点。
 
-### Base Configuration
+### 基础 configuration
 
-- BDS commit: not recorded.
-- Profile tool commit or version: not recorded.
-- MATLAB version: not recorded.
-- Problem list: fixed audited 122-problem S2MPJ snapshot, unconstrained,
-  dimensions `6` through `50`, with the existing 42-problem exclusion list;
-  exact ordered names must be copied into the run manifest.
-- Algorithm: `cbds`; effective coordinate basis `eye(N)`, `N` blocks, batch
-  size `N`, sorted visiting.
-- Step tolerance: fixed `1e-6`.
-- Expansion factor: fixed released noiseless default `1.8`.
-- Contraction factor: fixed released noiseless default `0.5`.
-- Noisy flag: fixed `false`.
-- Forcing function: fixed `@(alpha) alpha^2`.
-- Reduction factor: fixed `[0, eps, eps]`.
-- Inner polling and cycling: fixed `"opportunistic"` and `1`, respectively.
-- Objective target: fixed `-Inf`.
-- Optional function-value and estimated-gradient stops: disabled.
-- BDS seed: fixed experimental value `0`.
-- Plain feature: one run per problem.
-- Transformed feature: fixed profile seed `0`, five runs, pure orthogonal
-  rotation, `condition_factor = 0`.
+- BDS commit：尚未记录。
+- profile tool commit 或 version：尚未记录。
+- MATLAB version：尚未记录。
+- problem list：固定为已完成 audit 的 122-problem S2MPJ snapshot，类型为
+  unconstrained，dimensions 为 `6` 至 `50`，并使用现有的 42-problem
+  exclusion list；必须将准确且有序的 names 复制到 run manifest。
+- Algorithm：`cbds`；effective coordinate basis 为 `eye(N)`，共 `N` 个
+  blocks，batch size 为 `N`，采用 sorted visiting。
+- Step tolerance：固定为 `1e-6`。
+- Expansion factor：固定为 released noiseless default `1.8`。
+- Contraction factor：固定为 released noiseless default `0.5`。
+- Noisy flag：固定为 `false`。
+- Forcing function：固定为 `@(alpha) alpha^2`。
+- Reduction factor：固定为 `[0, eps, eps]`。
+- Inner polling 和 cycling：分别固定为 `"opportunistic"` 和 `1`。
+- Objective target：固定为 `-Inf`。
+- Optional function-value stop 和 estimated-gradient stop：disabled。
+- BDS seed：固定 experimental value `0`。
+- Plain feature：每个 problem 运行一次。
+- Transformed feature：固定 profile seed `0`，运行五次，使用 pure
+  orthogonal rotation，`condition_factor = 0`。
 
-### Screening Results
+### Screening 结果
 
-- Activation audit: not run.
-- `c_x` incumbent: `1`.
-- Qualifying `c_x` challengers/finalists: not selected.
-- `c_tau` incumbent: `1`.
-- Per-`c_x` qualifying `c_tau` challengers/finalists: not selected.
-- Result paths: none.
+- Activation audit：尚未运行。
+- `c_x` incumbent：`1`。
+- 满足条件的 `c_x` challengers/finalists：尚未选择。
+- `c_tau` incumbent：`1`。
+- 每个 `c_x` 下满足条件的 `c_tau` challengers/finalists：尚未选择。
+- Result paths：无。
 
-### Finalists
+### Finalists 记录
 
-No finalists selected.
+尚未选择 finalists。
 
-### Provisional Decision
+### 暂定 decision（Provisional Decision）
 
-No provisional coefficient pair selected.
+尚未选择 provisional coefficient pair。
 
-### Combined Solver Check
+### Combined solver check 状态
 
-Not run.
+尚未运行。
 
-### Final Decision
+### 最终 decision（Final Decision）
 
-No final coefficient pair selected.
+尚未选择 final coefficient pair。
 
-## Completion Criteria
+## 完成 criteria（Completion Criteria）
 
-Mark this TODO `[done]` only when all of the following are true.
+只有满足以下全部条件，才能将本 TODO 标记为 `[done]`：
 
-- One coefficient pair has been selected with a written rationale.
-- Both budgets have been inspected.
-- The activation of `c_tau` has been quantified.
-- Controlled edge cases and floating point scale cases pass.
-- Raw data and manifests are retained.
-- Separate common targets from the appropriate history horizon were used for
-  every `200*N` and `500*N` cross-candidate comparison.
-- The selected pair passes transformed problem validation.
-- The selected pair passes the combined solver check.
-- Released and accelerated implementations use the same rule.
-- Production code has focused regression tests and human review.
-- The manuscript formula and numerical experiment are synchronized.
+- 已选择一个 coefficient pair，并提供书面 rationale。
+- 已检查两个 budgets。
+- 已量化 `c_tau` 的 activation。
+- Controlled edge cases 和 floating-point scale cases 已通过。
+- 已保留 raw data 和 manifests。
+- 每次 `200*N` 和 `500*N` cross-candidate comparison 都使用了由相应
+  history horizon 计算的独立 common targets。
+- selected pair 已通过 transformed problem validation。
+- selected pair 已通过 combined solver check。
+- released implementation 和 accelerated implementation 使用同一 rule。
+- production code 已有聚焦的 regression tests 和 human review。
+- manuscript formula 与 numerical experiment 已同步。

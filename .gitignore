@@ -88,6 +88,7 @@ tests/tuning/solver_1*
 tests/tuning/private/tmp
 tests/out
 tests/competitors/out
+tests/accelerated_bds_dimension_comparison/
 
 .DS_Store
 *.pdf
