@@ -207,7 +207,8 @@ if isfield(options, "alpha_init")
         for i = 1:options.num_blocks
             direction_indices = grouped_direction_indices{i};
             coordinate_indices = unique(ceil(direction_indices(:) / 2));
-            alpha_coord = get_auto_alpha_init(x0(coordinate_indices), options.StepTolerance(i));
+            alpha_coord = get_auto_alpha_init( ...
+                x0(coordinate_indices), options.StepTolerance(i), 1, 1);
             alpha_block(i) = max(alpha_coord);
         end
         options.alpha_init = alpha_block;
@@ -297,14 +298,4 @@ if  options.output_xhist
         warning("xhist will be not included in the output due to the limit of memory.");
     end
 end
-end
-
-function alpha_coord = get_auto_alpha_init(x0, StepTolerance)
-%GET_AUTO_ALPHA_INIT returns protected coordinate-wise initial steps.
-
-abs_x0 = abs(x0(:));
-alpha_coord = max(abs_x0, StepTolerance);
-alpha_coord(abs_x0 == 0) = 1;
-alpha_coord = max(alpha_coord, StepTolerance);
-
 end

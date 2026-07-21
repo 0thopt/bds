@@ -201,6 +201,7 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
         options.run_plain = false;
     end
     solvers = cell(1, length(options.solver_names));
+    has_auto_alpha_candidate = false;
     for i = 1:length(options.solver_names)
         switch options.solver_names{i}
             case 'bds-infinite'
@@ -472,8 +473,22 @@ function [solver_scores, profile_scores] = profile_optiprofiler(options)
             case 'cbds-orig-smart-alpha-init'
                 solvers{i} = @cbds_orig_smart_alpha_init_test;
             otherwise
-                error('Unknown solver');
+                [is_auto_candidate, c_x, c_tau, use_acceleration] = ...
+                    parse_auto_alpha_init_solver_name(options.solver_names{i});
+                if ~is_auto_candidate
+                    error('Unknown solver');
+                end
+                has_auto_alpha_candidate = true;
+                solvers{i} = @(fun, x0) auto_alpha_init_profile_test( ...
+                    fun, x0, c_x, c_tau, use_acceleration);
         end
+    end
+    if has_auto_alpha_candidate
+        if isfield(options, 'max_eval_factor') && options.max_eval_factor ~= 500
+            error('profile_optiprofiler:AutoAlphaBudgetMismatch', ...
+                'Automatic initial-step candidates require max_eval_factor = 500.');
+        end
+        options.max_eval_factor = 500;
     end
     options.benchmark_id = [];
     for i = 1:length(solvers)
@@ -1802,6 +1817,63 @@ function x = accelerated_bds_options_budget_limited_test(fun, x0)
     options.use_momentum_extrapolation = true;
     options.StepTolerance = 1e-12;
     x = accelerated_bds_options(fun, x0, options);
+
+end
+
+function x = auto_alpha_init_profile_test(fun, x0, c_x, c_tau, use_acceleration)
+
+    options.Algorithm = 'cbds';
+    options.MaxFunctionEvaluations = 500*length(x0);
+    options.StepTolerance = 1e-6;
+    options.ftarget = -Inf;
+    options.expand = 1.8;
+    options.shrink = 0.5;
+    options.is_noisy = false;
+    options.forcing_function = @(alpha) alpha^2;
+    options.reduction_factor = [0, eps, eps];
+    options.polling_inner = 'opportunistic';
+    options.cycling_inner = 1;
+    options.seed = 0;
+    options.use_function_value_stop = false;
+    options.use_estimated_gradient_stop = false;
+    alpha_init = auto_alpha_init_candidate( ...
+        x0, options.StepTolerance, c_x, c_tau);
+
+    if use_acceleration
+        options.use_productive_direction_memory = true;
+        options.use_sweep_pattern_direction = true;
+        options.use_momentum_extrapolation = true;
+        options.alpha_init = alpha_init;
+        x = accelerated_bds_options(fun, x0, options);
+    else
+        options.alpha_init = alpha_init;
+        x = bds(fun, x0, options);
+    end
+
+end
+
+function [matched, c_x, c_tau, use_acceleration] = ...
+        parse_auto_alpha_init_solver_name(solver_name)
+
+    expression = ['^auto-cx-([0-9]+(?:p[0-9]+)?)-', ...
+        'ctau-([0-9]+(?:p[0-9]+)?)-', ...
+        '(plain|accelerated-all-on)-500n$'];
+    tokens = regexp(char(solver_name), expression, 'tokens', 'once');
+    matched = ~isempty(tokens);
+    c_x = NaN;
+    c_tau = NaN;
+    use_acceleration = false;
+    if ~matched
+        return;
+    end
+
+    c_x = str2double(strrep(tokens{1}, 'p', '.'));
+    c_tau = str2double(strrep(tokens{2}, 'p', '.'));
+    if ~(isfinite(c_x) && c_x > 0 && isfinite(c_tau) && c_tau > 0)
+        error('profile_optiprofiler:InvalidAutoAlphaCoefficient', ...
+            'Automatic initial-step coefficients must be finite and positive.');
+    end
+    use_acceleration = strcmp(tokens{3}, 'accelerated-all-on');
 
 end
 

@@ -315,6 +315,76 @@ validate_options(options, n);
 
 end
 
+function get_auto_alpha_init_test(testcase)
+%GET_AUTO_ALPHA_INIT_TEST tests the automatic initial-step formula.
+
+x0 = [0; 2; -3; 1e-8];
+StepTolerance = 1e-6;
+expected = [1; 1; 1.5; 5e-6];
+actual = get_auto_alpha_init(x0, StepTolerance, 0.5, 5);
+verifyEqual(testcase, actual, expected)
+verifyEqual(testcase, ...
+    get_auto_alpha_init(-x0, StepTolerance, 0.5, 5), expected)
+
+vector_tolerance = [2; 1e-6; 1e-2; 1e-10];
+expected = [10; 2; 3; 1e-8];
+verifyEqual(testcase, ...
+    get_auto_alpha_init(x0', vector_tolerance', 1, 5), expected)
+
+abs_x0 = abs(x0);
+incumbent = max(abs_x0, StepTolerance);
+incumbent(abs_x0 == 0) = 1;
+incumbent = max(incumbent, StepTolerance);
+verifyEqual(testcase, ...
+    get_auto_alpha_init(x0, StepTolerance, 1, 1), incumbent)
+
+tiny_nonzero = get_auto_alpha_init(1e-12, StepTolerance, 0.5, 5);
+exact_zero = get_auto_alpha_init(0, StepTolerance, 0.5, 5);
+verifyEqual(testcase, tiny_nonzero, 5e-6)
+verifyEqual(testcase, exact_zero, 1)
+
+verifyError(testcase, ...
+    @() get_auto_alpha_init(x0, StepTolerance, 0, 1), ...
+    'BDS:get_auto_alpha_init:InvalidCoefficient')
+verifyError(testcase, ...
+    @() get_auto_alpha_init(x0, StepTolerance, Inf, 1), ...
+    'BDS:get_auto_alpha_init:InvalidCoefficient')
+verifyError(testcase, ...
+    @() get_auto_alpha_init(x0, [1e-6; 1e-6], 1, 1), ...
+    'BDS:get_auto_alpha_init:InvalidStepToleranceLength')
+verifyError(testcase, ...
+    @() get_auto_alpha_init(realmax, 1, 2, 1), ...
+    'BDS:get_auto_alpha_init:InvalidResult')
+
+end
+
+function alpha_init_option_regression_test(testcase)
+%ALPHA_INIT_OPTION_REGRESSION_TEST locks non-auto option behavior.
+
+x0 = [0; 2; -3];
+base_options.MaxFunctionEvaluations = 1;
+base_options.output_alpha_hist = true;
+
+[~, ~, ~, output] = bds(@(x) sum(x.^2), x0, base_options);
+verifyEqual(testcase, output.alpha_hist(:, 1), ones(3, 1))
+
+scalar_options = base_options;
+scalar_options.alpha_init = 2;
+[~, ~, ~, output] = bds(@(x) sum(x.^2), x0, scalar_options);
+verifyEqual(testcase, output.alpha_hist(:, 1), 2*ones(3, 1))
+
+vector_options = base_options;
+vector_options.alpha_init = [1; 2; 3];
+[~, ~, ~, output] = bds(@(x) sum(x.^2), x0, vector_options);
+verifyEqual(testcase, output.alpha_hist(:, 1), vector_options.alpha_init)
+
+auto_options = base_options;
+auto_options.alpha_init = 'auto';
+[~, ~, ~, output] = bds(@(x) sum(x.^2), x0, auto_options);
+verifyEqual(testcase, output.alpha_hist(:, 1), [1; 2; 3])
+
+end
+
 function direction_set_test(testcase)
 %DIRECTION_SET_TEST tests the file private/get_direction_set.m.
 
